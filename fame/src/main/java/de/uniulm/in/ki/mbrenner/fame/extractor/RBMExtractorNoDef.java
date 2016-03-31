@@ -28,14 +28,20 @@ public class RBMExtractorNoDef {
 	private Integer owlThing;
 	private boolean debug = false;
 	private Integer[] ruleAxioms;
-	
+
+	private Set<OWLAxiom> base;
+
 	public RBMExtractorNoDef(boolean debug){
 		this.debug = debug;
+	}
+
+	public void setBase(Set<OWLAxiom> base){
+		this.base = base;
 	}
 	
 	/**
 	 * Uses the rules provided by the rule set to extract a module using the given signature
-	 * @param ruleSet A set of rules constructed by a RuleBuilder 
+	 * @param rules A set of rules constructed by a RuleBuilder
 	 * @param signature A set of OWL classes forming a signature
 	 * @return A set of OWL axioms forming a module for the signature
 	 */
@@ -60,10 +66,9 @@ public class RBMExtractorNoDef {
 		//OWL Thing is always assumed to be not bottom
 		OWLDataFactory factory = new OWLDataFactoryImpl();
 		owlThing = rules.putObject(factory.getOWLThing());
-		queue.add(owlThing);
+		//queue.add(owlThing);
 		//System.out.println("queue now contains " + queue.size() + " elements");
-		
-		knownNotBottom[owlThing] = true;//.add(owlThing);
+		//knownNotBottom[owlThing] = true;//.add(owlThing);
 
 		int[] ruleCounter = new int[rules.size()]; 						//counter for the number of elements in the rule body
 		Integer[] ruleHeads = new Integer[rules.size()]; 				//rule heads of intermediary rules
@@ -73,6 +78,13 @@ public class RBMExtractorNoDef {
 		finalModule.addAll(rules.getBaseModule());
 		rules.getBaseSignature().forEach(x -> addQueue(x));
 		//System.out.println("queue now contains " + queue.size() + " elements");
+		//add predefined base if available
+		if(base != null){
+			finalModule.addAll(base);
+			for(OWLAxiom a : base){
+				a.getSignature().forEach(x -> addQueue(rules.putObject(x)));
+			}
+		}
 		
 		int pos = 0;
 		for(Rule rule : rules){
@@ -103,14 +115,12 @@ public class RBMExtractorNoDef {
 					if(head == null){
 						Integer currentAxiom = ruleAxioms[cRule];
 						//skip, if the axiom is already in the module
-						if(knownNotBottom[currentAxiom]) continue;
-						
 						//in case the head is an axiom, add all new vocabulary from the axiom
 						//into the processing queue
 						rules.getAxiomSignature(ruleAxioms[cRule]).forEach(x -> addQueue(x));
 						module.add(ruleAxioms[cRule]);
 						knownNotBottom[ruleAxioms[cRule]] = true;
-						if(debug) System.out.println("added axiom " + ClassPrinter.printAxiom((OWLAxiom) rules.lookup(currentAxiom)));
+						if(debug) System.out.println("added axiom " + rules.lookup(currentAxiom));//ClassPrinter.printAxiom((OWLAxiom) rules.lookup(currentAxiom)));
 					}
 					else{
 						/*if(head instanceof OWLAxiom){
@@ -131,6 +141,10 @@ public class RBMExtractorNoDef {
 	}
 	
 	private boolean addQueue(Integer o){
+		if(o == owlThing){
+			//handle owl:thing as a special case
+			return false;
+		}
 		//add the entity to the list of those known to be possibly not bottom
 		if(knownNotBottom[o] == false){
 			knownNotBottom[o] = true;

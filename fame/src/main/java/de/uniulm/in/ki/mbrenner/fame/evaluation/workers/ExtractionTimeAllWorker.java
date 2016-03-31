@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -31,17 +33,17 @@ public class ExtractionTimeAllWorker implements Callable<Long[]> {
 	public Long[] call() throws Exception {
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 		OWLOntology ontology = m.loadOntologyFromOntologyDocument(file);
-		System.out.println("[Task " + id + "] loaded ontology");
-		System.out.println("[Task " + id + "]" + ontology.getAxiomCount() + " axioms in the ontology");
+		EvaluationMain.out.println("[Task " + id + "] loaded ontology");
+		EvaluationMain.out.println("[Task " + id + "]" + ontology.getAxiomCount() + " axioms in the ontology");
 		
 		
-		RuleSet modeRules = (new BottomModeRuleBuilder()).buildRules(ontology.getAxioms());
-		RuleSet elRules = (new ELRuleBuilder()).buildRules(ontology.getAxioms());
+		RuleSet modeRules = (new BottomModeRuleBuilder()).buildRules(ontology);
+		RuleSet elRules = (new ELRuleBuilder()).buildRules(ontology);
 		SyntacticLocalityModuleExtractor owlapi = new SyntacticLocalityModuleExtractor(m, ontology, ModuleType.BOT);
 		RBMExtractor rbme1 = new RBMExtractor(false, false);
 		RBMExtractor rbme2 = new RBMExtractor(true, false);
-		
-		System.out.println("[Task " + id + "] finished setup phase");
+
+		EvaluationMain.out.println("[Task " + id + "] finished setup phase");
 		
 		Long[] results = new Long[5];
 		
@@ -51,7 +53,7 @@ public class ExtractionTimeAllWorker implements Callable<Long[]> {
 			if(!(e instanceof OWLClass) &&!(e instanceof OWLObjectProperty)) continue;
 			sig.add(e);
 		}
-		System.out.println("[Task " + id + "] retained " + sig.size() + " entities after filtering");
+		EvaluationMain.out.println("[Task " + id + "] retained " + sig.size() + " entities after filtering");
 
 		Set<OWLEntity> signature;
 		Set<OWLAxiom> module = null;

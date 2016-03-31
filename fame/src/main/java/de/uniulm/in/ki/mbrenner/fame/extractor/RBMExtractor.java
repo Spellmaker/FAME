@@ -1,20 +1,13 @@
 package de.uniulm.in.ki.mbrenner.fame.extractor;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.*;
 import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.ClassPrinter;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
 
 /**
  * Extracts a local module from an ontology
@@ -34,12 +27,32 @@ public class RBMExtractor {
 	
 	private Integer[] defDeclPos;
 	private Integer[] ruleAxioms;
-	
+
+	public RBMExtractor(){
+		this.doDefinitions = false;
+		this.debug = false;
+	}
+
 	public RBMExtractor(boolean doDefinitions, boolean debug){
 		this.doDefinitions = doDefinitions;
 		this.debug = debug;
 	}
-	
+
+	public Map<OWLObject, OWLAxiom> getActiveDefinitions(){
+		Map<OWLObject, OWLAxiom> result = new HashMap<>();
+
+		for(int i = 0; i < definitions.length; i++){
+			if(definitions[i] == null || definitions[i] <= 0) continue;
+
+			OWLEquivalentClassesAxiom ax = (OWLEquivalentClassesAxiom) rules.lookup(definitions[i]);
+			OWLObject def = rules.lookup(i);
+
+			result.put(def, ax);
+		}
+
+		return result;
+	}
+
 	/**
 	 * Uses the rules provided by the rule set to extract a module using the given signature
 	 * @param rules A set of rules constructed by a RuleBuilder
@@ -68,10 +81,10 @@ public class RBMExtractor {
 		//OWL Thing is always assumed to be not bottom
 		OWLDataFactory factory = new OWLDataFactoryImpl();
 		owlThing = rules.putObject(factory.getOWLThing());
-		queue.add(owlThing);
+		//queue.add(owlThing);
 		//System.out.println("queue now contains " + queue.size() + " elements");
 		
-		knownNotBottom[owlThing] = true;//.add(owlThing);
+		//knownNotBottom[owlThing] = true;//.add(owlThing);
 
 		int[] ruleCounter = new int[rules.size()]; 						//counter for the number of elements in the rule body
 		Integer[] ruleHeads = new Integer[rules.size()]; 				//rule heads of intermediary rules
@@ -106,7 +119,6 @@ public class RBMExtractor {
 			finalModule.forEach(x -> System.out.println(ClassPrinter.printAxiom(x)));
 			}
 		}*/
-		
 		
 		//main processing loop
 		for(Integer front = queue.poll(); front != null; front = queue.poll()){
@@ -213,6 +225,9 @@ public class RBMExtractor {
 	}
 	
 	private boolean addQueue(Integer o){
+		if(o == owlThing){
+			return false;
+		}
 		if(doDefinitions && definitions[o] != null && definitions[o] >= 0){
 			collapseDefinition(o);
 			if(debug) System.out.println("collapsing definition of element " + rules.lookup(o) + " due to double adding");

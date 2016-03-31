@@ -1,26 +1,33 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.io.PrintStream;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+
+import de.tu_dresden.inf.lat.hys.graph_tools.SCCAlgorithm;
+import de.tudresden.inf.lat.jcel.coreontology.axiom.NormalizedIntegerAxiom;
+import de.tudresden.inf.lat.jcel.ontology.axiom.complex.ComplexIntegerAxiom;
+import de.tudresden.inf.lat.jcel.ontology.axiom.extension.IntegerOntologyObjectFactoryImpl;
+import de.tudresden.inf.lat.jcel.ontology.datatype.IntegerObjectProperty;
+import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
+import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.TestModuleSizes;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.timeworkers.*;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
+import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
+import de.uniulm.in.ki.mbrenner.fame.util.DevNull;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.*;
 
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 
 public class RandTimeWorker implements Callable<Long[]>{
 	private File f;
@@ -29,11 +36,28 @@ public class RandTimeWorker implements Callable<Long[]>{
 	
 	public static int iterations = 300;
 	public static int entities = 100;
-	
+	public static int sigsize = 1;
+
+	private Random r;
+	private List<OWLEntity> allEntities;
+
+	public Set<OWLEntity> getRandomSignature(){
+		return getRandomSignature(1 + r.nextInt(allEntities.size()));
+	}
+
+	public Set<OWLEntity> getRandomSignature(int size){
+		Set<OWLEntity> result = new HashSet<>();
+		for(int i = 0; i < size; i++){
+			result.add(allEntities.get(r.nextInt(allEntities.size())));
+		}
+		return result;
+	}
+
 	public RandTimeWorker(File f, ExecutorService pool, int id){
 		this.f = f;
 		this.pool = pool;
 		this.id = id;
+		this.r = new Random();
 	}
 	
 	@Override
@@ -42,46 +66,112 @@ public class RandTimeWorker implements Callable<Long[]>{
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 		OWLOntology ontology = m.loadOntologyFromOntologyDocument(f);
 		message("Generating rules");
-		RuleSet rulesEL = (new ELRuleBuilder()).buildRules(ontology.getAxioms());
-		RuleSet rulesMode = (new BottomModeRuleBuilder()).buildRules(ontology.getAxioms());
-		message("Filtering signature");
-		List<OWLEntity> entityList = new ArrayList<>(ontology.getSignature().size());
-		for(OWLEntity e : ontology.getSignature()){
-			if(!(e instanceof OWLClass) &&!(e instanceof OWLObjectProperty)) continue;
-			
-			entityList.add(e);
+		//preparation work
+		RuleSet rulesEL = (new ELRuleBuilder()).buildRules(ontology);
+
+		RuleSet rulesMode = (new BottomModeRuleBuilder()).buildRules(ontology);
+
+		Translator trans = null;
+		Set<ComplexIntegerAxiom> transOntology = null;
+		Set<NormalizedIntegerAxiom> normOntology = null;
+		try {
+			trans = new Translator(m.getOWLDataFactory(), new IntegerOntologyObjectFactoryImpl());
+			transOntology = trans.translateSA(ontology.getAxioms());
+			normOntology = (new OntologyNormalizer()).normalize(transOntology, trans.getOntologyObjectFactory());
 		}
-		message("testing with " + entities + " random entities and " + iterations + " iterations");
-		Random rand = new Random();
+		catch(Throwable t){
+			trans = null;
+			transOntology = null;
+			normOntology = null;
+		}
+		allEntities = new ArrayList<>(ontology.getSignature().size());
+		allEntities.addAll(ontology.getClassesInSignature());
+		allEntities.addAll(ontology.getObjectPropertiesInSignature());
+
+		HyS hys = null;
+		try{
+			hys = new HyS(ontology, ModuleType.BOT);
+			hys.condense(SCCAlgorithm.TARJAN);
+			hys.condense(SCCAlgorithm.MREACHABILITY);
+		}
+		catch(Throwable t){
+			hys = null;
+		}
+
+		IncrementalExtractor ie = new IncrementalExtractor(ontology);
+
+		message("testing with " + entities + " random entities, " + iterations + " iterations and " + sigsize + " signature size");
+		//Random rand = new Random();
 		List<Future<Long[]>> futures = new LinkedList<>();
+		Map<Future<Long[]>, Integer> map = new HashMap<>();
 		for(int i = 0; i < entities; i++){
-			Set<OWLEntity> signature = new HashSet<>();
-			signature.add(entityList.get(rand.nextInt(entityList.size())));
-			
-			futures.add(pool.submit(new OWLExtractionWorker(m, ontology, signature)));
-			futures.add(pool.submit(new FAMEExtractionWorker(signature, false, rulesEL, 1)));
-			futures.add(pool.submit(new FAMEExtractionWorker(signature, false, rulesMode, 2)));
-			futures.add(pool.submit(new FAMEExtractionWorker(signature, true, rulesEL, 3)));
-			futures.add(pool.submit(new FAMEExtractionWorker(signature, true, rulesMode, 4)));
-			futures.add(pool.submit(new FAMENoDefExtractionWorker(signature, rulesEL, 5)));
-			futures.add(pool.submit(new FAMENoDefExtractionWorker(signature, rulesMode, 6)));
+			//OWLEntity e = allEntities.get(rand.nextInt(allEntities.size()));
+			//Set<OWLEntity> signature = new HashSet<>();
+			//signature.add(e);
+			Set<OWLEntity> signature = getRandomSignature(sigsize);
+			Set<Integer> intClasses = new HashSet<>();
+			Set<Integer> intProperties = new HashSet<>();
+			for(OWLEntity e : signature){
+				if(e instanceof OWLClass) 	intClasses.add(trans.translateC((OWLClass) e).getId());
+				else						intProperties.add(((IntegerObjectProperty)trans.translateOPE((OWLObjectProperty) e)).getId());
+			}
+
+			Future<Long[]> f = pool.submit(new OWLExtractionWorker(m, ontology, signature));
+			futures.add(f); map.put(f, 0);
+			f = pool.submit(new FAMEExtractionWorker(signature, false, rulesEL, 1));
+			futures.add(f); map.put(f, 1);
+			f = pool.submit(new FAMEExtractionWorker(signature, false, rulesMode, 2));
+			futures.add(f); map.put(f, 2);
+			f = pool.submit(new FAMEExtractionWorker(signature, true, rulesEL, 3));
+			futures.add(f); map.put(f, 3);
+			f = pool.submit(new FAMEExtractionWorker(signature, true, rulesMode, 4));
+			futures.add(f); map.put(f, 4);
+			f = pool.submit(new FAMENoDefExtractionWorker(signature, rulesEL, 5));
+			futures.add(f); map.put(f, 5);
+			f = pool.submit(new FAMENoDefExtractionWorker(signature, rulesMode, 6));
+			futures.add(f); map.put(f, 6);
+			if(hys != null) {
+				f = pool.submit(new HySExtractionWorker(hys, signature, 7));
+				futures.add(f);
+				map.put(f, 7);
+			}
+			if(normOntology != null) {
+				f = pool.submit(new JCELExtractionWorker(normOntology, intClasses, intProperties, 8));
+				futures.add(f);
+				map.put(f, 8);
+			}
+			if(sigsize == 1){
+				f = pool.submit(new IncrementalExtractionWorker(signature, ie, 9));
+				futures.add(f); map.put(f, 9);
+			}
 		}
 		
-		Long[] result = new Long[7];
-		for(int i = 0; i < result.length; i++) result[i] = 0L;
+		Long[] result = new Long[12];
+		for(int i = 0; i < result.length; i++) result[i] = -1L;
+		result[0] = (long) ontology.getAxioms().size();
+		result[1] = 0L;
+		for(OWLAxiom a : ontology.getAxioms()){
+			if(a instanceof OWLLogicalAxiom) result[1]++;
+		}
+
 
 		int begin = futures.size();
 		int old = 0;
 		while(futures.size() > 0){
 			for(int i = 0; i < futures.size(); i++){
 				if(futures.get(i).isDone()){
-					Long[] res = futures.get(i).get();
-					result[res[0].intValue()] += res[1];
+					Future<Long[]> current = futures.get(i);
 					futures.remove(i--);
-					
+					try {
+						Long[] res = current.get();
+						result[res[0].intValue() + 2] += res[1];
+					}
+					catch(Throwable e){
+						EvaluationMain.out.println("[Task " + id + "] Had errors for execution with " + getName(map.get(f)));
+					}
 					int percent = getPercent(begin, futures.size());
-					if(percent - old != 0 && percent % 5 == 0){
-						System.out.println("[Task " + id + "] " + getPercent(begin, futures.size()) + "% processed");
+					if (percent - old != 0 && percent % 5 == 0) {
+						EvaluationMain.out.println("[Task " + id + "] " + getPercent(begin, futures.size()) + "% processed");
 						old = percent;
 					}
 				}
@@ -90,9 +180,35 @@ public class RandTimeWorker implements Callable<Long[]>{
 		
 		return result;
 	}
+
+	private String getName(int id){
+		switch(id) {
+			case 0:
+				return "OWLAPI";
+			case 1:
+				return "FAME+EL";
+			case 2:
+				return "FAME+BM";
+			case 3:
+				return "FAME+Def+EL";
+			case 4:
+				return "FAME+Def+BM";
+			case 5:
+				return "FAMENDef+EL";
+			case 6:
+				return "FAMENDef+BM";
+			case 7:
+				return "HyS";
+			case 8:
+				return "JCEL";
+			case 9:
+				return "INCR";
+		}
+		return "unknown";
+	}
 	
 	private void message(String s){
-		System.out.println("[Task " + id + "] " + s);
+		EvaluationMain.out.println("[Task " + id + "] " + s);
 	}
 	
 

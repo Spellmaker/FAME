@@ -15,21 +15,20 @@ import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
 import objectexplorer.MemoryMeasurer;
 
 public class RuleSizeWorker implements Callable<Long[]>{
-	private File file;
+	public File file;
 	
 	public RuleSizeWorker(File file){
 		this.file = file;
 	}
-	
-	
+
 	@Override
 	public Long[] call() throws Exception {
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 		OWLOntology ontology = m.loadOntologyFromOntologyDocument(file);
 		
-		RuleSet r1 = (new ELRuleBuilder()).buildRules(ontology.getAxioms());
-		RuleSet r2 = (new BottomModeRuleBuilder()).buildRules(ontology.getAxioms());
-		CompressedRuleSet r3 = (new CompressedRuleBuilder()).buildRules(ontology.getAxioms());
+		RuleSet r1 = (new ELRuleBuilder()).buildRules(ontology);
+		RuleSet r2 = (new BottomModeRuleBuilder()).buildRules(ontology);
+		CompressedRuleSet r3 = (new CompressedRuleBuilder()).buildRules(ontology);
 		
 		Long[] res = new Long[8];
 		res[0] = (long) ontology.getAxioms().size();

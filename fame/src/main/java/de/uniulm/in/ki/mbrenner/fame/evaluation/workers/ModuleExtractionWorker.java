@@ -1,15 +1,19 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeSingleResult;
+import de.uniulm.in.ki.mbrenner.fame.util.Misc;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
 
-public class ModuleExtractionWorker implements Callable<Pair<Boolean, Integer>> {
+public class ModuleExtractionWorker implements Callable<ModuleSizeSingleResult> {
 	private OWLEntity e;
 	private RuleSet ruleSet;
 	private boolean doDef;
@@ -23,20 +27,10 @@ public class ModuleExtractionWorker implements Callable<Pair<Boolean, Integer>> 
 	
 	
 	@Override
-	public Pair<Boolean, Integer> call() throws Exception {
-		Set<OWLEntity> signature = new HashSet<>();
-		signature.add(e);
+	public ModuleSizeSingleResult call() throws Exception {
 		RBMExtractor extr = new RBMExtractor(doDef, false);
-		return new Pair<>(doDef, extr.extractModule(ruleSet, signature).size());
+		Set<OWLAxiom> mod = extr.extractModule(ruleSet, Collections.singleton(e));
+		return new ModuleSizeSingleResult(doDef, mod.size(), Misc.stripNonLogical(mod).size());
 	}
 
-}
-
-class Pair <K, V>{
-	K v1;
-	V v2;
-	public Pair(K v1, V v2){
-		this.v1 = v1;
-		this.v2 = v2;
-	}
 }

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * Interface for classes which compile OWL ontologies of different expressivities into rules.
@@ -14,11 +15,10 @@ import org.semanticweb.owlapi.model.OWLObject;
 public interface RuleBuilder {
 	/**
 	 * Compiles the given OWL axioms into a set of rules
-	 * @param axioms The axioms of the source ontologie
+	 * @param ontology The source ontology
 	 * @return A rule set managing the created rules
-	 * @throws UnknownOWLObjectException 
 	 */
-	public RuleSet buildRules(Set<OWLAxiom> axioms);
+	public RuleSet buildRules(OWLOntology ontology);
 	
 	public Collection<OWLObject> unknownObjects();
 }

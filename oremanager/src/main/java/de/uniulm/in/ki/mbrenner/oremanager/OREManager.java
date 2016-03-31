@@ -82,7 +82,40 @@ public class OREManager {
 	public void copyOntologies(Path target, OREFilter filter, String ...labels) throws IOException{
 		copyOntologies(target, filter, convertToId(labels));
 	}
-	
+
+	/**
+	 * Filters the ore ontologies and returns ontologies satisfying the filter
+	 * @param filter The filter deciding which ontologies should be included. Needs to provide a valid array of positions
+	 * @return A list of ontologies satisfying the filter
+     */
+	public List<File> filterOntologies(OREFilter filter){
+		return filterOntologies(filter, filter.positions());
+	}
+
+	public List<File> filterOntologies(OREFilter...filters){
+		List<File> result = new LinkedList<>();
+		for(String[] ont : data){
+			boolean accept = true;
+			for(OREFilter f : filters){
+				//build data
+				String[] input = null;
+				int[] pos = f.positions();
+				if(pos != null) {
+					input = new String[pos.length];
+					for (int i = 0; i < input.length; i++) {
+						input[i] = ont[pos[i]];
+					}
+				}
+				accept = accept && f.accept(input);
+				if(!accept) break;
+			}
+			if(accept){
+				result.add(fileDir.resolve(ont[mapLabelToCol.get("filename")]).toFile());
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * Filters the ore ontologies and returns ontologies satisfying a filter
 	 * @param filter The filter deciding which ontologies should be included
@@ -92,9 +125,12 @@ public class OREManager {
 	public List<File> filterOntologies(OREFilter filter, int...positions){
 		List<File> result = new LinkedList<>();
 		for(String[] ont : data){
-			String[] input = new String[positions.length];
-			for(int i = 0; i < input.length; i++){
-				input[i] = ont[positions[i]];
+			String[] input = null;
+			if(positions != null) {
+				input = new String[positions.length];
+				for (int i = 0; i < input.length; i++) {
+					input[i] = ont[positions[i]];
+				}
 			}
 			
 			if(filter.accept(input)){

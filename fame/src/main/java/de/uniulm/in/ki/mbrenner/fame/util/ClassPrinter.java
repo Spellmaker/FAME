@@ -2,20 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.util;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
-import org.semanticweb.owlapi.model.OWLProperty;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
-import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.*;
 
 /**
  * Utility class which can be used to print diverse OWL objects
@@ -38,7 +25,7 @@ public class ClassPrinter {
 		}
 		else if(oce instanceof OWLObjectSomeValuesFrom){
 			OWLObjectSomeValuesFrom ex = (OWLObjectSomeValuesFrom) oce;			
-			s = "€" + printIRI(ex.getProperty().asOWLObjectProperty().getIRI().toString()) + "." + printClass(ex.getFiller());
+			s = "E " + printIRI(ex.getProperty().asOWLObjectProperty().getIRI().toString()) + "." + printClass(ex.getFiller());
 		}
 		else if(oce instanceof OWLClass){
 			s = printIRI(((OWLClass)oce).getIRI().toString());
@@ -46,9 +33,13 @@ public class ClassPrinter {
 		else if(oce instanceof OWLProperty){
 			s = printIRI(((OWLProperty) oce).getIRI().toString());
 		}
+		else if(oce instanceof OWLDataPropertyRangeAxiom){
+			s = oce.toString();
+		}
 		else{
-			System.out.println("Not sure what to do with " + oce.getClass());
-			throw new IllegalArgumentException("");
+			s = oce.toString();
+			//System.out.println("Not sure what to do with " + oce.getClass());
+			//throw new IllegalArgumentException("");
 		}
 		return s;
 	}
@@ -92,7 +83,7 @@ public class ClassPrinter {
 			s = "Trans(" + printClass(trans.getProperty()) + ")";
 		}
 		else{
-			System.out.println("Not sure what to do with " + ax.getClass());
+			//System.out.println("Not sure what to do with " + ax.getClass());
 			s += ax.toString();
 			//throw new IllegalArgumentException("");
 		}

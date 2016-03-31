@@ -1,12 +1,9 @@
 package de.uniulm.in.ki.mbrenner.fame.rule;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import javax.annotation.Nonnull;
 
@@ -20,6 +17,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	private RuleSet ruleSet;
 	private List<OWLObject> unknownObjects;
 	public boolean printUnknown = false;
+
 	
 	public BottomModeRuleBuilder(){
 	}
@@ -29,7 +27,12 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		//Declaration axiom rule is added elsewhere
 		//if(!ce.isTopEntity()) ruleBuffer.add(new Rule(null, ruleSet.putObject(new OWLDeclarationAxiomImpl(ce, Collections.emptyList())), null, ruleSet.putObject(ce)));
 		//mode is now bottom, as we interpret classes with bottom
-		cMode = Mode.BottomMode;
+		if(ce.isTopEntity()){
+			cMode = Mode.TopMode;
+		}
+		else {
+			cMode = Mode.BottomMode;
+		}
 	}
 
 	@Override
@@ -82,7 +85,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			//mode is now bot mode. As long as one element is known to be bot, the whole conjunction is still bot
 			Integer[] shortArgs = new Integer[index];
 			for(int i = 0; i < index; i++) shortArgs[i] = ruleArgs[i];
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleArgs));
+			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, shortArgs));
 			ruleBuffer.addAll(bottomRules);
 			cMode = Mode.BottomMode;
 		}
@@ -138,7 +141,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			//mode is now top mode. As long as one element is known to be top, the whole conjunction is still top
 			Integer[] shortArgs = new Integer[index];
 			for(int i = 0; i < index; i++) shortArgs[i] = ruleArgs[i];
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleArgs));
+			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, shortArgs));
 			ruleBuffer.addAll(topRules);
 			cMode = Mode.TopMode;
 		}
@@ -198,7 +201,9 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 
 	@Override
 	public void visit(OWLObjectHasValue ce) {
-		unknownObjects.add(ce);
+		cMode = Mode.BottomMode;
+		ce.getProperty().accept(this);
+		ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
 	}
 
 	@Override
@@ -235,22 +240,22 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		List<Rule> propertyRules = new LinkedList<>();
 		ce.getProperty().accept(this);
 		propertyRules.addAll(ruleBuffer);
-		if(ce.getCardinality() != 0){
-			//R -> =n R.C
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+		ruleBuffer.clear();
+		ce.getFiller().accept(this);
+		if(cMode == Mode.BottomMode){
+			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getFiller()), ruleSet.putObject(ce.getProperty())));
 		}
 		else{
 			ruleBuffer.clear();
-			ce.getFiller().accept(this);
-			if(cMode == Mode.BottomMode){
-				cMode = Mode.TopMode;
-				ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getFiller()), ruleSet.putObject(ce.getProperty())));
-			}
-			else if(cMode == Mode.TopMode){
-				ruleBuffer.clear();
-				ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
-			}
-			ruleBuffer.addAll(propertyRules);
+			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+		}
+		ruleBuffer.addAll(propertyRules);
+
+		if(ce.getCardinality() == 0){
+			cMode = Mode.TopMode;
+		}
+		else{
+			cMode = Mode.BottomMode;
 		}
 	}
 
@@ -286,7 +291,13 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 
 	@Override
 	public void visit(OWLObjectOneOf ce) {
-		unknownObjects.add(ce);
+		if(ce.getIndividuals().isEmpty()){
+			//always bottom
+			cMode = Mode.BottomMode;
+		}
+		else{
+			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null));
+		}
 	}
 
 	@Override
@@ -340,16 +351,28 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 
 	@Override
 	public void visit(@Nonnull OWLAnnotationProperty owlAnnotationProperty) {
-
+		unknownObjects.add(owlAnnotationProperty);
 	}
 
+
+
 	@Override
-	public RuleSet buildRules(Set<OWLAxiom> axioms) {
+	public RuleSet buildRules(OWLOntology ontology){
+		return buildRules(ontology, false);
+	}
+
+	public RuleSet buildRules(OWLOntology ontology, boolean useNoDefExtractor) {
+		//initialize rule generation data structures
 		cMode = Mode.BottomMode;
 		ruleBuffer = new LinkedList<>();
 		unknownObjects = new LinkedList<>();
 		ruleSet = new RuleSet();
-		axioms.forEach(x -> x.accept(this));
+		//process each axiom
+		ontology.getAxioms(Imports.INCLUDED).forEach(x -> x.accept(this));
+		//add each element in the ontology signature to the dictionary
+		ontology.getSignature().forEach(x -> ruleSet.putObject(x));
+		ontology.getIndividualsInSignature().forEach(x -> ruleSet.putObject(x));
+		//finalize rule set
 		ruleSet.finalize();
 		if(!unknownObjects.isEmpty()){
 			//System.out.println("warning: could not generate rules for at least " + unknownObjects.size() + " things");
@@ -430,7 +453,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	}
 	@Override
 	public void visit(OWLNegativeObjectPropertyAssertionAxiom axiom) {
-		ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null));
+		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
 	}
 	@Override
 	public void visit(OWLAsymmetricObjectPropertyAxiom axiom) {
@@ -443,48 +466,52 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	}
 	@Override
 	public void visit(OWLReflexiveObjectPropertyAxiom axiom) {
-		ruleBuffer.clear();
-		
-		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+		//ruleBuffer.clear();
+		//
+		//axiom.getProperty().accept(this);
+		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
 		
 		ruleBuffer.forEach(x -> ruleSet.add(x));
 	}
 	@Override
 	public void visit(OWLDisjointClassesAxiom axiom) {
-		List<List<Rule>> rules = new LinkedList<>();
-		boolean foundTop = false;
+		List<Rule> rules = new LinkedList<>();
+		List<OWLClassExpression> elements = new ArrayList<>();
+		OWLClassExpression foundTop = null;
 		for(OWLClassExpression oce : axiom.getClassExpressionsAsList()){
 			ruleBuffer.clear();
 			oce.accept(this);
-			
 			if(cMode == Mode.TopMode){
-				if(foundTop){
-					ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null));
+				if(foundTop != null){
+					ruleBuffer.clear();
+					ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
 					return;
 				}
 				else{
-					foundTop = true;
+					foundTop = oce;
 				}
-				rules.add(null);
 			}
 			else if(cMode == Mode.BottomMode){
-				List<Rule> r = new LinkedList<>();
-				r.addAll(ruleBuffer);
-				rules.add(r);
+				elements.add(oce);
+				rules.addAll(ruleBuffer);
 			}
 		}
-		
+
 		ruleBuffer.clear();
-		for(int i = 0; i < rules.size(); i++){
-			if(rules.get(i) == null) continue;
-			ruleBuffer.addAll(rules.get(i));
-			for(int j = i + 1; j < rules.size(); j++){
-				if(rules.get(j) == null) continue;
-				
-				ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(axiom.getClassExpressionsAsList().get(i)), ruleSet.putObject(axiom.getClassExpressionsAsList().get(j))));
+		ruleBuffer.addAll(rules);
+		if(foundTop != null){
+			for(int i = 0; i < elements.size(); i++){
+				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(elements.get(i))));
 			}
 		}
+		else{
+			for(int i = 0; i < elements.size(); i++){
+				for(int j = i + 1; j < elements.size(); j++){
+					ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(elements.get(i)), ruleSet.putObject(elements.get(j))));
+				}
+			}
+		}
+		ruleBuffer.forEach(x -> ruleSet.add(x));
 	}
 	@Override
 	public void visit(OWLDataPropertyDomainAxiom axiom) {
@@ -500,13 +527,14 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		ruleBuffer.clear();
 		axiom.getDomain().accept(this);
 		if(cMode == Mode.TopMode){
-			ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(axiom.getProperty()), ruleSet.putObject(axiom.getDomain())));
+			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty()), ruleSet.putObject(axiom.getDomain())));
 		}
 		else{
 			ruleBuffer.clear();
-			ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(axiom.getProperty())));
+			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
 		}
 		ruleBuffer.addAll(propRules);
+		ruleBuffer.forEach(x -> ruleSet.add(x));
 	}
 	@Override
 	public void visit(OWLEquivalentObjectPropertiesAxiom axiom) {
@@ -523,12 +551,16 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	}
 	@Override
 	public void visit(OWLDifferentIndividualsAxiom axiom) {
-		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
+		for(OWLIndividual ind : axiom.getIndividualsAsList()){
+			Rule r = new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(ind));
+			ruleSet.add(r);
+		}
 	}
 	@Override
 	public void visit(OWLDisjointDataPropertiesAxiom axiom) {
 		unknownObjects.add(axiom);
 	}
+
 	@Override
 	public void visit(OWLDisjointObjectPropertiesAxiom axiom) {
 		List<List<Rule>> props = new LinkedList<>();
@@ -554,6 +586,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 				ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(expr.get(i)), ruleSet.putObject(expr.get(j))));
 			}
 		}
+		ruleBuffer.forEach(x -> ruleSet.add(x));
 	}
 	@Override
 	public void visit(OWLObjectPropertyRangeAxiom axiom) {
@@ -568,22 +601,27 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		if(cMode == Mode.BottomMode){
 			ruleBuffer.clear();
 			
-			ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(axiom.getProperty())));
+			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
 		}
 		else if(cMode == Mode.TopMode){
-			ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(axiom.getProperty()), ruleSet.putObject(axiom.getRange())));
+			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty()), ruleSet.putObject(axiom.getRange())));
 		}
 		ruleBuffer.addAll(propRules);
+
+		ruleBuffer.forEach(x -> ruleSet.add(x));
 	}
 	@Override
 	public void visit(OWLObjectPropertyAssertionAxiom axiom) {
-		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
+		//TODO: Reintroduce after testing is completed, as it would be logically sound
+		//if(!axiom.getProperty().isTopEntity())
+			ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
 	}
 	@Override
 	public void visit(OWLFunctionalObjectPropertyAxiom axiom) {
 		ruleBuffer.clear();
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.forEach(x -> ruleSet.add(x));
 	}
 	@Override
 	public void visit(OWLSubObjectPropertyOfAxiom axiom) {
@@ -596,58 +634,41 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	}
 	@Override
 	public void visit(OWLDisjointUnionAxiom axiom) {
+		List<Rule> rules = new LinkedList<>();
 		ruleBuffer.clear();
 		axiom.getOWLClass().accept(this);
-		
-		boolean eqTop = cMode == Mode.TopMode;
+		Mode lMode = cMode;
+		rules.addAll(ruleBuffer);
+
 		boolean foundTop = false;
-		
-		List<Rule> eqRules = new LinkedList<>();
-		eqRules.addAll(ruleBuffer);
-		
-		List<Rule> rules = new LinkedList<>();
-		List<OWLClassExpression> expr = new LinkedList<>();
-		
-		for(OWLClassExpression oce : axiom.getClassExpressions()){
+		for(OWLClassExpression oce : axiom.getOWLDisjointClassesAxiom().getClassExpressions()){
 			ruleBuffer.clear();
 			oce.accept(this);
-			eqRules.addAll(ruleBuffer);
 			if(cMode == Mode.TopMode){
-				if(!foundTop){
-					foundTop = true;
-				}
-				else{
-					ruleBuffer.clear();
-					ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null));
+				if(foundTop || lMode == Mode.BottomMode){
+					ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
 					return;
 				}
+				foundTop = true;
 			}
-			else{
-				expr.add(oce);
-			}
+			rules.addAll(ruleBuffer);
+			rules.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(oce)));
 		}
-		
-		if(eqTop && !foundTop){
-			ruleBuffer.clear();
-			ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null));
+
+		if(!foundTop && lMode == Mode.TopMode){
+			ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
 			return;
 		}
-		else{
-			Integer[] rargs = new Integer[expr.size() + 1];
-			rargs[0] = ruleSet.putObject(axiom.getOWLClass());
-			for(int i = 1; i < expr.size() + 1; i++){
-				rargs[i] = ruleSet.putObject(expr.get(i - 1));
-			}
-			ruleBuffer.clear();
-			ruleBuffer.addAll(rules);
-			ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, rargs));
-		}
+
+		rules.forEach(x -> ruleSet.add(x));
+		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getOWLClass())));
 	}
 	@Override
 	public void visit(OWLSymmetricObjectPropertyAxiom axiom) {
 		ruleBuffer.clear();
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.forEach(x -> ruleSet.add(x));
 	}
 	@Override
 	public void visit(OWLDataPropertyRangeAxiom axiom) {
@@ -663,7 +684,8 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	}
 	@Override
 	public void visit(OWLClassAssertionAxiom axiom) {
-		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
+		if(!axiom.getClassExpression().isTopEntity())
+			ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
 	}
 	@Override
 	public void visit(OWLEquivalentClassesAxiom axiom) {
@@ -693,15 +715,14 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			//A -> A = B, B
 			//B -> A = B, A
 			ruleBuffer.addAll(leftrules);
-			if(cMode == Mode.BottomMode)
+			if(cMode == Mode.BottomMode) {
 				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), ((left instanceof OWLClass) ? ruleSet.putObject(left) : null), ruleSet.putObject(right)));
-			else
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(right)));
-			
-			if(leftMode == Mode.BottomMode)
 				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), ((right instanceof OWLClass) ? ruleSet.putObject(right) : null), ruleSet.putObject(left)));
-			else
+			}
+			else {
+				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(right)));
 				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(left)));
+			}
 		}
 		
 		ruleBuffer.forEach(x -> ruleSet.add(x));
@@ -743,7 +764,10 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	}
 	@Override
 	public void visit(OWLSameIndividualAxiom axiom) {
-		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
+		for(OWLIndividual ind : axiom.getIndividualsAsList()){
+			Rule r = new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(ind));
+			ruleSet.add(r);
+		}
 	}
 	@Override
 	public void visit(OWLSubPropertyChainOfAxiom axiom) {

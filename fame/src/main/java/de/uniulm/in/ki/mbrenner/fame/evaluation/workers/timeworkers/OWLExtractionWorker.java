@@ -1,8 +1,10 @@
-package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
+package de.uniulm.in.ki.mbrenner.fame.evaluation.workers.timeworkers;
 
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.RandTimeWorker;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -32,7 +34,7 @@ public class OWLExtractionWorker implements Callable<Long[]>{
 		}
 		long end = System.currentTimeMillis();
 		if(module == null){
-			System.out.println("this should never happen. Just to keep the compiler from removing the instructions above");
+			EvaluationMain.out.println("this should never happen. Just to keep the compiler from removing the instructions above");
 		}
 		Long[] res = new Long[2];
 		res[0] = 0L;

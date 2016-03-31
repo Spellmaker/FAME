@@ -1,48 +1,52 @@
 package de.uniulm.in.ki.mbrenner.fame.rule;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import javax.annotation.Nonnull;
 
 public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor, OWLPropertyExpressionVisitor{
-	private CompressedRuleSet ruleSet;
 	private List<OWLObject> unknownObjects;
-	
-	private Set<Set<OWLEntity>> signature;
+	/*
+	 Contains the different signature combinations, under which the current considered element is non-top/-bottom, meaning
+	 for every Set<OWLEntity> s : signature: The current element is not bot/top.
+
+	 Following conventions hold:
+	  - signature == null indicates, that the current element is always top/bot
+	  - signature == Collections.emptySet() indicates, that the current element is always non-top/non-bot
+	  - do NOT modify the contents of signature, instead create a new set and add the elements of signature
+	  - combine signatures ONLY via the andSignature and orSignature methods
+	 */
+	private Set<Set<OWLObject>> signature;
 	private boolean botMode;
-	
-	public CompressedRuleBuilder(){
-		
+
+	public List<OWLObject> getUnknownObjects(){
+		return Collections.unmodifiableList(unknownObjects);
 	}
-	
-	public Set<CompressedRule> makeRule(OWLAxiom a){
+
+	public CompressedRuleSet buildRules(OWLOntology ontology){
 		unknownObjects = new LinkedList<>();
-		a.accept(this);
-		Set<CompressedRule> res = new HashSet<>();
-		signature.forEach(x -> res.add(new CompressedRule(a, x)));
-		return res;
-	}
-	
-	public CompressedRuleSet buildRules(Set<OWLAxiom> ontology){
-		unknownObjects = new LinkedList<>();
-		ruleSet = new CompressedRuleSet();
-		for(OWLAxiom a : ontology){
+		CompressedRuleSet ruleSet = new CompressedRuleSet();
+		for(OWLAxiom a : ontology.getAxioms(Imports.INCLUDED)){
 			signature = null;
 			a.accept(this);
 			if(signature != null){
-				for(Set<OWLEntity> s : signature){
-					ruleSet.addRule(new CompressedRule(a, s));
-				}
 				if(signature.isEmpty()){
 					ruleSet.addBase(a);
 				}
+				for(Set<OWLObject> s : signature){
+					ruleSet.addRule(new CompressedRule(a, s));
+				}
 			}
+		}
+
+		for(OWLEntity o : ontology.getSignature()){
+			ruleSet.lookup(o);
+		}
+		for(OWLIndividual i : ontology.getIndividualsInSignature()){
+			ruleSet.lookup(i);
 		}
 		
 		ruleSet.finalize();
@@ -56,11 +60,25 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 	 * @param sign2 The second signature
 	 * @return A merged signature set
 	 */
-	private Set<Set<OWLEntity>> merge(Set<Set<OWLEntity>> sign1, Set<Set<OWLEntity>> sign2){
-		Set<Set<OWLEntity>> result = new HashSet<>();
-		for(Set<OWLEntity> s1 : sign1){
-			for(Set<OWLEntity> s2 : sign2){
-				Set<OWLEntity> m1 = new HashSet<>();
+	private Set<Set<OWLObject>> signatureAnd(Set<Set<OWLObject>> sign1, Set<Set<OWLObject>> sign2){
+		if(sign1 == null || sign2 == null){
+			return null;
+		}
+
+		if(sign1.isEmpty()){
+			if(sign2.isEmpty()){
+				return Collections.emptySet();
+			}
+			return new HashSet<>(sign2);
+		}
+		else if(sign2.isEmpty()){
+			return new HashSet<>(sign1);
+		}
+
+		Set<Set<OWLObject>> result = new HashSet<>();
+		for(Set<OWLObject> s1 : sign1){
+			for(Set<OWLObject> s2 : sign2){
+				Set<OWLObject> m1 = new HashSet<>();
 				m1.addAll(s1);
 				m1.addAll(s2);
 				result.add(m1);
@@ -68,11 +86,20 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 		}
 		return result;
 	}
-	
-	private void makeSimpleSet(OWLEntity ...entities){
+
+	private Set<Set<OWLObject>> signatureOr(Set<Set<OWLObject>> sign1, Set<Set<OWLObject>> sign2){
+		if(sign1 == null && sign2 == null) return null;
+
+		Set<Set<OWLObject>> result = new HashSet<>();
+		if(sign1 != null) result.addAll(sign1);
+		if(sign2 != null) result.addAll(sign2);
+		return result;
+	}
+
+	private void makeSimpleSet(OWLObject ...entities){
 		signature = new HashSet<>();
-		Set<OWLEntity> tmp = new HashSet<>();
-		for(OWLEntity e : entities) tmp.add(e);
+		Set<OWLObject> tmp = new HashSet<>();
+		Collections.addAll(tmp, entities);
 		signature.add(tmp);
 	}
 
@@ -103,19 +130,19 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLSubClassOfAxiom axiom) {
-		Set<Set<OWLEntity>> sleft;
-		boolean left;
+		Set<Set<OWLObject>> sleft;
+		boolean leftbotMode;
 		axiom.getSubClass().accept(this);
 		sleft = signature;
-		left = botMode;
+		leftbotMode = botMode;
 		axiom.getSuperClass().accept(this);
 		
-		if(left){
+		if(leftbotMode){
 			if(botMode){
 				signature = sleft;
 			}
 			else{
-				merge(signature, sleft);
+				signature = signatureAnd(signature, sleft);
 			}
 		}
 		else{
@@ -140,30 +167,81 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLReflexiveObjectPropertyAxiom axiom) {
-		axiom.getProperty().accept(this);
+		signature = Collections.emptySet();
 	}
 
 	@Override
 	public void visit(OWLDisjointClassesAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement disjoint classes");
+		List<Set<Set<OWLObject>>> signatures = new LinkedList<>();
+		boolean foundTop = false;
+		for(OWLClassExpression oce : axiom.getClassExpressionsAsList()){
+			oce.accept(this);
+
+			if(!botMode){
+				if(foundTop){
+					signature = Collections.emptySet();
+					return;
+				}
+				else{
+					foundTop = true;
+				}
+			}
+			else{
+				signatures.add(signature);
+			}
+		}
+
+		signature = new HashSet<>();
+		if(foundTop){
+			signatures.forEach(x -> signature = signatureOr(signature, x));
+		}
+		else{
+			for(int i = 0; i < signatures.size(); i++){
+				for(int j = i + 1; j < signatures.size(); j++){
+					signature = signatureOr(signature, signatureAnd(signatures.get(i), signatures.get(j)));
+				}
+			}
+		}
 	}
 
 	@Override
 	public void visit(OWLDataPropertyDomainAxiom axiom) {
-		unknownObjects.add(axiom);
+		Set<Set<OWLObject>> propSign = null;
+		axiom.getProperty().accept(this);
+		propSign = signature;
+
+		axiom.getDomain().accept(this);
+		if(!botMode){
+			signature = signatureAnd(propSign, signature);
+		}
+		else{
+			signature = propSign;
+		}
 	}
 
 	@Override
 	public void visit(OWLObjectPropertyDomainAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement object property domains");
+		Set<Set<OWLObject>> propSign = null;
+		axiom.getProperty().accept(this);
+		propSign = signature;
+
+		axiom.getDomain().accept(this);
+		if(!botMode){
+			signature = signatureAnd(propSign, signature);
+		}
+		else{
+			signature = propSign;
+		}
 	}
 
 	@Override
 	public void visit(OWLEquivalentObjectPropertiesAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement equivalent object properties");
+		Set<Set<OWLObject>> sign = new HashSet<>();
+		for(OWLObjectPropertyExpression p : axiom.getProperties()){
+			p.accept(this);
+			sign = signatureOr(sign, signature);
+		}
+		signature = sign;
 	}
 
 	@Override
@@ -173,7 +251,13 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLDifferentIndividualsAxiom axiom) {
-		signature = Collections.emptySet();
+		Set<Set<OWLObject>> res = new HashSet<>();
+		for(OWLIndividual ind : axiom.getIndividuals()){
+			Set<OWLObject> s = new HashSet<>();
+			s.add(ind);
+			res.add(s);
+		}
+		signature = res;
 	}
 
 	@Override
@@ -183,25 +267,50 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLDisjointObjectPropertiesAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement disjoint object properties");
+		List<Set<Set<OWLObject>>> signatures = new ArrayList<>();
+		for(OWLObjectPropertyExpression expr : axiom.getProperties()){
+			expr.accept(this);
+			signatures.add(signature);
+		}
+
+		Set<Set<OWLObject>> sign = new HashSet<>();
+		for(int i = 0; i < signatures.size(); i++){
+			for(int j = i + 1; j < signatures.size(); j++){
+				sign = signatureOr(sign, signatureAnd(signatures.get(i), signatures.get(j)));
+			}
+		}
+		signature = sign;
 	}
 
 	@Override
 	public void visit(OWLObjectPropertyRangeAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement object property range");
+		Set<Set<OWLObject>> propSig = null;
+		axiom.getProperty().accept(this);
+		propSig = signature;
+
+		axiom.getRange().accept(this);
+
+		if(botMode){
+			signature = propSig;
+		}
+		else{
+			signature = signatureAnd(signature, propSig);
+		}
 	}
 
 	@Override
 	public void visit(OWLObjectPropertyAssertionAxiom axiom) {
-		signature = Collections.emptySet();
+		//Remark: The commented code is actually logically correct and should be reintroduced after testing
+		//TODO: Reintroduce after testing is finished
+		/*if(axiom.getProperty().isTopEntity())
+			signature = null;
+		else*/
+			signature = Collections.emptySet();
 	}
 
 	@Override
 	public void visit(OWLFunctionalObjectPropertyAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement functional object properties");
+		axiom.getProperty().accept(this);
 	}
 
 	@Override
@@ -211,8 +320,31 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLDisjointUnionAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement disjoint union");
+		Set<Set<OWLObject>> signatures = new HashSet<>();
+		axiom.getOWLClass().accept(this);
+		Set<Set<OWLObject>> leftSide = signature;
+		boolean leftMode = botMode;
+
+		boolean foundTop = false;
+
+		for(OWLClassExpression oce : axiom.getOWLDisjointClassesAxiom().getClassExpressions()){
+			oce.accept(this);
+			if(!botMode){
+				if(foundTop || leftMode){
+					signature = Collections.emptySet();
+					return;
+				}
+				foundTop = true;
+			}
+			signatures = signatureOr(signatures, signature);
+		}
+
+		if(!foundTop && !leftMode){
+			signature = Collections.emptySet();
+			return;
+		}
+
+		signature = signatureOr(signatures, leftSide);
 	}
 
 	@Override
@@ -222,12 +354,14 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLDataPropertyRangeAxiom axiom) {
-		unknownObjects.add(axiom);
+		Set<Set<OWLObject>> propSig = null;
+		axiom.getProperty().accept(this);
+		propSig = signature;
 	}
 
 	@Override
-	public void visit(OWLFunctionalDataPropertyAxiom axiom) {
-		unknownObjects.add(axiom);
+	public void visit(OWLFunctionalDataPropertyAxiom axiom){
+		axiom.getProperty().accept(this);
 	}
 
 	@Override
@@ -237,22 +371,25 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLClassAssertionAxiom axiom) {
-		signature = Collections.emptySet();
+		if(axiom.getClassExpression().isTopEntity())
+			signature = null;
+		else
+			signature = Collections.emptySet();
 	}
 
 	@Override
 	public void visit(OWLEquivalentClassesAxiom axiom) {
 		axiom.getClassExpressionsAsList().get(0).accept(this);
-		Set<Set<OWLEntity>> sleft = signature;
+		Set<Set<OWLObject>> sleft = signature;
 		boolean mleft = botMode;
 		
 		axiom.getClassExpressionsAsList().get(1).accept(this);
-		
+
 		if(mleft != botMode){
 			signature = Collections.emptySet();
 		}
 		else{
-			signature.addAll(sleft);
+			signature = signatureOr(signature, sleft);
 		}
 		
 	}
@@ -284,14 +421,23 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLSubPropertyChainOfAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement sub property chains");
+		Set<Set<OWLObject>> sign = new HashSet<>();
+		for(OWLObjectPropertyExpression p : axiom.getPropertyChain()){
+			p.accept(this);
+			sign = signatureAnd(sign, signature);
+		}
+
+		signature = sign;
 	}
 
 	@Override
 	public void visit(OWLInverseObjectPropertiesAxiom axiom) {
-		unknownObjects.add(axiom);
-		System.out.println("todo: Implement inverse properties");
+		Set<Set<OWLObject>> sign = null;
+		axiom.getFirstProperty().accept(this);
+		sign = signature;
+		axiom.getSecondProperty().accept(this);
+		sign = signatureOr(sign, signature);
+		signature = sign;
 	}
 
 	@Override
@@ -311,46 +457,53 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLClass ce) {
-		botMode = true;
-		makeSimpleSet(ce);
+		if(ce.isTopEntity()){
+			botMode = false;
+			signature = null;
+		}
+		else {
+			botMode = true;
+			makeSimpleSet(ce);
+		}
 	}
 
 	@Override
 	public void visit(OWLObjectIntersectionOf ce) {
-		Set<Set<OWLEntity>> csign = new HashSet<>();
+		Set<Set<OWLObject>> csign = new HashSet<>();
 		boolean allTop = true;
 		for(OWLClassExpression c : ce.getOperands()){
 			c.accept(this);
 			if(!botMode && allTop){
-				csign = merge(csign, signature);
+				csign = signatureOr(csign, signature);
 			}
 			else if(allTop){
 				allTop = false;
 				csign = signature;
 			}
 			else if(botMode){
-				csign = merge(csign, signature);
+				csign = signatureAnd(csign, signature);
 			}
 		}
+		if(allTop) botMode = false;
+		else botMode = true;
 		signature = csign;
 	}
 
 	@Override
 	public void visit(OWLObjectUnionOf ce) {
-		Set<Set<OWLEntity>> csign = new HashSet<>();
+		Set<Set<OWLObject>> csign = new HashSet<>();
 		boolean allBot = true;
 		for(OWLClassExpression c : ce.getOperands()){
 			c.accept(this);
 			if(botMode && allBot){
-				csign = merge(csign, signature);
+				csign = signatureOr(csign, signature);
 			}
 			else if(allBot){
 				allBot = false;
-				csign = new HashSet<>();
 				csign = signature;
 			}
 			else if(!botMode){
-				csign = merge(csign, signature);
+				csign = signatureAnd(csign, signature);
 			}
 		}
 		signature = csign;
@@ -365,11 +518,11 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 	@Override
 	public void visit(OWLObjectSomeValuesFrom ce) {
 		ce.getProperty().accept(this);
-		Set<Set<OWLEntity>> rsign = signature;
+		Set<Set<OWLObject>> rsign = signature;
 		
 		ce.getFiller().accept(this);
 		if(botMode){
-			signature = merge(signature, rsign);
+			signature = signatureAnd(signature, rsign);
 		}
 		else{
 			signature = rsign;
@@ -380,7 +533,7 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 	@Override
 	public void visit(OWLObjectAllValuesFrom ce) {
 		ce.getProperty().accept(this);
-		Set<Set<OWLEntity>> rsign = signature;
+		Set<Set<OWLObject>> rsign = signature;
 		
 		ce.getFiller().accept(this);
 		if(botMode){
@@ -388,31 +541,63 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 			botMode = false;
 		}
 		else{
-			signature = merge(signature, rsign);
+			signature = signatureAnd(signature, rsign);
 		}
 	}
 
 	@Override
 	public void visit(OWLObjectHasValue ce) {
-		unknownObjects.add(ce);
+		ce.getProperty().accept(this);
 	}
 
 	@Override
 	public void visit(OWLObjectMinCardinality ce) {
-		unknownObjects.add(ce);
-		System.out.println("todo: Implement min cardinality");
+		if(ce.getCardinality() <= 0){
+			signature = null;
+			botMode = false;
+		}
+		else{
+			ce.getProperty().accept(this);
+			Set<Set<OWLObject>> propSig = signature;
+			ce.getFiller().accept(this);
+			if(botMode){
+				signature = signatureAnd(signature, propSig);
+			}
+			else{
+				signature = propSig;
+				botMode = true;
+			}
+		}
 	}
 
 	@Override
 	public void visit(OWLObjectExactCardinality ce) {
-		unknownObjects.add(ce);
-		System.out.println("todo: Implement exact cardinality");
+		ce.getProperty().accept(this);
+		Set<Set<OWLObject>> propSig = signature;
+		ce.getFiller().accept(this);
+		if(botMode){
+			signature = signatureAnd(signature, propSig);
+		}
+		else{
+			signature = propSig;
+		}
+		botMode = (ce.getCardinality() != 0);
 	}
 
 	@Override
 	public void visit(OWLObjectMaxCardinality ce) {
-		unknownObjects.add(ce);
-		System.out.println("todo: Implement max cardinality");
+		Set<Set<OWLObject>> propSig = null;
+		ce.getProperty().accept(this);
+		propSig = signature;
+		ce.getFiller().accept(this);
+
+		if(botMode){
+			botMode = false;
+			signature = signatureAnd(signature, propSig);
+		}
+		else{
+			signature = propSig;
+		}
 	}
 
 	@Override
@@ -423,7 +608,13 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLObjectOneOf ce) {
-		unknownObjects.add(ce);
+		botMode = true;
+		if(ce.getIndividuals().isEmpty()){
+			signature = null;
+		}
+		else{
+			signature = Collections.emptySet();
+		}
 	}
 
 	@Override
@@ -452,9 +643,7 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 	}
 
 	@Override
-	public void visit(OWLDataMaxCardinality ce) {
-		unknownObjects.add(ce);
-	}
+	public void visit(OWLDataMaxCardinality ce) { unknownObjects.add(ce);}
 
 	@Override
 	public void visit(OWLObjectProperty property) {
@@ -468,7 +657,7 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLDataProperty property) {
-		unknownObjects.add(property);
+		makeSimpleSet(property);
 	}
 
 	@Override
@@ -478,6 +667,12 @@ public class CompressedRuleBuilder implements OWLAxiomVisitor, OWLClassExpressio
 
 	@Override
 	public void visit(OWLSameIndividualAxiom axiom) {
-		signature = Collections.emptySet();
+		Set<Set<OWLObject>> res = new HashSet<>();
+		for(OWLIndividual ind : axiom.getIndividuals()){
+			Set<OWLObject> s = new HashSet<>();
+			s.add(ind);
+			res.add(s);
+		}
+		signature = res;
 	}
 }

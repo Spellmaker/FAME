@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v2.OWLDictionary;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -29,22 +31,24 @@ import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 
-public class RuleSet extends OWLObjectVisitorAdapter implements Iterable<Rule>{
-	private Set<Integer> baseSignature;
-	private Set<OWLAxiom> baseModule;
-	private Map<Integer, List<Integer>> ruleMap;	
-	
-	private Map<Integer, List<Integer>> axiomSignatures;
-	private List<OWLObject> dictionary;
-	private List<Boolean> isDeclRule;
-	private Map<OWLObject, Integer> invDictionary;
-	private OWLObject[] arrDictionary;
-	private Boolean[] arrisDeclRule;
-	
-	
-	private Set<Rule> rules;
-	private Rule[] rulesArray;
-	private int pos;
+public class RuleSet implements Iterable<Rule>, OWLDictionary{
+	protected Set<Integer> baseSignature;
+	protected Set<OWLAxiom> baseModule;
+
+	protected Map<Integer, List<Integer>> ruleMap;
+
+	protected Map<Integer, List<Integer>> axiomSignatures;
+	protected List<OWLObject> dictionary;
+	protected List<Boolean> isDeclRule;
+	protected Map<OWLObject, Integer> invDictionary;
+	protected OWLObject[] arrDictionary;
+	protected Boolean[] arrisDeclRule;
+	protected int newCounter = 0;
+
+
+	protected Set<Rule> rules;
+	protected Rule[] rulesArray;
+	protected int pos;
 	
 	private int size = -1;
 	
@@ -84,7 +88,11 @@ public class RuleSet extends OWLObjectVisitorAdapter implements Iterable<Rule>{
 	public int putObject(OWLObject o){
 		Integer index = invDictionary.get(o);
 		if(index == null){
-			if(arrDictionary != null) throw new UnsupportedOperationException("RuleSet has already been finalized, cannot add object '" + o + "'");
+			if(arrDictionary != null){
+				System.out.println("WARNING: Generating ID for previously unknown element " + o + " after finalization");
+				return newCounter++;
+				//throw new UnsupportedOperationException("RuleSet has already been finalized, cannot add object '" + o + "'");
+			}
 			//object is not known
 			index = dictionary.size();
 			dictionary.add(o);
@@ -97,38 +105,54 @@ public class RuleSet extends OWLObjectVisitorAdapter implements Iterable<Rule>{
 					sign.add(putObject(obj));
 				}
 				axiomSignatures.put(index, Collections.unmodifiableList(sign));
-				ax.accept(this);
+				//ax.accept(this);
 			}
 		}
 		return index;
 	}
-	
-	public void finalize(){
+
+	public void finalize(boolean useNoDefExtractor, boolean useDefinitions){
 		//run module extraction once with the base signature to determine the correct
-		//base module and -signature		
+		//base module and -signature
 		size = rules.size();
 		ruleMap = Collections.unmodifiableMap(ruleMap);
-		
+
 		rulesArray = new Rule[rules.size()];
 		int cnt = 0;
 		for(Rule r : rules){
 			rulesArray[cnt++] = r;
 		}
 		rules = null;//Collections.unmodifiableSet(rules);
-		
+
 		arrDictionary = dictionary.toArray(new OWLObject[1]);
+		newCounter = arrDictionary.length;
 		arrisDeclRule = isDeclRule.toArray(new Boolean[1]);
 		dictionary = Collections.unmodifiableList(dictionary);
-		
-		RBMExtractor rbme = new RBMExtractor(false, false);
+
+		//baseSignature = new LinkedHashSet<>();
 		Set<OWLEntity> sig = new HashSet<>();
-		baseSignature = new LinkedHashSet<>();
-		baseModule.forEach(x -> sig.addAll(x.getSignature()));
-		baseModule = rbme.extractModule(this, sig);
+		for(OWLAxiom ax : baseModule){
+			sig.addAll(ax.getSignature());
+		}
+		if(useNoDefExtractor){
+			RBMExtractorNoDef rbme = new RBMExtractorNoDef(false);
+			baseModule = rbme.extractModule(this, sig);
+		}
+		else {
+			RBMExtractor rbme = new RBMExtractor(useDefinitions, false);
+			//baseModule.forEach(x -> sig.addAll(x.getSignature()));
+			baseModule = rbme.extractModule(this, sig);
+		}
 		baseModule.forEach(x -> x.getSignature().forEach(y -> baseSignature.add(putObject(y))));
-		
+
 		baseSignature = Collections.unmodifiableSet(baseSignature);
 		baseModule = Collections.unmodifiableSet(baseModule);
+	}
+
+	public void finalize(boolean useNoDefExtractor){finalize(useNoDefExtractor, false);}
+
+	public void finalize(){
+		finalize(false, false);
 	}
 	
 	public Rule getRule(int i){
@@ -161,22 +185,32 @@ public class RuleSet extends OWLObjectVisitorAdapter implements Iterable<Rule>{
 				pos++;
 			}
 		}
+		else{
+			//TODO: Examine for correctness
+			if(r.getAxiom() != null) {
+				this.baseModule.add((OWLAxiom) dictionary.get(r.getAxiom()));
+			}
+			else{
+				this.baseSignature.add(r.getHead());
+				dictionary.get(r.getHead()).getSignature().forEach(x -> this.baseSignature.add(putObject(x)));
+			}
+		}
 	}
 	
-	@Override
+	/*@Override
 	public void visit(OWLClassAssertionAxiom ax){
 		//baseSignature.addAll(ax.getClassExpression().getSignature());
 		//baseModule.add(ax);
 		ax.getClassExpression().getSignature().forEach(x -> baseSignature.add(putObject(x)));
 		baseSignature.add(putObject(ax.getIndividual()));
 		putObject(ax);
-		for(OWLEntity ent : ax.getClassExpression().getSignature()){
+		/*for(OWLEntity ent : ax.getClassExpression().getSignature()){
 			if(!(ent instanceof OWLClass)) continue;
 			
-			OWLAxiom declAxiom = new OWLDeclarationAxiomImpl(ent, Collections.emptyList());
-			putObject(declAxiom);
-			baseModule.add(declAxiom);
-		}
+			//OWLAxiom declAxiom = new OWLDeclarationAxiomImpl(ent, Collections.emptyList());
+			//putObject(declAxiom);
+			//baseModule.add(declAxiom);
+		}* /
 		baseModule.add(ax);
 	}
 	
@@ -190,23 +224,7 @@ public class RuleSet extends OWLObjectVisitorAdapter implements Iterable<Rule>{
 		baseModule.add(ax);
 		//baseSignature.addAll(prop.getSignature());
 		//baseModule.add(ax);
-	}
-	
-	@Override
-	public void visit(OWLDifferentIndividualsAxiom ax){
-		baseModule.add(ax);
-		for(OWLIndividual ind : ax.getIndividuals()){
-			baseSignature.add(putObject(ind));
-		}
-	}
-	
-	@Override
-	public void visit(OWLSameIndividualAxiom ax){
-		baseModule.add(ax);
-		for(OWLIndividual ind : ax.getIndividuals()){
-			baseSignature.add(putObject(ind));
-		}
-	}
+	}*/
 	
 	public Set<OWLAxiom> getBaseModule(){
 		return baseModule;
@@ -231,5 +249,15 @@ public class RuleSet extends OWLObjectVisitorAdapter implements Iterable<Rule>{
 	@Override
 	public Iterator<Rule> iterator() {
 		return new ArrayIterator<Rule>(rulesArray);
+	}
+
+	@Override
+	public Integer getId(OWLObject o) {
+		return putObject(o);
+	}
+
+	@Override
+	public OWLObject getObject(Integer id) {
+		return lookup(id);
 	}
 }

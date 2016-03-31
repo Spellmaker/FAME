@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.reachability;
+package de.uniulm.in.ki.mbrenner.fame.related.reachability;
 
 import java.util.Collections;
 import java.util.HashMap;

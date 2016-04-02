@@ -15,7 +15,7 @@ import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
 import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.TestRuleGeneration;
-import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -52,7 +52,7 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 		EvaluationMain.out.println("[Task " + id + "] " + ontology.getAxiomCount() + " axioms in the ontology");
 		Set<OWLAxiom> axioms = ontology.getAxioms();
 		
-		Long[] results = new Long[9];
+		Long[] results = new Long[10];
 		results[0] = (long) ontology.getAxiomCount();
 
 		results[1] = 0L;
@@ -60,26 +60,38 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 			if(a instanceof OWLLogicalAxiom) results[1]++;
 		}
 
+		if(ontology.getLogicalAxiomCount() > EvaluationMain.max_size){
+			EvaluationMain.out.println("Skipping ontology " + f + " as it is too large");
+			return null;
+		}
+		if(ontology.getLogicalAxiomCount() < EvaluationMain.min_size){
+			EvaluationMain.out.println("Skipping ontology " + f + " as it is too small");
+			return null;
+		}
 
-		ELRuleBuilder elRules = new ELRuleBuilder();
+		results[2] = Long.valueOf((new BottomModeRuleBuilder().buildRules(ontology)).getBaseModule().size());
+
+
+		//ELRuleBuilder elRules = new ELRuleBuilder();
 		BottomModeRuleBuilder btmRules = new BottomModeRuleBuilder();
-		CompressedRuleBuilder compr = new CompressedRuleBuilder();
-		CompressedRuleSet crs = null;
+		//CompressedRuleBuilder compr = new CompressedRuleBuilder();
+		//CompressedRuleSet crs = null;
 		RuleSet rs = null;
 		long start, end;
-		try {
+		/*try {
 			start = System.currentTimeMillis();
 			for (int i = 0; i < iterations; i++) {
 				rs = elRules.buildRules(ontology);
 			}
 			end = System.currentTimeMillis();
-			results[2] = end - start;
+			results[3] = end - start;
 			EvaluationMain.out.println("[Task " + id + "] Finished ELRuleBuilder");
 		}
 		catch(Throwable e){
-			results[2] = -1L;
+			results[3] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] ELRuleBuilder had errors: " + e);
-		}
+		}*/
+		results[3]=-1L;
 
 		try {
 			start = System.currentTimeMillis();
@@ -87,28 +99,29 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 				rs = btmRules.buildRules(ontology);
 			}
 			end = System.currentTimeMillis();
-			results[3] = end - start;
+			results[4] = end - start;
 			EvaluationMain.out.println("[Task " + id + "] Finished BottomModeRuleBuilder");
 		}
 		catch(Throwable e){
-			results[3] = -1L;
+			results[4] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] BottomModeRuleBuilder had errors: " + e);
 		}
 
-		try {
+		/*try {
 			start = System.currentTimeMillis();
 			for (int i = 0; i < iterations; i++) {
 				crs = compr.buildRules(ontology);
 			}
 			end = System.currentTimeMillis();
-			results[4] = end - start;
+			results[5] = end - start;
 
 			EvaluationMain.out.println("[Task " + id + "] Finished CompressedRuleBuilder");
 		}
 		catch(Throwable e){
-			results[4] = -1L;
+			results[5] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] CompressedRuleBuilder had errors: " + e);
-		}
+		}*/
+		results[5] = -1L;
 
 		try {
 			start = System.currentTimeMillis();
@@ -118,11 +131,11 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 				h.condense(SCCAlgorithm.MREACHABILITY);
 			}
 			end = System.currentTimeMillis();
-			results[5] = end - start;
+			results[6] = end - start;
 			EvaluationMain.out.println("[Task " + id + "] Finished HyS");
 		}
 		catch(Throwable e){
-			results[5] = -1L;
+			results[6] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] HyS had errors: " + e);
 		}
 
@@ -132,11 +145,11 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 				SyntacticLocalityModuleExtractor synt = new SyntacticLocalityModuleExtractor(m, ontology, ModuleType.BOT);
 			}
 			end = System.currentTimeMillis();
-			results[6] = end - start;
+			results[7] = end - start;
 			EvaluationMain.out.println("[Task " + id + "] Finished OWLAPI");
 		}
 		catch(Throwable e){
-			results[6] = -1L;
+			results[7] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] OWLAPI had errors: " + e);
 		}
 
@@ -150,11 +163,11 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 				ModuleExtractor extr = new ModuleExtractor();
 			}
 			end = System.currentTimeMillis();
-			results[7] = end - start;
+			results[8] = end - start;
 			EvaluationMain.out.println("[Task " + id + "] Finished JCEL");
 		}
 		catch(Throwable e){
-			results[7] = -1L;
+			results[8] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] JCEL had errors: " + e);
 		}
 
@@ -164,11 +177,11 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 				IncrementalExtractor ie = new IncrementalExtractor(ontology);
 			}
 			end = System.currentTimeMillis();
-			results[8] = end - start;
+			results[9] = end - start;
 			EvaluationMain.out.println("[Task " + id + "] Finished Incremental");
 		}
 		catch(Throwable e){
-			results[8] = -1L;
+			results[9] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] Incremental had errors: " + e);
 		}
 

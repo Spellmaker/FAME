@@ -30,7 +30,7 @@ public class IncrementalRuleSet extends RuleSet {
 
         //the rule set always knows owl:thing
         OWLDataFactory factory = new OWLDataFactoryImpl();
-        putObject(factory.getOWLThing());
+        getId(factory.getOWLThing());
     }
 
     @Override

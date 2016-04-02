@@ -16,6 +16,8 @@ import java.util.List;
 
 public class EvaluationMain {
 	public static PrintStream out = System.out;
+	public static int min_size = -1;
+	public static int max_size = Integer.MAX_VALUE;
 
 	private static class ExitTrappedException extends SecurityException { }
 
@@ -84,6 +86,9 @@ public class EvaluationMain {
 		else if(hasArg(args, "incrtime")){
 			ec.add(new TestIncrementalTime());
 		}
+		else if(hasArg(args, "memory")){
+			ec.add(new MemoryTest());
+		}
 
 		List<File> ontologies = new LinkedList<>();
 		List<String> options = new LinkedList<>();
@@ -107,6 +112,11 @@ public class EvaluationMain {
 				}
 				else if(args[i].equals("-d")){
 					mode = 3;
+				}
+				else if(args[i].equals("-m")){
+					min_size = Integer.parseInt(args[i + 1]);
+					max_size = Integer.parseInt(args[i + 2]);
+					i += 2;
 				}
 				else if(mode == 1){
 					ontologies.add(new File(args[i]));

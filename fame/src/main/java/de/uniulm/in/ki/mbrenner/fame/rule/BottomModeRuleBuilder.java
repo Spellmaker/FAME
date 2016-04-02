@@ -2,6 +2,8 @@ package de.uniulm.in.ki.mbrenner.fame.rule;
 
 import java.util.*;
 
+import de.uniulm.in.ki.mbrenner.fame.incremental.v2.OWLDictionary;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v2.RuleStorage;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
@@ -14,7 +16,8 @@ enum Mode{
 public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVisitor, OWLPropertyExpressionVisitor, OWLAxiomVisitor {
 	private Mode cMode;
 	private List<Rule> ruleBuffer;
-	private RuleSet ruleSet;
+	private RuleStorage ruleSet;
+	private OWLDictionary dictionary;
 	private List<OWLObject> unknownObjects;
 	public boolean printUnknown = false;
 
@@ -25,7 +28,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	public void visit(OWLClass ce) {
 		//ignore mode here
 		//Declaration axiom rule is added elsewhere
-		//if(!ce.isTopEntity()) ruleBuffer.add(new Rule(null, ruleSet.putObject(new OWLDeclarationAxiomImpl(ce, Collections.emptyList())), null, ruleSet.putObject(ce)));
+		//if(!ce.isTopEntity()) ruleBuffer.add(new Rule(null, dictionary.getId(new OWLDeclarationAxiomImpl(ce, Collections.emptyList())), null, dictionary.getId(ce)));
 		//mode is now bottom, as we interpret classes with bottom
 		if(ce.isTopEntity()){
 			cMode = Mode.TopMode;
@@ -70,13 +73,13 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			}
 			//add generated rules at a new position
 			ruleBuffer.clear();
-			ruleArgs[index++] = ruleSet.putObject(o);
+			ruleArgs[index++] = dictionary.getId(o);
 		}
 		if(allTop){
 			//mode is now top mode. As soon as one element is known to be possibly different from top
 			//the whole conjunction is known to be possibly different from top
 			for(int i = 0; i < index; i++){
-				ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleArgs[i]));
+				ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, ruleArgs[i]));
 			}
 			ruleBuffer.addAll(topRules);
 			//mode is still set from the last element
@@ -85,7 +88,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			//mode is now bot mode. As long as one element is known to be bot, the whole conjunction is still bot
 			Integer[] shortArgs = new Integer[index];
 			for(int i = 0; i < index; i++) shortArgs[i] = ruleArgs[i];
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, shortArgs));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, shortArgs));
 			ruleBuffer.addAll(bottomRules);
 			cMode = Mode.BottomMode;
 		}
@@ -125,14 +128,14 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			}
 			ruleBuffer.clear();
 			
-			ruleArgs[index++] = ruleSet.putObject(o);
+			ruleArgs[index++] = dictionary.getId(o);
 		}
 		
 		if(allBottom){
 			//mode is now bottom mode. As soon as one element is known to be possibly different from bottom
 			//the whole conjunction is known to be possibly different from bottom
 			for(int i = 0; i < index; i++){
-				ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleArgs[i]));
+				ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, ruleArgs[i]));
 			}
 			ruleBuffer.addAll(bottomRules);
 			//mode is still set from the last element
@@ -141,7 +144,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			//mode is now top mode. As long as one element is known to be top, the whole conjunction is still top
 			Integer[] shortArgs = new Integer[index];
 			for(int i = 0; i < index; i++) shortArgs[i] = ruleArgs[i];
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, shortArgs));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, shortArgs));
 			ruleBuffer.addAll(topRules);
 			cMode = Mode.TopMode;
 		}
@@ -153,7 +156,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		if(cMode == Mode.BottomMode) cMode = Mode.TopMode;
 		else if(cMode == Mode.TopMode) cMode = Mode.BottomMode;
 		
-		ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getOperand())));
+		ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getOperand())));
 	}
 
 	@Override
@@ -167,13 +170,13 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		ce.getFiller().accept(this);
 		if(cMode == Mode.BottomMode){
 			//R, C -> ER.C
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getFiller()), ruleSet.putObject(ce.getProperty())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getFiller()), dictionary.getId(ce.getProperty())));
 		}
 		else if(cMode == Mode.TopMode){
 			cMode = Mode.BottomMode;
 			ruleBuffer.clear();
 			//R -> ER.C
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty())));
 		}
 		ruleBuffer.addAll(propertyRules);
 	}
@@ -189,12 +192,12 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		if(cMode == Mode.BottomMode){
 			ruleBuffer.clear();
 			//R -> VR.C
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty())));
 			cMode = Mode.TopMode;
 		}
 		else if(cMode == Mode.TopMode){
 			//R, C -> VR.C
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty()), ruleSet.putObject(ce.getFiller())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty()), dictionary.getId(ce.getFiller())));
 		}
 		ruleBuffer.addAll(propertyRules);
 	}
@@ -203,7 +206,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	public void visit(OWLObjectHasValue ce) {
 		cMode = Mode.BottomMode;
 		ce.getProperty().accept(this);
-		ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+		ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty())));
 	}
 
 	@Override
@@ -222,13 +225,13 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			ce.getFiller().accept(this);
 			if(cMode == Mode.BottomMode){
 				//R, C -> >=n R.C
-				ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getFiller()), ruleSet.putObject(ce.getProperty())));
+				ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getFiller()), dictionary.getId(ce.getProperty())));
 			}
 			else if(cMode == Mode.TopMode){
 				cMode = Mode.BottomMode;
 				ruleBuffer.clear();
 				//R -> >=n R.C
-				ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+				ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty())));
 			}
 			ruleBuffer.addAll(propertyRules);
 		}
@@ -243,11 +246,11 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		ruleBuffer.clear();
 		ce.getFiller().accept(this);
 		if(cMode == Mode.BottomMode){
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getFiller()), ruleSet.putObject(ce.getProperty())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getFiller()), dictionary.getId(ce.getProperty())));
 		}
 		else{
 			ruleBuffer.clear();
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty())));
 		}
 		ruleBuffer.addAll(propertyRules);
 
@@ -271,12 +274,12 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		if(cMode == Mode.BottomMode){
 			cMode = Mode.TopMode;
 			//R, C -> ER.C
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getFiller()), ruleSet.putObject(ce.getProperty())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getFiller()), dictionary.getId(ce.getProperty())));
 		}
 		else if(cMode == Mode.TopMode){
 			ruleBuffer.clear();
 			//R -> ER.C
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty())));
 		}
 		ruleBuffer.addAll(propertyRules);
 	}
@@ -285,7 +288,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	public void visit(OWLObjectHasSelf ce) {
 		ruleBuffer.clear();
 		ce.getProperty().accept(this);
-		ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null, ruleSet.putObject(ce.getProperty())));
+		ruleBuffer.add(new Rule(dictionary.getId(ce), null, null, dictionary.getId(ce.getProperty())));
 		cMode = Mode.BottomMode;
 	}
 
@@ -296,7 +299,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			cMode = Mode.BottomMode;
 		}
 		else{
-			ruleBuffer.add(new Rule(ruleSet.putObject(ce), null, null));
+			ruleBuffer.add(new Rule(dictionary.getId(ce), null, null));
 		}
 	}
 
@@ -333,7 +336,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	@Override
 	public void visit(OWLObjectProperty property) {
 		//if(!property.isTopEntity())
-		//	ruleBuffer.add(new Rule(null, ruleSet.putObject(new OWLDeclarationAxiomImpl(property, Collections.emptyList())), null, ruleSet.putObject(property)));
+		//	ruleBuffer.add(new Rule(null, dictionary.getId(new OWLDeclarationAxiomImpl(property, Collections.emptyList())), null, dictionary.getId(property)));
 		//Declaration axiom is added elsewhere
 	}
 
@@ -341,7 +344,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	public void visit(OWLObjectInverseOf property) {
 		ruleBuffer.clear();
 		property.getInverse().accept(this);
-		ruleBuffer.add(new Rule(ruleSet.putObject(property), null, null, ruleSet.putObject(property.getInverse())));
+		ruleBuffer.add(new Rule(dictionary.getId(property), null, null, dictionary.getId(property.getInverse())));
 	}
 
 	@Override
@@ -354,24 +357,38 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		unknownObjects.add(owlAnnotationProperty);
 	}
 
-
-
 	@Override
 	public RuleSet buildRules(OWLOntology ontology){
 		return buildRules(ontology, false);
 	}
 
 	public RuleSet buildRules(OWLOntology ontology, boolean useNoDefExtractor) {
+		RuleSet rs = new RuleSet();
+		buildRules(ontology, useNoDefExtractor, rs, rs);
+		return rs;
+	}
+
+	public void buildRules(OWLOntology ontology, boolean useNoDefExtractor, RuleStorage rs, OWLDictionary dict){
+		Set<OWLEntity> signature = new HashSet<>();
+		//TODO: Check if necessary
+		signature.addAll(ontology.getSignature());
+		//signature.addAll(ontology.getIndividualsInSignature());
+		buildRules(ontology.getAxioms(Imports.INCLUDED), signature, useNoDefExtractor, rs, dict);
+	}
+
+	public void buildRules(Set<OWLAxiom> ontology, Set<OWLEntity> signature, boolean useNoDefExtractor, RuleStorage rs, OWLDictionary dict){
+		this.ruleSet = rs;
+		this.dictionary = dict;
 		//initialize rule generation data structures
 		cMode = Mode.BottomMode;
 		ruleBuffer = new LinkedList<>();
 		unknownObjects = new LinkedList<>();
-		ruleSet = new RuleSet();
 		//process each axiom
-		ontology.getAxioms(Imports.INCLUDED).forEach(x -> x.accept(this));
+		ontology.forEach(x -> x.accept(this));
 		//add each element in the ontology signature to the dictionary
-		ontology.getSignature().forEach(x -> ruleSet.putObject(x));
-		ontology.getIndividualsInSignature().forEach(x -> ruleSet.putObject(x));
+		signature.forEach(x -> dictionary.getId(x));
+		//ontology.getSignature().forEach(x -> dictionary.getId(x));
+		//ontology.getIndividualsInSignature().forEach(x -> dictionary.getId(x));
 		//finalize rule set
 		ruleSet.finalize();
 		if(!unknownObjects.isEmpty()){
@@ -386,7 +403,6 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 				}
 			}
 		}
-		return ruleSet;
 	}
 
 	@Override
@@ -412,7 +428,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	}
 	@Override
 	public void visit(OWLDeclarationAxiom axiom) {
-		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getEntity())));
+		ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getEntity())));
 	}
 	@Override
 	public void visit(OWLSubClassOfAxiom axiom) {
@@ -428,12 +444,12 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			if(cMode == Mode.BottomMode){
 				//A -> A c B
 				ruleBuffer.clear();
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getSubClass())));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSubClass())));
 				ruleBuffer.addAll(subClassRules);
 			}
 			else if(cMode == Mode.TopMode){
 				//A, B -> A c B
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getSubClass()), ruleSet.putObject(axiom.getSuperClass())));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSubClass()), dictionary.getId(axiom.getSuperClass())));
 				ruleBuffer.addAll(subClassRules);
 			}
 		}
@@ -441,37 +457,37 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			if(cMode == Mode.BottomMode){
 				// -> A c B
 				ruleBuffer.clear();
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null));
 			}
 			else if(cMode == Mode.TopMode){
 				//B -> A c B
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getSuperClass())));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSuperClass())));
 			}
 		}
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLNegativeObjectPropertyAssertionAxiom axiom) {
-		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
+		ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null));
 	}
 	@Override
 	public void visit(OWLAsymmetricObjectPropertyAxiom axiom) {
 		ruleBuffer.clear();
 		
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLReflexiveObjectPropertyAxiom axiom) {
 		//ruleBuffer.clear();
 		//
 		//axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, (Integer[]) null));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLDisjointClassesAxiom axiom) {
@@ -484,7 +500,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			if(cMode == Mode.TopMode){
 				if(foundTop != null){
 					ruleBuffer.clear();
-					ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
+					ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null, (Integer[]) null));
 					return;
 				}
 				else{
@@ -501,17 +517,17 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		ruleBuffer.addAll(rules);
 		if(foundTop != null){
 			for(int i = 0; i < elements.size(); i++){
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(elements.get(i))));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(elements.get(i))));
 			}
 		}
 		else{
 			for(int i = 0; i < elements.size(); i++){
 				for(int j = i + 1; j < elements.size(); j++){
-					ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(elements.get(i)), ruleSet.putObject(elements.get(j))));
+					ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(elements.get(i)), dictionary.getId(elements.get(j))));
 				}
 			}
 		}
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLDataPropertyDomainAxiom axiom) {
@@ -527,22 +543,22 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		ruleBuffer.clear();
 		axiom.getDomain().accept(this);
 		if(cMode == Mode.TopMode){
-			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty()), ruleSet.putObject(axiom.getDomain())));
+			ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty()), dictionary.getId(axiom.getDomain())));
 		}
 		else{
 			ruleBuffer.clear();
-			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+			ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
 		}
 		ruleBuffer.addAll(propRules);
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLEquivalentObjectPropertiesAxiom axiom) {
 		for(OWLObjectPropertyExpression p : axiom.getProperties()){
 			ruleBuffer.clear();
 			p.accept(this);
-			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(p)));
-			ruleBuffer.forEach(x -> ruleSet.add(x));
+			ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(p)));
+			ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 		}
 	}
 	@Override
@@ -552,8 +568,8 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	@Override
 	public void visit(OWLDifferentIndividualsAxiom axiom) {
 		for(OWLIndividual ind : axiom.getIndividualsAsList()){
-			Rule r = new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(ind));
-			ruleSet.add(r);
+			Rule r = new Rule(null, dictionary.getId(axiom), null, dictionary.getId(ind));
+			ruleSet.addRule(dictionary.getId(axiom), r);
 		}
 	}
 	@Override
@@ -583,10 +599,10 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			for(int j = i + 1; j < props.size(); j++){
 				if(props.get(j) == null) continue;
 				
-				ruleBuffer.add(new Rule(ruleSet.putObject(axiom), null, null, ruleSet.putObject(expr.get(i)), ruleSet.putObject(expr.get(j))));
+				ruleBuffer.add(new Rule(dictionary.getId(axiom), null, null, dictionary.getId(expr.get(i)), dictionary.getId(expr.get(j))));
 			}
 		}
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLObjectPropertyRangeAxiom axiom) {
@@ -601,36 +617,36 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		if(cMode == Mode.BottomMode){
 			ruleBuffer.clear();
 			
-			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+			ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
 		}
 		else if(cMode == Mode.TopMode){
-			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty()), ruleSet.putObject(axiom.getRange())));
+			ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty()), dictionary.getId(axiom.getRange())));
 		}
 		ruleBuffer.addAll(propRules);
 
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLObjectPropertyAssertionAxiom axiom) {
 		//TODO: Reintroduce after testing is completed, as it would be logically sound
 		//if(!axiom.getProperty().isTopEntity())
-			ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
+			ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null));
 	}
 	@Override
 	public void visit(OWLFunctionalObjectPropertyAxiom axiom) {
 		ruleBuffer.clear();
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLSubObjectPropertyOfAxiom axiom) {
 		ruleBuffer.clear();
 		
 		axiom.getSubProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getSubProperty())));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSubProperty())));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLDisjointUnionAxiom axiom) {
@@ -646,29 +662,29 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			oce.accept(this);
 			if(cMode == Mode.TopMode){
 				if(foundTop || lMode == Mode.BottomMode){
-					ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
+					ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null, (Integer[]) null));
 					return;
 				}
 				foundTop = true;
 			}
 			rules.addAll(ruleBuffer);
-			rules.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(oce)));
+			rules.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(oce)));
 		}
 
 		if(!foundTop && lMode == Mode.TopMode){
-			ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, (Integer[]) null));
+			ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null, (Integer[]) null));
 			return;
 		}
 
-		rules.forEach(x -> ruleSet.add(x));
-		ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getOWLClass())));
+		rules.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
+		ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getOWLClass())));
 	}
 	@Override
 	public void visit(OWLSymmetricObjectPropertyAxiom axiom) {
 		ruleBuffer.clear();
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLDataPropertyRangeAxiom axiom) {
@@ -685,7 +701,7 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 	@Override
 	public void visit(OWLClassAssertionAxiom axiom) {
 		if(!axiom.getClassExpression().isTopEntity())
-			ruleSet.add(new Rule(null, ruleSet.putObject(axiom), null));
+			ruleSet.addRule(dictionary.getId(axiom), new Rule(null, dictionary.getId(axiom), null));
 	}
 	@Override
 	public void visit(OWLEquivalentClassesAxiom axiom) {
@@ -709,23 +725,23 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		if(leftMode != cMode){
 			ruleBuffer.clear();
 			// -> A = B
-			ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null));
+			ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null));
 		}
 		else{
 			//A -> A = B, B
 			//B -> A = B, A
 			ruleBuffer.addAll(leftrules);
 			if(cMode == Mode.BottomMode) {
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), ((left instanceof OWLClass) ? ruleSet.putObject(left) : null), ruleSet.putObject(right)));
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), ((right instanceof OWLClass) ? ruleSet.putObject(right) : null), ruleSet.putObject(left)));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), ((left instanceof OWLClass) ? dictionary.getId(left) : null), dictionary.getId(right)));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), ((right instanceof OWLClass) ? dictionary.getId(right) : null), dictionary.getId(left)));
 			}
 			else {
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(right)));
-				ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(left)));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(right)));
+				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(left)));
 			}
 		}
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLDataPropertyAssertionAxiom axiom) {
@@ -736,18 +752,18 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		ruleBuffer.clear();
 		
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLIrreflexiveObjectPropertyAxiom axiom) {
 		ruleBuffer.clear();
 		
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLSubDataPropertyOfAxiom axiom) {
@@ -758,15 +774,15 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		ruleBuffer.clear();
 		
 		axiom.getProperty().accept(this);
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getProperty())));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getProperty())));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLSameIndividualAxiom axiom) {
 		for(OWLIndividual ind : axiom.getIndividualsAsList()){
-			Rule r = new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(ind));
-			ruleSet.add(r);
+			Rule r = new Rule(null, dictionary.getId(axiom), null, dictionary.getId(ind));
+			ruleSet.addRule(dictionary.getId(axiom), r);
 		}
 	}
 	@Override
@@ -778,11 +794,11 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			ruleBuffer.clear();
 			p.accept(this);
 			proprules.addAll(ruleBuffer);
-			ruleArgs[index++] = ruleSet.putObject(p);
+			ruleArgs[index++] = dictionary.getId(p);
 		}
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleArgs));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, ruleArgs));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLInverseObjectPropertiesAxiom axiom) {
@@ -794,10 +810,10 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		axiom.getSecondProperty().accept(this);
 		ruleBuffer.addAll(rules);
 		
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getFirstProperty())));
-		ruleBuffer.add(new Rule(null, ruleSet.putObject(axiom), null, ruleSet.putObject(axiom.getSecondProperty())));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getFirstProperty())));
+		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSecondProperty())));
 		
-		ruleBuffer.forEach(x -> ruleSet.add(x));
+		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
 	}
 	@Override
 	public void visit(OWLHasKeyAxiom axiom) {

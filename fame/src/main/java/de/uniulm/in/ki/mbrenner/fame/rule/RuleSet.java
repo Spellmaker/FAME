@@ -12,6 +12,7 @@ import java.util.Set;
 
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v2.OWLDictionary;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v2.RuleStorage;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
@@ -28,10 +29,11 @@ import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 
-public class RuleSet implements Iterable<Rule>, OWLDictionary{
+public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 	protected Set<Integer> baseSignature;
 	protected Set<OWLAxiom> baseModule;
 
@@ -66,11 +68,12 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 		
 		//the rule set always knows owl:thing
 		OWLDataFactory factory = new OWLDataFactoryImpl();
-		putObject(factory.getOWLThing());
+		getId(factory.getOWLThing());
 	}
-	
-	public OWLObject lookup(int i){
-		return arrDictionary[i];
+
+	@Override
+	public OWLObject getObject(Integer id){
+		return arrDictionary[id];
 	}
 	
 	public OWLObject debugLookup(int i){
@@ -84,8 +87,9 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 	public boolean isDeclRule(int i){
 		return arrisDeclRule[i];
 	}
-	
-	public int putObject(OWLObject o){
+
+	@Override
+	public Integer getId(OWLObject o){
 		Integer index = invDictionary.get(o);
 		if(index == null){
 			if(arrDictionary != null){
@@ -102,7 +106,7 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 				List<Integer> sign = new LinkedList<>();
 				OWLAxiom ax = (OWLAxiom) o;
 				for(OWLObject obj : ax.getSignature()){
-					sign.add(putObject(obj));
+					sign.add(getId(obj));
 				}
 				axiomSignatures.put(index, Collections.unmodifiableList(sign));
 				//ax.accept(this);
@@ -143,7 +147,7 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 			//baseModule.forEach(x -> sig.addAll(x.getSignature()));
 			baseModule = rbme.extractModule(this, sig);
 		}
-		baseModule.forEach(x -> x.getSignature().forEach(y -> baseSignature.add(putObject(y))));
+		baseModule.forEach(x -> x.getSignature().forEach(y -> baseSignature.add(getId(y))));
 
 		baseSignature = Collections.unmodifiableSet(baseSignature);
 		baseModule = Collections.unmodifiableSet(baseModule);
@@ -165,7 +169,7 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 		return rulesArray[i];
 	}
 	
-	public void add(Rule r){
+	public int addRule(Integer cause, Rule r){
 		if(rules == null){
 			throw new UnsupportedOperationException("RuleSet has already been finalized, cannot add rule '" + r + "'");
 		}
@@ -192,9 +196,10 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 			}
 			else{
 				this.baseSignature.add(r.getHead());
-				dictionary.get(r.getHead()).getSignature().forEach(x -> this.baseSignature.add(putObject(x)));
+				dictionary.get(r.getHead()).getSignature().forEach(x -> this.baseSignature.add(getId(x)));
 			}
 		}
+		return -1;
 	}
 	
 	/*@Override
@@ -225,6 +230,10 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 		//baseSignature.addAll(prop.getSignature());
 		//baseModule.add(ax);
 	}*/
+
+	public int findRule(Rule r){
+		throw new NotImplementedException();
+	}
 	
 	public Set<OWLAxiom> getBaseModule(){
 		return baseModule;
@@ -234,7 +243,7 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 		return baseSignature;
 	}
 	
-	public int size(){
+	public int ruleCount(){
 		return size;
 	}
 	
@@ -249,15 +258,5 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary{
 	@Override
 	public Iterator<Rule> iterator() {
 		return new ArrayIterator<Rule>(rulesArray);
-	}
-
-	@Override
-	public Integer getId(OWLObject o) {
-		return putObject(o);
-	}
-
-	@Override
-	public OWLObject getObject(Integer id) {
-		return lookup(id);
 	}
 }

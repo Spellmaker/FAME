@@ -54,6 +54,7 @@ public class TestRandTimes implements EvaluationCase{
 		if(options.size() >= 4) {
 			outDir = Paths.get(options.get(3));
 		}
+		int toobig = 0;
 		//setup threads
 		ExecutorService mainPool = Executors.newFixedThreadPool(1);
 		ExecutorService extractorPool = Executors.newFixedThreadPool(5);
@@ -67,7 +68,7 @@ public class TestRandTimes implements EvaluationCase{
 		int finished = 0;
 		boolean terminated = false;
 		List<String> lines = new LinkedList<>();
-		lines.add("file;axioms;logicalaxioms;OWLAPI;FAME EL ND;FAME M ND;FAME EL D;FAME M D;FAMEND EL;FAMEND M;HyS;JCEL;Incremental");
+		lines.add("file;axioms;logicalaxioms;basemod;OWLAPI;FAME EL ND;FAME M ND;FAME EL D;FAME M D;FAMEND EL;FAMEND M;HyS;JCEL;Incremental");
 		while(!terminated){
 			for(int i = 0; i < futures.size(); i++){
 				Future<Long[]> f = futures.get(i);
@@ -79,8 +80,12 @@ public class TestRandTimes implements EvaluationCase{
 
 					try {
 						Long[] res = f.get();
+						if(res == null){
+							toobig++;
+							continue;
+						}
 						//makeOutput(res);
-						String s = OutputFormatter.formatCSV(map.get(f), res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], res[9], res[10], res[11]);
+						String s = OutputFormatter.formatCSV(map.get(f), res[0], res[1], res[2], res[3], res[4], res[5], res[6], res[7], res[8], res[9], res[10], res[11], res[12]);
 						EvaluationMain.out.println(s);
 						lines.add(s);
 						if(outDir != null){
@@ -89,6 +94,7 @@ public class TestRandTimes implements EvaluationCase{
 					}
 					catch(Throwable e){
 						EvaluationMain.out.println("task (" + finished + "/" + files.size() + ") had errors: " + e);
+						e.printStackTrace();
 					}
 				}
 			}
@@ -99,6 +105,7 @@ public class TestRandTimes implements EvaluationCase{
 		}
 		mainPool.shutdown();
 		extractorPool.shutdown();
-		for(String s : lines) System.out.println(s);
+		EvaluationMain.out.println("Skipped " + toobig + " ontologies for size reasons");
+		for(String s : lines) EvaluationMain.out.println(s);
 	}
 }

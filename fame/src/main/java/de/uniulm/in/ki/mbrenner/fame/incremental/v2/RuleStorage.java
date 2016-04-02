@@ -10,4 +10,5 @@ public interface RuleStorage {
     public int addRule(Integer cause, Rule r);
     public int ruleCount();
     public int findRule(Rule r);
+    public void finalize();
 }

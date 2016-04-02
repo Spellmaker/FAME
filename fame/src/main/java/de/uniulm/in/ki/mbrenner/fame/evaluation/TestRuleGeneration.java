@@ -21,12 +21,16 @@ public class TestRuleGeneration implements EvaluationCase{
 		if(options.size() >= 2){
 			outDir = Paths.get(options.get(1));
 		}
+		//if(options.size() >= 3){
+		//	RuleGenerationWorker.maxsize = Integer.parseInt(options.get(2));
+		//}
 		EvaluationMain.out.println("performing " + iterations  + " iterations of rule generation");
 		RuleGenerationWorker.iterations = iterations;
 		//setup threads
 		Map<Future<Long[]>, RuleGenerationWorker> map = new HashMap<>();
 		ExecutorService genPool = Executors.newFixedThreadPool(5);
 		List<String> lines = new LinkedList<>();
+		int toobig = 0;
 		try {
 			List<Future<Long[]>> futures = new ArrayList<>(files.size());
 			for (int i = 0; i < files.size(); i++) {
@@ -37,7 +41,7 @@ public class TestRuleGeneration implements EvaluationCase{
 			}
 			int finished = 0;
 			boolean terminated = false;
-			String header = "file;axioms;logicalaxioms;ELRules;ModeRules;CompressedRules;HyS;OWLApi;JCEL;Incr";
+			String header = "file;axioms;logicalaxioms;basemod;ELRules;ModeRules;CompressedRules;HyS;OWLApi;JCEL;Incr";
 			lines.add(header);
 
 			while (!terminated) {
@@ -50,7 +54,11 @@ public class TestRuleGeneration implements EvaluationCase{
 						futures.remove(i);
 						i--;
 						EvaluationMain.out.println("finished task (" + finished + "/" + files.size() + ")");
-						String data = map.get(f).f + ";" + f.get()[0] + ";" + f.get()[1] + ";" + f.get()[2] + ";" + f.get()[3] + ";" + f.get()[4] + ";" + f.get()[5] + ";" + f.get()[6] + ";" + f.get()[7] + ";" + f.get()[8];
+						if(f.get() == null){
+							toobig++;
+							continue;
+						}
+						String data = map.get(f).f + ";" + f.get()[0] + ";" + f.get()[1] + ";" + f.get()[2] + ";" + f.get()[3] + ";" + f.get()[4] + ";" + f.get()[5] + ";" + f.get()[6] + ";" + f.get()[7] + ";" + f.get()[8]+";"+f.get()[9];
 						if(outDir != null && !Files.exists(outDir.resolve(map.get(f).f.getName()))){
 							Files.write(outDir.resolve(map.get(f).f.getName()), Collections.singleton(data));
 						}
@@ -73,6 +81,7 @@ public class TestRuleGeneration implements EvaluationCase{
 			while(true) EvaluationMain.out.println("lol fail############################################################");
 		}
 		if(!genPool.isShutdown()) genPool.shutdown();
+		EvaluationMain.out.println("skipped " + toobig + " ontologies due to size reasons");
 		for(String s : lines){
 			EvaluationMain.out.println(s);
 		}

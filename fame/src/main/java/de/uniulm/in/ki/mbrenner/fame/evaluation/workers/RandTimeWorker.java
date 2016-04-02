@@ -22,6 +22,7 @@ import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
 import de.uniulm.in.ki.mbrenner.fame.util.DevNull;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
@@ -64,10 +65,25 @@ public class RandTimeWorker implements Callable<Long[]>{
 	public Long[] call() throws Exception {
 		message("Loading ontology");
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-		OWLOntology ontology = m.loadOntologyFromOntologyDocument(f);
+		OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
+		loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
+		OWLOntology ontology = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f), loaderConfig);
+		if(ontology.getLogicalAxiomCount() > EvaluationMain.max_size){
+			EvaluationMain.out.println("Skipping ontology " + f + " as it is too large");
+			return null;
+		}
+		if(ontology.getLogicalAxiomCount() < EvaluationMain.min_size){
+			EvaluationMain.out.println("Skipping ontology " + f + " as it is too small");
+			return null;
+		}
+		if(ontology.getSignature().size() <= 0){
+			EvaluationMain.out.println("No elements in signature for ontology " + f + " skipping");
+			return null;
+		}
+		message("Size is " + ontology.getAxiomCount());
 		message("Generating rules");
 		//preparation work
-		RuleSet rulesEL = (new ELRuleBuilder()).buildRules(ontology);
+		//RuleSet rulesEL = (new ELRuleBuilder()).buildRules(ontology);
 
 		RuleSet rulesMode = (new BottomModeRuleBuilder()).buildRules(ontology);
 
@@ -111,23 +127,28 @@ public class RandTimeWorker implements Callable<Long[]>{
 			Set<OWLEntity> signature = getRandomSignature(sigsize);
 			Set<Integer> intClasses = new HashSet<>();
 			Set<Integer> intProperties = new HashSet<>();
-			for(OWLEntity e : signature){
-				if(e instanceof OWLClass) 	intClasses.add(trans.translateC((OWLClass) e).getId());
-				else						intProperties.add(((IntegerObjectProperty)trans.translateOPE((OWLObjectProperty) e)).getId());
+			try {
+				for (OWLEntity e : signature) {
+					if (e instanceof OWLClass) intClasses.add(trans.translateC((OWLClass) e).getId());
+					else intProperties.add(((IntegerObjectProperty) trans.translateOPE((OWLObjectProperty) e)).getId());
+				}
+			}
+			catch(Exception e){
+				EvaluationMain.out.println("Some error with jcel");
 			}
 
 			Future<Long[]> f = pool.submit(new OWLExtractionWorker(m, ontology, signature));
 			futures.add(f); map.put(f, 0);
-			f = pool.submit(new FAMEExtractionWorker(signature, false, rulesEL, 1));
+			/*f = pool.submit(new FAMEExtractionWorker(signature, false, rulesEL, 1));
 			futures.add(f); map.put(f, 1);
 			f = pool.submit(new FAMEExtractionWorker(signature, false, rulesMode, 2));
 			futures.add(f); map.put(f, 2);
 			f = pool.submit(new FAMEExtractionWorker(signature, true, rulesEL, 3));
-			futures.add(f); map.put(f, 3);
+			futures.add(f); map.put(f, 3);*/
 			f = pool.submit(new FAMEExtractionWorker(signature, true, rulesMode, 4));
 			futures.add(f); map.put(f, 4);
-			f = pool.submit(new FAMENoDefExtractionWorker(signature, rulesEL, 5));
-			futures.add(f); map.put(f, 5);
+			/*f = pool.submit(new FAMENoDefExtractionWorker(signature, rulesEL, 5));
+			futures.add(f); map.put(f, 5);*/
 			f = pool.submit(new FAMENoDefExtractionWorker(signature, rulesMode, 6));
 			futures.add(f); map.put(f, 6);
 			if(hys != null) {
@@ -146,13 +167,14 @@ public class RandTimeWorker implements Callable<Long[]>{
 			}
 		}
 		
-		Long[] result = new Long[12];
+		Long[] result = new Long[13];
 		for(int i = 0; i < result.length; i++) result[i] = -1L;
 		result[0] = (long) ontology.getAxioms().size();
 		result[1] = 0L;
 		for(OWLAxiom a : ontology.getAxioms()){
 			if(a instanceof OWLLogicalAxiom) result[1]++;
 		}
+		result[2] = Long.valueOf((new BottomModeRuleBuilder()).buildRules(ontology).getBaseModule().size());
 
 
 		int begin = futures.size();
@@ -164,7 +186,7 @@ public class RandTimeWorker implements Callable<Long[]>{
 					futures.remove(i--);
 					try {
 						Long[] res = current.get();
-						result[res[0].intValue() + 2] += res[1];
+						result[res[0].intValue() + 3] += res[1];
 					}
 					catch(Throwable e){
 						EvaluationMain.out.println("[Task " + id + "] Had errors for execution with " + getName(map.get(f)));

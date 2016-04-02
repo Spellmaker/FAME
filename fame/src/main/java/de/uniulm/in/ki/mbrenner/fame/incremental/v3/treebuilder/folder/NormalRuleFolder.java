@@ -72,7 +72,7 @@ public class NormalRuleFolder extends NodeFolder {
 
     @Override
     public void fold(FactNode node) {
-        makeRuleInt(node.symbol, null);
+        makeRuleInt(node.symbol, (Integer[]) null);
     }
 
     /*private void makeRule(OWLObject head, OWLObject...body){

@@ -66,7 +66,15 @@ public class ModuleSetup {
                     Set<OWLAxiom> baseModule = extractor.extract(new HashSet<>());
                     ModuleIO.writeModule(tdir.resolve("baseModule").toFile(), baseModule);
                 }
+                int max = o.getSignature().size();
+                int curr = 0;
+                int last = -5;
                 for(OWLEntity e : o.getSignature()){
+                    double perc = printPercent(max, ++curr);
+                    if(perc - 5 > last){
+                        last += 5;
+                        System.out.println(perc + "% done");
+                    }
                     if(!(e instanceof OWLClass) && !(e instanceof OWLObjectProperty)) {
                         continue;
                     }
@@ -97,6 +105,10 @@ public class ModuleSetup {
 
     public static String sanitizeFilename(String input){
         return input.replace("<", "_").replace(">", "_").replace("#", "_").replace("/", "_").replace(":", "_");
+    }
+
+    public static double printPercent(int max, int curr){
+        return ((double) curr * 100) / (double) max;
     }
 
     //public static String sanitizeFilename(String inputName) {

@@ -44,8 +44,8 @@ public class RBMExtractor {
 		for(int i = 0; i < definitions.length; i++){
 			if(definitions[i] == null || definitions[i] <= 0) continue;
 
-			OWLEquivalentClassesAxiom ax = (OWLEquivalentClassesAxiom) rules.lookup(definitions[i]);
-			OWLObject def = rules.lookup(i);
+			OWLEquivalentClassesAxiom ax = (OWLEquivalentClassesAxiom) rules.getObject(definitions[i]);
+			OWLObject def = rules.getObject(i);
 
 			result.put(def, ax);
 		}
@@ -67,7 +67,7 @@ public class RBMExtractor {
 		finalModule = new HashSet<>();
 		knownNotBottom = new boolean[rules.dictionarySize()];
 		//TODO: Make this safe against inclusions of owl top and unknown vocabulary
-		signature.forEach(x -> knownNotBottom[rules.putObject(x)] = true);
+		signature.forEach(x -> knownNotBottom[rules.getId(x)] = true);
 		
 		//Note: this filter can be dropped, if we assume that signatures do not contain owl:thing
 		signature = signature.stream().filter(x -> (!(x instanceof OWLClass)) || !((OWLClass)x).isOWLThing()).collect(Collectors.toSet());
@@ -75,23 +75,23 @@ public class RBMExtractor {
 		//TODO: Verify if this line is needed or not; it should not be needed, as all elements in the signature have been defined already
 		//signature.forEach(x -> module.add(new OWLDeclarationAxiomImpl(x, Collections.emptyList())));
 		queue = new LinkedList<>();
-		signature.forEach(x -> queue.add(rules.putObject(x)));
+		signature.forEach(x -> queue.add(rules.getId(x)));
 		//System.out.println("queue now contains " + queue.size() + " elements");
 		
 		//OWL Thing is always assumed to be not bottom
 		OWLDataFactory factory = new OWLDataFactoryImpl();
-		owlThing = rules.putObject(factory.getOWLThing());
+		owlThing = rules.getId(factory.getOWLThing());
 		//queue.add(owlThing);
 		//System.out.println("queue now contains " + queue.size() + " elements");
 		
 		//knownNotBottom[owlThing] = true;//.add(owlThing);
 
-		int[] ruleCounter = new int[rules.size()]; 						//counter for the number of elements in the rule body
-		Integer[] ruleHeads = new Integer[rules.size()]; 				//rule heads of intermediary rules
-		ruleAxioms = new Integer[rules.size()]; 						//axioms of leaf rules
-		Integer[] ruleDefs = new Integer[rules.size()];					//symbol defined by the rule
+		int[] ruleCounter = new int[rules.ruleCount()]; 						//counter for the number of elements in the rule body
+		Integer[] ruleHeads = new Integer[rules.ruleCount()]; 				//rule heads of intermediary rules
+		ruleAxioms = new Integer[rules.ruleCount()]; 						//axioms of leaf rules
+		Integer[] ruleDefs = new Integer[rules.ruleCount()];					//symbol defined by the rule
 		boolean[] definedAxioms = new boolean[rules.dictionarySize()];  //indicates if the axiom is used for a definition
-		boolean[] isDeclAxRule = new boolean[rules.size()];				//indicates if the rule adds a declaration axiom
+		boolean[] isDeclAxRule = new boolean[rules.ruleCount()];				//indicates if the rule adds a declaration axiom
 		defDeclPos = new Integer[rules.dictionarySize()];				//assigns to symbols the declarating axiom for use with definitions
 		definitions = new Integer[rules.dictionarySize()];				//assings to symbols the defining axiom
 		
@@ -165,8 +165,8 @@ public class RBMExtractor {
 							if(oldDefAxiom != null){
 								if(debug){
 									System.out.println("collapsing definition for " + 
-												rules.lookup(definedSymbol) + " due to axiom " + 
-												ClassPrinter.printAxiom((OWLAxiom) rules.lookup(currentAxiom)));
+												rules.getObject(definedSymbol) + " due to axiom " +
+												ClassPrinter.printAxiom((OWLAxiom) rules.getObject(currentAxiom)));
 									
 								}
 								if(oldDefAxiom != -1) collapseDefinition(oldDefAxiom);
@@ -183,8 +183,8 @@ public class RBMExtractor {
 								knownNotBottom[definedSymbol] = true;
 								queue.add(definedSymbol);
 								if(debug) System.out.println("defining symbol " + 
-										rules.lookup(definedSymbol) + " via axiom " + 
-										ClassPrinter.printAxiom((OWLAxiom) rules.lookup(currentAxiom)));
+										rules.getObject(definedSymbol) + " via axiom " +
+										ClassPrinter.printAxiom((OWLAxiom) rules.getObject(currentAxiom)));
 							}
 						}
 						else{
@@ -193,7 +193,7 @@ public class RBMExtractor {
 							rules.getAxiomSignature(ruleAxioms[cRule]).forEach(x -> addQueue(x));
 							module.add(ruleAxioms[cRule]);
 							knownNotBottom[ruleAxioms[cRule]] = true;
-							if(debug && !(rules.lookup(currentAxiom) instanceof OWLDeclarationAxiom)) System.out.println("added axiom " + ClassPrinter.printAxiom((OWLAxiom) rules.lookup(currentAxiom)));
+							if(debug && !(rules.getObject(currentAxiom) instanceof OWLDeclarationAxiom)) System.out.println("added axiom " + ClassPrinter.printAxiom((OWLAxiom) rules.getObject(currentAxiom)));
 						}
 					}
 					else{
@@ -208,7 +208,7 @@ public class RBMExtractor {
 			//System.out.println("--------------------------------------");
 		}
 		
-		module.forEach(x -> finalModule.add((OWLAxiom) rules.lookup(x)));
+		module.forEach(x -> finalModule.add((OWLAxiom) rules.getObject(x)));
 		
 		
 		return finalModule;
@@ -230,7 +230,7 @@ public class RBMExtractor {
 		}
 		if(doDefinitions && definitions[o] != null && definitions[o] >= 0){
 			collapseDefinition(o);
-			if(debug) System.out.println("collapsing definition of element " + rules.lookup(o) + " due to double adding");
+			if(debug) System.out.println("collapsing definition of element " + rules.getObject(o) + " due to double adding");
 		}
 		//add the entity to the list of those known to be possibly not bottom
 		if(knownNotBottom[o] == false){
@@ -256,7 +256,7 @@ public class RBMExtractor {
 		definitions[definedSymbol] = -1;
 		//add equivalence axiom to the module
 		module.add(defAxiom);
-		if(debug) System.out.println("collapsing adds axiom " + ClassPrinter.printAxiom((OWLAxiom) rules.lookup(defAxiom)));
+		if(debug) System.out.println("collapsing adds axiom " + ClassPrinter.printAxiom((OWLAxiom) rules.getObject(defAxiom)));
 		knownNotBottom[defAxiom] = true;
 		//add signature
 		rules.getAxiomSignature(defAxiom).forEach(x -> addQueue(x));

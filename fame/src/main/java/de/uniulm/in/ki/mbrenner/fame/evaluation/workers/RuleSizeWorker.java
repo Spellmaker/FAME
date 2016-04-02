@@ -33,9 +33,9 @@ public class RuleSizeWorker implements Callable<Long[]>{
 		Long[] res = new Long[8];
 		res[0] = (long) ontology.getAxioms().size();
 		res[1] = MemoryMeasurer.measureBytes(ontology);
-		res[2] = (long) r1.size();
+		res[2] = (long) r1.ruleCount();
 		res[3] = MemoryMeasurer.measureBytes(r1);
-		res[4] = (long) r2.size();
+		res[4] = (long) r2.ruleCount();
 		res[5] = MemoryMeasurer.measureBytes(r2);
 		res[6] = (long) r3.size();
 		res[7] = MemoryMeasurer.measureBytes(r3);

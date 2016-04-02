@@ -53,13 +53,14 @@ public class EquivalenceLocalityEvaluator implements LocalityEvaluator, OWLAxiom
             Map<OWLObject, OWLObject> oldMap = definitions;
             definitions = new HashMap<>();
             for(Map.Entry<OWLObject, OWLObject> entry : oldMap.entrySet()){
-                if(entry.getValue().getSignature().contains(entry.getKey())){
+                OWLObject cdefBody = definitions.get(entry.getKey());
+                if(cdefBody.getSignature().contains(entry.getKey())){
                     faulty = true;
                     changed = false;
                     break;
                 }
-                ((OWLClassExpression) entry.getValue()).accept(this);
-                if(!replacedClassExpression.equals(entry.getValue())){
+                ((OWLClassExpression) cdefBody).accept(this);
+                if(!replacedClassExpression.equals(cdefBody)){
                     changed = true;
                 }
                 definitions.put(entry.getKey(), replacedClassExpression);

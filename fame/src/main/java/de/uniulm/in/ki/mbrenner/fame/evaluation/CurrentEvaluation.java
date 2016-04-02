@@ -48,28 +48,31 @@ public class CurrentEvaluation implements EvaluationCase {
 		//OREManager manager = new OREManager();
 		//manager.load(Paths.get(options.get(0)), "el/classification", "el/consistency", "el/instantiation");
 		//ontologies = manager.filterOntologies(new ORENoFilter());
-		EvaluationMain.out.println("ORE found " + ontologies.size() + " ontologies");
+		//EvaluationMain.out.println("ORE found " + ontologies.size() + " ontologies");
 
-		ClassCounter root = new ClassCounter();
+		/*ClassCounter root = new ClassCounter();
 		Path goal = Paths.get(options.get(0));
 		int skipped = 0;
 		int error = 0;
 		int profileskipped = 0;
 		int allOk = 0;
 		int hyscount = 0;
-		int jcelcount = 0;
+		int jcelcount = 0;*/
 		int c = 0;
+		EvaluationMain.out.println("file;axioms;logicalaxioms;");
 		for(File f : ontologies){
-			EvaluationMain.out.println("Ontology " + ++c + " of " + ontologies.size());
+			//EvaluationMain.out.println("Ontology " + ++c + " of " + ontologies.size());
 			try{
-				if(Files.exists(goal.resolve(f.getName()))) continue;
+				//if(Files.exists(goal.resolve(f.getName()))) continue;
 
 				OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 				OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
 				loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
 				OWLOntology o = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f), loaderConfig);
 
-				OWL2ELProfile profile = new OWL2ELProfile();
+				EvaluationMain.out.println(f + ";" + o.getAxiomCount() + ";" + o.getLogicalAxiomCount());
+
+				/*OWL2ELProfile profile = new OWL2ELProfile();
 				OWLProfileReport report = profile.checkOntology(o);
 				if(!report.isInProfile()){
 					EvaluationMain.out.println("Skipped " + f + ": ontology is not in EL profile");
@@ -115,19 +118,18 @@ public class CurrentEvaluation implements EvaluationCase {
 					if(bothOk) {
 						allOk++;
 					}
-				}
+				}*/
 			}
 			catch(Exception e){
-				EvaluationMain.out.println("Skipped " + f + ": " + e);
-				error++;
+				//EvaluationMain.out.println("Skipped " + f + ": " + e);
 			}
 		}
-		EvaluationMain.out.println("Result:");
+		/*EvaluationMain.out.println("Result:");
 		EvaluationMain.out.println("Skipped " + (error + skipped) + " ontologies of " + ontologies.size() + ", " + error + " of them due to errors");
 		EvaluationMain.out.println("Profile would have skipped " + profileskipped + " ontologies, whereas ELBuilder skipped " + skipped);
 		EvaluationMain.out.println("Ontologies working for HyS: " + hyscount + " for JCEL: " + jcelcount + " for both: " + allOk);
 		EvaluationMain.out.println("Unknown objects statistics: ");
-		root.forEach(x -> EvaluationMain.out.println(x));
+		root.forEach(x -> EvaluationMain.out.println(x));*/
 
 		//OntologyFilter.filterOntologies(ontologies, options.get(0));
 		//findSuitableEq(ontologies);

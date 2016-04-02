@@ -21,6 +21,8 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	private boolean simulate = false;
 	private boolean finalizeWithDef;
 
+	private int cause;
+
 	public ELRuleBuilder(){
 		finalizeWithDef = false;
 	}
@@ -35,7 +37,10 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 		rs = new RuleSet();
 		unknownObjects = new LinkedList<>();
 
-		ontology.getAxioms(Imports.INCLUDED).forEach(x -> x.accept(this));
+		for(OWLAxiom a : ontology.getAxioms(Imports.INCLUDED)){
+			cause = rs.getId(a);
+			a.accept(this);
+		}
 		
 		rs.finalize(!finalizeWithDef, finalizeWithDef);
 		
@@ -82,7 +87,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	@Override
 	public void visit(OWLClass ce) {
 		if(!ce.isTopEntity()){
-			if(!simulate) rs.add(new Rule(null, rs.putObject(new OWLDeclarationAxiomImpl(ce, Collections.emptyList())), null, rs.putObject(ce)));
+			if(!simulate) rs.addRule(cause, new Rule(null, rs.getId(new OWLDeclarationAxiomImpl(ce, Collections.emptyList())), null, rs.getId(ce)));
 		}
 		else{
 			isTopEq = true;
@@ -97,11 +102,11 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 
 		int pos = 0;
 		for(Iterator<OWLClassExpression> iter = ops.iterator(); iter.hasNext();){
-			arr[pos++] = rs.putObject(iter.next()); 
+			arr[pos++] = rs.getId(iter.next()); 
 		}
 
 		boolean top = true;
-		if(!simulate) rs.add(new Rule(rs.putObject(ce), null, null, arr));
+		if(!simulate) rs.addRule(cause, new Rule(rs.getId(ce), null, null, arr));
 		for(OWLClassExpression e : ops){
 			e.accept(this);
 			top = top && isTopEq;
@@ -114,7 +119,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 		unknownObjects().add(ce);
 		/*boolean top = false;
 		for(OWLClassExpression oce : ce.getOperands()){
-			if(!simulate) rs.add(new Rule(rs.putObject(ce), null, null, rs.putObject(oce)));
+			if(!simulate) rs.addRule(cause, new Rule(rs.getId(ce), null, null, rs.getId(oce)));
 			oce.accept(this);
 			top = top || isTopEq;
 		}*/
@@ -128,10 +133,10 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 
 	@Override
 	public void visit(OWLObjectSomeValuesFrom ce) {
-		if(!simulate) rs.add(new Rule(null,
-				rs.putObject(new OWLDeclarationAxiomImpl((OWLEntity) ce.getProperty(), Collections.emptyList())), null,
-				rs.putObject(ce.getProperty())));
-		if(!simulate) rs.add(new Rule(rs.putObject(ce), null, null, rs.putObject(ce.getFiller()), rs.putObject(ce.getProperty())));
+		if(!simulate) rs.addRule(cause, new Rule(null,
+				rs.getId(new OWLDeclarationAxiomImpl((OWLEntity) ce.getProperty(), Collections.emptyList())), null,
+				rs.getId(ce.getProperty())));
+		if(!simulate) rs.addRule(cause, new Rule(rs.getId(ce), null, null, rs.getId(ce.getFiller()), rs.getId(ce.getProperty())));
 		ce.getFiller().accept(this);
 		isTopEq = false;
 	}
@@ -217,7 +222,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	@Override
 	public void visit(OWLDeclarationAxiom axiom) {
 		// TODO Auto-generated method stub
-		if(!simulate) rs.add(new Rule(null, rs.putObject(axiom), null, rs.putObject(axiom.getEntity())));
+		if(!simulate) rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(axiom.getEntity())));
 	}
 
 	@Override
@@ -229,10 +234,10 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 		simulate = false;
 
 		if(!isTopEq) {
-			rs.add(new Rule(null, rs.putObject(axiom), null, rs.putObject(expr)));
+			rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(expr)));
 			expr.accept(this);
 			if (isTopEq) {
-				rs.add(new Rule(null, rs.putObject(axiom), null, (Integer[]) null));
+				rs.addRule(cause, new Rule(null, rs.getId(axiom), null, (Integer[]) null));
 			}
 		}
 	}
@@ -276,7 +281,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	@Override
 	public void visit(OWLEquivalentObjectPropertiesAxiom axiom) {
 		for(OWLObjectPropertyExpression e : axiom.getProperties()){
-			rs.add(new Rule(null, rs.putObject(axiom), null, rs.putObject(e)));
+			rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(e)));
 			e.accept(this);
 		}
 	}
@@ -289,7 +294,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 
 	@Override
 	public void visit(OWLDifferentIndividualsAxiom axiom) {
-		rs.add(new Rule(null, rs.putObject(axiom), null));
+		rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
@@ -314,7 +319,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	public void visit(OWLObjectPropertyAssertionAxiom axiom) {
 		//TODO: Reintroduce after testing is finished, this is actually correct
 		//if(!axiom.getProperty().isTopEntity())
-			rs.add(new Rule(null, rs.putObject(axiom), null));
+			rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
@@ -326,7 +331,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	@Override
 	public void visit(OWLSubObjectPropertyOfAxiom axiom) {
 		OWLObjectPropertyExpression expr = axiom.getSubProperty();
-		rs.add(new Rule(null, rs.putObject(axiom), null, rs.putObject(expr)));
+		rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(expr)));
 		expr.accept(this);
 		//axiom.getSuperProperty().accept(this);
 	}
@@ -364,7 +369,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	@Override
 	public void visit(OWLClassAssertionAxiom axiom) {
 		if(!axiom.getClassExpression().isTopEntity())
-			rs.add(new Rule(null, rs.putObject(axiom), null));
+			rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
@@ -372,9 +377,9 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 		OWLClassExpression left = axiom.getClassExpressionsAsList().get(0);
 		OWLClassExpression right = axiom.getClassExpressionsAsList().get(1);
 		
-		rs.add(new Rule(null, rs.putObject(axiom), ((left instanceof OWLClass) ? rs.putObject(left) : null), rs.putObject(right)));
+		rs.addRule(cause, new Rule(null, rs.getId(axiom), ((left instanceof OWLClass) ? rs.getId(left) : null), rs.getId(right)));
 		left.accept(this);
-		rs.add(new Rule(null, rs.putObject(axiom), ((right instanceof OWLClass) ? rs.putObject(right) : null), rs.putObject(left)));
+		rs.addRule(cause, new Rule(null, rs.getId(axiom), ((right instanceof OWLClass) ? rs.getId(right) : null), rs.getId(left)));
 		right.accept(this);
 	}
 
@@ -386,7 +391,7 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 
 	@Override
 	public void visit(OWLTransitiveObjectPropertyAxiom axiom) {
-		rs.add(new Rule(null, rs.putObject(axiom), null, rs.putObject(axiom.getProperty())));
+		rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(axiom.getProperty())));
 	}
 
 	@Override
@@ -409,16 +414,16 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 
 	@Override
 	public void visit(OWLSameIndividualAxiom axiom) {
-		rs.add(new Rule(null, rs.putObject(axiom), null));
+		rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
 	public void visit(OWLSubPropertyChainOfAxiom axiom) {
 		Integer[] props = new Integer[axiom.getPropertyChain().size()];
 		for(int i = 0; i < axiom.getPropertyChain().size(); i++){
-			props[i] = rs.putObject(axiom.getPropertyChain().get(i));
+			props[i] = rs.getId(axiom.getPropertyChain().get(i));
 		}
-		rs.add(new Rule(null, rs.putObject(axiom), null, props));
+		rs.addRule(cause, new Rule(null, rs.getId(axiom), null, props));
 	}
 
 	@Override
@@ -453,12 +458,12 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 	@Override
 	public void visit(OWLObjectProperty property) {
 		if(!property.isTopEntity())
-			if(!simulate) rs.add(new Rule(null, rs.putObject(new OWLDeclarationAxiomImpl(property, Collections.emptyList())), null, rs.putObject(property)));
+			if(!simulate) rs.addRule(cause, new Rule(null, rs.getId(new OWLDeclarationAxiomImpl(property, Collections.emptyList())), null, rs.getId(property)));
 	}
 
 	@Override
 	public void visit(OWLObjectInverseOf property) {
-		if(!simulate) rs.add(new Rule(rs.putObject(property), null, null, rs.putObject(property.getInverse())));
+		if(!simulate) rs.addRule(cause, new Rule(rs.getId(property), null, null, rs.getId(property.getInverse())));
 		property.getInverse().accept(this);
 	}
 

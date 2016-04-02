@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
  * also return a value at the end of the traversal.
  */
 public class ObjectExplorer {
+  public static boolean examineStatic = false;
   private ObjectExplorer() { }
 
   /**
@@ -115,8 +116,9 @@ public class ObjectExplorer {
           stack.push(chain.appendArrayIndex(i, childValue));
         }
       } else {
+        //TODO: This here can be changed to allow counting of static fields for HyS
         for (Field field : getAllFields(value)) {
-          if (Modifier.isStatic(field.getModifiers())) continue;
+          if (!examineStatic && Modifier.isStatic(field.getModifiers())) continue;
           Object childValue = null;
           try {
             childValue = field.get(value);

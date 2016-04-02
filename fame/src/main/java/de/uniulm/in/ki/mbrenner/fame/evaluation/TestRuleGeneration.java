@@ -41,7 +41,8 @@ public class TestRuleGeneration implements EvaluationCase{
 			}
 			int finished = 0;
 			boolean terminated = false;
-			String header = "file;axioms;logicalaxioms;basemod;ELRules;ModeRules;CompressedRules;HyS;OWLApi;JCEL;Incr";
+			//String header = "file;axioms;logicalaxioms;basemod;ELRules;ModeRules;CompressedRules;HyS;OWLApi;JCEL;Incr";
+			String header = "file;axioms;logicalaxioms;basemod;ModeRules;OWLApi;JCEL;Incr";
 			lines.add(header);
 
 			while (!terminated) {
@@ -58,7 +59,7 @@ public class TestRuleGeneration implements EvaluationCase{
 							toobig++;
 							continue;
 						}
-						String data = map.get(f).f + ";" + f.get()[0] + ";" + f.get()[1] + ";" + f.get()[2] + ";" + f.get()[3] + ";" + f.get()[4] + ";" + f.get()[5] + ";" + f.get()[6] + ";" + f.get()[7] + ";" + f.get()[8]+";"+f.get()[9];
+						String data = map.get(f).f + ";" + f.get()[0] + ";" + f.get()[1] + ";" + f.get()[2] + ";" + f.get()[4] + ";" + f.get()[7] + ";" + f.get()[8]+";"+f.get()[9];
 						if(outDir != null && !Files.exists(outDir.resolve(map.get(f).f.getName()))){
 							Files.write(outDir.resolve(map.get(f).f.getName()), Collections.singleton(data));
 						}

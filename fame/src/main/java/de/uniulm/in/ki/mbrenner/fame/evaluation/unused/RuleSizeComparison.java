@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.evaluation;
+package de.uniulm.in.ki.mbrenner.fame.evaluation.unused;
 
 import java.io.File;
 import java.nio.file.DirectoryStream;
@@ -11,9 +11,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.RuleSizeWorker;
 
-public class RuleSizeComparison implements EvaluationCase{	
+public class RuleSizeComparison implements EvaluationCase {
 	public static void makeOutput(Long[] res){
 		EvaluationMain.out.println("Ontology size: " + res[0] + " axioms, " + res[1] + " bytes");
 		EvaluationMain.out.println("el: " + res[2] + " rules, " + res[3] + " bytes");

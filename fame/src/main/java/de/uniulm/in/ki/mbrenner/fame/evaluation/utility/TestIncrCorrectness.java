@@ -1,5 +1,7 @@
-package de.uniulm.in.ki.mbrenner.fame.evaluation;
+package de.uniulm.in.ki.mbrenner.fame.evaluation.utility;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrCorrectnessWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.ModuleCorrectnessWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrCorrectnessResult;
@@ -11,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class TestIncrCorrectness implements EvaluationCase{
+public class TestIncrCorrectness implements EvaluationCase {
 	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		EvaluationMain.out.println("warning: correctness currently excludes declaration axioms");

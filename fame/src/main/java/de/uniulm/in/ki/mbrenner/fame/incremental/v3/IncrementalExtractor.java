@@ -264,19 +264,30 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
     }
 
     public IncrementalModule extractModule(OWLEntity entity){
-        if(entity == null) return extractModule((Integer) null);
-        return extractModule(getId(entity));
+        if(entity == null) return extractModule(true, (Integer) null);
+        return extractModule(true, getId(entity));
     }
 
-    private IncrementalModule extractModule(Integer entity){
+    public IncrementalModule extractModuleStatic(Set<OWLEntity> entity){
+        if(entity == null) return extractModule(false, (Integer) null);
+        Integer[] e = new Integer[entity.size()];
+        int pos = 0;
+        for(OWLEntity x : entity) e[pos++] = getId(x);
+        return extractModule(false, e);
+    }
+
+    private IncrementalModule extractModule(boolean store, Integer...entity){
         if(entity == null) return base;
 
-        IncrementalModule result = base.getCopy(entity);
+        IncrementalModule result = base.getCopy(entity[0]);
         Queue<Integer> procQueue = new LinkedList<>();
-        moduleMap.put(entity, result);
-        modules.add(result);
-        addQueue(entity, result, procQueue);
-
+        if(store) {
+            moduleMap.put(entity[0], result);
+            modules.add(result);
+        }
+        for(Integer i : entity) {
+            addQueue(i, result, procQueue);
+        }
         //baseModule.forEach(x -> addAxiomToModule(x, result, procQueue));
         //baseSignature.forEach(x -> addQueue(x, result, procQueue));
         processQueue(procQueue, result);
@@ -324,7 +335,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         for(Integer i : entities){
             IncrementalModule im = moduleMap.get(i);
             modules.remove(im);
-            extractModule(i);
+            extractModule(true, i);
         }
     }
 

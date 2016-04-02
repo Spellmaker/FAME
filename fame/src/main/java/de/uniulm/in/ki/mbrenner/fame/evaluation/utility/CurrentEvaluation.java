@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.evaluation;
+package de.uniulm.in.ki.mbrenner.fame.evaluation.utility;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -12,6 +12,8 @@ import de.tudresden.inf.lat.jcel.ontology.axiom.complex.ComplexIntegerAxiom;
 import de.tudresden.inf.lat.jcel.ontology.axiom.extension.IntegerOntologyObjectFactoryImpl;
 import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
 import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;

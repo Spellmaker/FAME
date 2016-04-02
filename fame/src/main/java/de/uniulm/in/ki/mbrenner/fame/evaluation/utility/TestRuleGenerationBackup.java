@@ -1,5 +1,7 @@
-package de.uniulm.in.ki.mbrenner.fame.evaluation;
+package de.uniulm.in.ki.mbrenner.fame.evaluation.utility;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.RuleGenerationWorker;
 
 import java.io.File;
@@ -8,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class TestRuleGenerationBackup implements EvaluationCase{
+public class TestRuleGenerationBackup implements EvaluationCase {
 	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		int iterations = Integer.parseInt(options.get(0));

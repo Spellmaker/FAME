@@ -12,6 +12,7 @@ import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
 import objectexplorer.MemoryMeasurer;
+import objectexplorer.ObjectExplorer;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -38,6 +39,7 @@ public class MemoryTest implements EvaluationCase {
             loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
             OWLOntology ontology = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f));//"C:\\Users\\spellmaker\\Downloads\\oboFoundry\\taxrank.owl")), loaderConfig);
 
+            ObjectExplorer.examineStatic = true;
             String s = "" + f +";";
 
             s += Files.size(f.toPath()) + ";";

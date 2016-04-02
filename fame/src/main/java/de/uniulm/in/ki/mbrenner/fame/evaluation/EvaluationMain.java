@@ -1,5 +1,10 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.unused.RuleSizeComparison;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.CurrentEvaluation;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.ModulePreparation;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.TestCorrectness;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.TestIncrCorrectness;
 import de.uniulm.in.ki.mbrenner.fame.util.DevNull;
 
 import java.io.File;
@@ -88,6 +93,18 @@ public class EvaluationMain {
 		}
 		else if(hasArg(args, "memory")){
 			ec.add(new MemoryTest());
+		}
+		else if(hasArg(args, "extraction")){
+			ec.add(new TestModuleExtraction());
+		}
+		else if(hasArg(args, "extraction-hys")){
+			ec.add(new HySModuleExtractionTest());
+		}
+		else if(hasArg(args, "extraction-incr")){
+			ec.add(new SingleIncrModuleExtractionTest());
+		}
+		else if(hasArg(args, "rule-gen-hys")){
+			ec.add(new HySRuleGenerationTest());
 		}
 
 		List<File> ontologies = new LinkedList<>();

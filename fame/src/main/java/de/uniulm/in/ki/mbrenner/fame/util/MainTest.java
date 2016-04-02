@@ -27,6 +27,7 @@ import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import de.uniulm.in.ki.mbrenner.oremanager.OREManager;
 import de.uniulm.in.ki.mbrenner.oremanager.filters.ORENoFilter;
 import objectexplorer.MemoryMeasurer;
+import objectexplorer.ObjectExplorer;
 import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -78,7 +79,7 @@ public class MainTest {
         repl.add("http://chen.moe/onto/testObjectOneof#");
     }
     public static void main(String[] args) throws Exception{
-        String f = "C:\\Users\\spellmaker\\Downloads\\oboFoundry\\ma.owl";
+        String f = "C:\\Users\\spellmaker\\Downloads\\ma.owl";
 
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
@@ -91,6 +92,7 @@ public class MainTest {
         System.out.println("rule set size: " + MemoryMeasurer.measureBytes(rs));
         IncrementalExtractor ie = new IncrementalExtractor(ontology);
         System.out.println("incremental extractor size: " + MemoryMeasurer.measureBytes(ontology));
+        ObjectExplorer.examineStatic = true;
         try{
             HyS h = new HyS(ontology, ModuleType.BOT);
             h.condense(SCCAlgorithm.TARJAN);

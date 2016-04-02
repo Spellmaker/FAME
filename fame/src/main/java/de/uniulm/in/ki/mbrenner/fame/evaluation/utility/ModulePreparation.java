@@ -1,5 +1,7 @@
-package de.uniulm.in.ki.mbrenner.fame.evaluation;
+package de.uniulm.in.ki.mbrenner.fame.evaluation.utility;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.PreparationWorker;
 
 import java.io.File;
@@ -13,7 +15,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by spellmaker on 11.03.2016.
  */
-public class ModulePreparation implements EvaluationCase{
+public class ModulePreparation implements EvaluationCase {
     @Override
     public void evaluate(List<File> ontologies, List<String> options) throws Exception {
         EvaluationMain.out.println("pre-calculating modules for " + ontologies.size() + " ontologies");

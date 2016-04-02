@@ -123,7 +123,7 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 		}*/
 		results[5] = -1L;
 
-		try {
+		/*try {
 			start = System.currentTimeMillis();
 			for (int i = 0; i < iterations; i++) {
 				HyS h = new HyS(ontology, ModuleType.BOT);
@@ -137,7 +137,8 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 		catch(Throwable e){
 			results[6] = -1L;
 			EvaluationMain.out.println("[Task " + id + "] HyS had errors: " + e);
-		}
+		}*/
+		results[6] = -1L;
 
 		try {
 			start = System.currentTimeMillis();

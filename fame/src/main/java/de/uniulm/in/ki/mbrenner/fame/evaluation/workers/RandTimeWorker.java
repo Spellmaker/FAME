@@ -104,7 +104,7 @@ public class RandTimeWorker implements Callable<Long[]>{
 		allEntities.addAll(ontology.getClassesInSignature());
 		allEntities.addAll(ontology.getObjectPropertiesInSignature());
 
-		HyS hys = null;
+		/*HyS hys = null;
 		try{
 			hys = new HyS(ontology, ModuleType.BOT);
 			hys.condense(SCCAlgorithm.TARJAN);
@@ -112,7 +112,7 @@ public class RandTimeWorker implements Callable<Long[]>{
 		}
 		catch(Throwable t){
 			hys = null;
-		}
+		}*/
 
 		IncrementalExtractor ie = new IncrementalExtractor(ontology);
 
@@ -151,11 +151,11 @@ public class RandTimeWorker implements Callable<Long[]>{
 			futures.add(f); map.put(f, 5);*/
 			f = pool.submit(new FAMENoDefExtractionWorker(signature, rulesMode, 6));
 			futures.add(f); map.put(f, 6);
-			if(hys != null) {
+			/*if(hys != null) {
 				f = pool.submit(new HySExtractionWorker(hys, signature, 7));
 				futures.add(f);
 				map.put(f, 7);
-			}
+			}*/
 			if(normOntology != null) {
 				f = pool.submit(new JCELExtractionWorker(normOntology, intClasses, intProperties, 8));
 				futures.add(f);

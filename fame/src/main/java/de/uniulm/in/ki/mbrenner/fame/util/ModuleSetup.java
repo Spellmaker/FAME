@@ -1,6 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.util;
 
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
@@ -89,7 +90,7 @@ public class ModuleSetup {
                     if (el.unknownObjects().isEmpty()) {
                         RBMExtractor rbme = new RBMExtractor(true, false);
                         Set<OWLAxiom> module = rbme.extractModule(rs, signature);
-                        if (EqCorrectnessChecker.isCorrectEqModule(module, rbme, o) != null) {
+                        if (EqCorrectnessChecker.isCorrectEqModule(module, rbme, o, new RBMExtractorNoDef(false).extractModule(rs, signature)) != null) {
                             System.out.println("produced non-eq-local module for ontology " + o);
                         } else {
                             ModuleIO.writeModule(eqFile.toFile(), module);

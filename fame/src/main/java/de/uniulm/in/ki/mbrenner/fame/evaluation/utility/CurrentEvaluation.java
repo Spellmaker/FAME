@@ -239,7 +239,7 @@ public class CurrentEvaluation implements EvaluationCase {
 			int i = 0;
 			for(OWLEntity e : seeds){
 				Set<OWLAxiom> mod = fame.extractModule(rs, Collections.singleton(e));
-				OWLAxiom wrong = EqCorrectnessChecker.isCorrectEqModule(mod, fame, o);
+				OWLAxiom wrong = EqCorrectnessChecker.isCorrectEqModule(mod, fame, o, new RBMExtractorNoDef(false).extractModule(rs, Collections.singleton(e)));
 
 				if(wrong != null){
 					EvaluationMain.out.println("error in ontology " + f);

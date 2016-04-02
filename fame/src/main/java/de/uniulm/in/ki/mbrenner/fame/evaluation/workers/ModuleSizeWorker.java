@@ -65,8 +65,8 @@ public class ModuleSizeWorker implements Callable<ModuleSizeResult> {
 		for(OWLEntity e : ontology.getSignature()){
 			if(!(e instanceof OWLClass) &&!(e instanceof OWLObjectProperty)) continue;
 			
-			futures.add(pool.submit(new ModuleExtractionWorker(e, ruleSet, true)));
-			futures.add(pool.submit(new ModuleExtractionWorker(e, ruleSet, false)));
+			futures.add(pool.submit(new ModuleExtractionWorker(e, ruleSet, true, ontology)));
+			futures.add(pool.submit(new ModuleExtractionWorker(e, ruleSet, false, null)));
 			count++;
 		}
 		

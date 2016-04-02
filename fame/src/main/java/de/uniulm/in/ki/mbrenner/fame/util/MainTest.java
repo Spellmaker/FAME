@@ -79,7 +79,7 @@ public class MainTest {
         repl.add("http://chen.moe/onto/testObjectOneof#");
     }
     public static void main(String[] args) throws Exception{
-        String f = "C:\\Users\\spellmaker\\Downloads\\ma.owl";
+        String f = "C:\\Users\\spellmaker\\Downloads\\EL-GALEN.owl";
 
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
@@ -89,7 +89,17 @@ public class MainTest {
         System.out.println("file size: " + Files.size(Paths.get(f)));
 
         RuleSet rs = (new BottomModeRuleBuilder()).buildRules(ontology);
-        System.out.println("rule set size: " + MemoryMeasurer.measureBytes(rs));
+
+        RBMExtractor extr = new RBMExtractor(true, false);
+        for(OWLClass c : ontology.getClassesInSignature()){
+            if(!c.toString().contains("#Posture>")) continue;
+            Set<OWLAxiom> module = extr.extractModule(rs, Collections.singleton(c));
+            System.out.println(EqCorrectnessChecker.isCorrectEqModule(module, extr, ontology, new RBMExtractorNoDef(false).extractModule(rs, Collections.singleton(c))));
+        }
+
+
+
+        /*System.out.println("rule set size: " + MemoryMeasurer.measureBytes(rs));
         IncrementalExtractor ie = new IncrementalExtractor(ontology);
         System.out.println("incremental extractor size: " + MemoryMeasurer.measureBytes(ontology));
         ObjectExplorer.examineStatic = true;
@@ -118,7 +128,7 @@ public class MainTest {
         }
         catch(Throwable t){
             System.out.println("JCEL error");
-        }
+        }*/
 
         /*int iter = 1;
         int extriter = 10000;

@@ -2,6 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.EqCorrectnessChecker;
@@ -199,8 +200,10 @@ public class PreparationWorker implements Runnable {
             }
             else{
                 RBMExtractor rbme = new RBMExtractor(true, false);
+                RBMExtractorNoDef ndef = new RBMExtractorNoDef(false);
+
                 module = rbme.extractModule(ruleSet, signature);
-                if (EqCorrectnessChecker.isCorrectEqModule(module, rbme, ontology) != null) {
+                if (EqCorrectnessChecker.isCorrectEqModule(module, rbme, ontology, ndef.extractModule(ruleSet, signature)) != null) {
                     EvaluationMain.out.println("produced non-eq-local module for ontology " + ontology + " with entity " + entity);
                 } else {
                     ModuleIO.writeModule(eqName.toFile(), module);

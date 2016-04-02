@@ -28,9 +28,6 @@ public class EquivalenceLocalityEvaluator implements LocalityEvaluator, OWLAxiom
 
     @Override
     public boolean isLocal(@Nonnull OWLAxiom owlAxiom, @Nonnull Set<? extends OWLEntity> signature) {
-        if(resolveDefinitions()){
-           return false;
-        }
         unknownElements = new LinkedList<>();
         owlAxiom.accept(this);
         if(!unknownElements.isEmpty()){
@@ -49,24 +46,27 @@ public class EquivalenceLocalityEvaluator implements LocalityEvaluator, OWLAxiom
         //definitions with their definition
         boolean changed = true;
         boolean faulty = false;
+
         while(changed){
-            Map<OWLObject, OWLObject> oldMap = definitions;
-            definitions = new HashMap<>();
-            for(Map.Entry<OWLObject, OWLObject> entry : oldMap.entrySet()){
-                OWLObject cdefBody = definitions.get(entry.getKey());
-                if(cdefBody.getSignature().contains(entry.getKey())){
-                    faulty = true;
-                    changed = false;
-                    break;
+            List<OWLObject> keys = new LinkedList<>(definitions.keySet());
+            while(changed){
+                changed = false;
+
+                for(OWLObject o : keys){
+                    OWLClassExpression old = (OWLClassExpression) definitions.get(o);
+                    if(old.getSignature().contains(o)){
+                        return false;
+                    }
+                    old.accept(this);
+                    if(!old.equals(replacedClassExpression)){
+                        changed = true;
+                        definitions.put(o, replacedClassExpression);
+                    }
                 }
-                ((OWLClassExpression) cdefBody).accept(this);
-                if(!replacedClassExpression.equals(cdefBody)){
-                    changed = true;
-                }
-                definitions.put(entry.getKey(), replacedClassExpression);
             }
         }
-        return faulty;
+
+        return true;
     }
 
     public List<OWLObject> getUnknownElements(){

@@ -12,7 +12,7 @@ import java.util.*;
  * Created by spellmaker on 11.03.2016.
  */
 public class EqCorrectnessChecker {
-    public static OWLAxiom isCorrectEqModule(Set<OWLAxiom> module, RBMExtractor extractor, OWLOntology o){
+    public static OWLAxiom isCorrectEqModule(Set<OWLAxiom> module, RBMExtractor extractor, OWLOntology o, Set<OWLAxiom> normalModule){
         Set<OWLEntity> mSig = new HashSet<>();
         for(OWLAxiom a : module) mSig.addAll(a.getSignature());
 
@@ -29,8 +29,12 @@ public class EqCorrectnessChecker {
             }
             defAxioms.add(entry.getValue());
         }
+        if(!eq.resolveDefinitions()){
+            return module.iterator().next();
+        }
 
         for(OWLAxiom a : o.getAxioms()){
+            if(!normalModule.contains(a)) continue;
             if(defAxioms.contains(a)) continue;
             if(module.contains(a)) continue;
 

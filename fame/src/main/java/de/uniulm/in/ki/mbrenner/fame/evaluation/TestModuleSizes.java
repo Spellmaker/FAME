@@ -54,7 +54,7 @@ public class TestModuleSizes implements EvaluationCase{
 		if(options.size() >= 1){
 			oDir = Paths.get(options.get(0));
 		}
-		boolean useBMRB = false;
+		boolean useBMRB = true;
 		if(options.size() >= 2){
 			useBMRB = options.get(1).equals("BMRB");
 		}

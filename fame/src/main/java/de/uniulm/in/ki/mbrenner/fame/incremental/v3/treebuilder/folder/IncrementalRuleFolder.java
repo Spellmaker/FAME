@@ -21,7 +21,7 @@ public class IncrementalRuleFolder extends NodeFolder {
     private RuleStorage storage;
     private List<IncrementalModule> modules;
     private Set<Integer> moduleBuffer;
-    public Map<Integer, List<Integer>> applyAxiomToModules; //Module -> List<OWLAxiom>
+    public Map<IncrementalModule, List<Integer>> applyAxiomToModules; //Module -> List<OWLAxiom>
 
     private Integer currentReason;
 
@@ -33,7 +33,7 @@ public class IncrementalRuleFolder extends NodeFolder {
         List<Integer> l = applyAxiomToModules.get(mod);
         if(l == null){
             l = new LinkedList<>();
-            applyAxiomToModules.put(mod, l);
+            applyAxiomToModules.put(modules.get(mod), l);
         }
         l.add(ax);
     }

@@ -28,7 +28,7 @@ public class HySRuleGenerationTest implements EvaluationCase{
         iterations = Integer.parseInt(options.get(0));
         Path outDir = null;
         if(options.size() >= 2){
-            outDir = Paths.get(options.get(2));
+            outDir = Paths.get(options.get(1));
         }
         int task = 0;
         List<String> lines = new LinkedList<>();

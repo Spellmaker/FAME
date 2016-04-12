@@ -26,7 +26,7 @@ public class NormalRuleFolder extends NodeFolder {
         this.storage = storage;
     }
 
-    public void getRules(List<Node> roots){
+    public void buildRules(List<Node> roots){
         rules = new LinkedList<>();
         for(Node n : roots){
             Integer reason = dictionary.getId(n.symbol);

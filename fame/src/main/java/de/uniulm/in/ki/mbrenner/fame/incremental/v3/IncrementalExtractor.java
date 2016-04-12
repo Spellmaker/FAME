@@ -1,6 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.incremental.v3;
 
 import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v2.OWLDictionary;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v2.RuleStorage;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.TreeBuilder;
@@ -9,10 +10,8 @@ import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.folder.NormalRul
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.nodes.Node;
 import de.uniulm.in.ki.mbrenner.fame.locality.SyntacticLocalityEvaluator;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.InvalidRule;
 import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.Imports;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 import java.util.*;
@@ -61,7 +60,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
 
         //List<Node> forest = tb.buildTree(ontology.getAxioms(Imports.INCLUDED));
         //NormalRuleFolder nrf = new NormalRuleFolder(this, this);
-        //nrf.getRules(forest);
+        //nrf.buildRules(forest);
         BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
         bmrb.buildRules(ontology, true, this, this);
         determineBaseModule();
@@ -73,7 +72,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
 
         //List<Node> forest = tb.buildTree(ontology);
         //NormalRuleFolder nrf = new NormalRuleFolder(this, this);
-        //nrf.getRules(forest);
+        //nrf.buildRules(forest);
 
         BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
         Set<OWLEntity> signature = new HashSet<>();
@@ -228,7 +227,8 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         if(e == null) return base;
         IncrementalModule res = moduleMap.get(getId(e));
         if(res != null) return res;
-        return extractModule(e);
+        res = extractModule(e);
+        return res;
     }
 
     private void addQueue(Integer obj, IncrementalModule result, Queue<Integer> procQueue){
@@ -281,16 +281,16 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
 
         IncrementalModule result = base.getCopy(entity[0]);
         Queue<Integer> procQueue = new LinkedList<>();
-        if(store) {
-            moduleMap.put(entity[0], result);
-            modules.add(result);
-        }
         for(Integer i : entity) {
             addQueue(i, result, procQueue);
         }
         //baseModule.forEach(x -> addAxiomToModule(x, result, procQueue));
         //baseSignature.forEach(x -> addQueue(x, result, procQueue));
         processQueue(procQueue, result);
+        if(store) {
+            moduleMap.put(entity[0], result);
+            modules.add(result);
+        }
 
         return result;
     }
@@ -340,89 +340,129 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
     }
 
     private int incrCases = 0;
+    public static int basemodaffected = 0;
 
     public int getIncrCases(){
         return incrCases;
     }
 
-    public Set<IncrementalModule> modifyOntologyNaive(Set<OWLAxiom> addedAxioms, Set<OWLAxiom> removedAxioms){
-        Set<Integer> affectedEntities = new HashSet<>();
+    public ModificationResult modifyOntologyNaive(Set<OWLAxiom> addedAxioms, Set<OWLAxiom> removedAxioms){
+        Set<Integer> delAffected = new HashSet<>();
+        Set<Integer> addAffected = new HashSet<>();
         SyntacticLocalityEvaluator synt = new SyntacticLocalityEvaluator(LocalityClass.BOTTOM_BOTTOM);
         //transform to internal representation
         Set<Integer> iRemovedAxioms = removedAxioms.stream().map(x -> getId(x)).collect(Collectors.toSet());
         //determine first, if the base module is affected by a deletion. If that is the case, then all modules
         //need to be redetermined anyways.
         boolean baseModuleAffected = false;
+        boolean bmdel = false; boolean bmadd = false;
         for(Integer i : iRemovedAxioms){
             if(base.getModule().contains(i)){
                 baseModule.remove(i);
                 baseModuleAffected = true;
+                bmdel = true;
+                delAffected.addAll(moduleMap.keySet());
             }
         }
-        if(!baseModuleAffected){
-            for(OWLAxiom a : addedAxioms){
-                Set<OWLEntity> signature = new HashSet<>();
-                base.getOWLModule().forEach(x -> signature.addAll(x.getSignature()));
-                if (!synt.isLocal(a, signature)) {
-                    baseModuleAffected = true;
-                }
+        //if(!baseModuleAffected){
+        //check if the base module is addition affected
+        for(OWLAxiom a : addedAxioms){
+            Set<OWLEntity> signature = new HashSet<>();
+            base.getOWLModule().forEach(x -> signature.addAll(x.getSignature()));
+            if (!synt.isLocal(a, signature)) {
+                baseModuleAffected = true;
+                addAffected.addAll(moduleMap.keySet());
+                bmadd = true;
+                break;
             }
         }
+        //}
         //remove rules generated by the removed axioms
         removeRules(iRemovedAxioms);
         //prepare rules for the new axioms
         TreeBuilder tb = new TreeBuilder();
         List<Node> forest = tb.buildTree(addedAxioms);
         //create new rules without any fancy optimizations
-        NormalRuleFolder nrf = new NormalRuleFolder(this, this);
-        nrf.getRules(forest);
+        //NormalRuleFolder nrf = new NormalRuleFolder(this, this);
+        //nrf.buildRules(forest);
+        IncrementalRuleFolder irf = new IncrementalRuleFolder(this, this, modules);
+        irf.buildRules(forest);
 
-        if(baseModuleAffected){
-            //redetermine base module and all other modules
-            determineBaseModule();
-            affectedEntities.addAll(moduleMap.keySet());
-            Set<Integer> entities = new HashSet<>(moduleMap.keySet());
-        }
-        else{
-            //get signature for all modules and check, if the entity is local w.r.t. that signature
-            Set<IncrementalModule> recompute = new HashSet<>();
-
+        Set<IncrementalModule> recompute = new HashSet<>();
+        if(!baseModuleAffected || !bmdel){
+            //determine deletion affected modules
             for(OWLAxiom a : removedAxioms){
                 Integer ia = getId(a);
                 for(IncrementalModule im : modules){
                     if(recompute.contains(im)) continue;
                     if(im.getModule().contains(ia)){
                         recompute.add(im);
-                        affectedEntities.add(im.getBaseEntity());
+                        delAffected.add(im.getBaseEntity());
                     }
                 }
             }
-
+        }
+        if(!baseModuleAffected || !bmadd){
+            //determine addition affected modules
             for(OWLAxiom a : addedAxioms) {
                 for (IncrementalModule im : modules) {
                     if(recompute.contains(im)) continue;
                     Set<OWLEntity> signature = new HashSet<>();
                     signature.add((OWLEntity) getObject(im.getBaseEntity()));
                     im.getOWLModule().forEach(x -> signature.addAll(x.getSignature()));
-                    if(getObject(im.getBaseEntity()).toString().equals("<http://schema.org/Place>"))System.out.println("checking locality of " + a + " vs " + signature + ": " + synt.isLocal(a, signature));
                     if (!synt.isLocal(a, signature)){
-
                         recompute.add(im);
-                        affectedEntities.add(im.getBaseEntity());
+                        addAffected.add(im.getBaseEntity());
                     }
                 }
             }
         }
-        System.out.println("reextracting size: " + affectedEntities.size() + " base module affected: " + baseModuleAffected);
-        reextractFromScratch(affectedEntities);
-        return affectedEntities.stream().map(i -> moduleMap.get(i)).collect(Collectors.toSet());
+
+        if(baseModuleAffected){
+            basemodaffected++;
+            //redetermine base module
+            determineBaseModule();
+            reextractFromScratch(moduleMap.keySet());
+        }
+        else{
+            Set<Integer> affectedEntities = new HashSet<>();
+            affectedEntities.addAll(addAffected);
+            affectedEntities.addAll(delAffected);
+            reextractFromScratch(affectedEntities);
+        }
+        for(OWLAxiom a : addedAxioms) {
+            for (OWLClass c : a.getClassesInSignature()) {
+                Integer id = getId(c);
+                if(moduleMap.get(id) == null){
+                    extractModule(true, id);
+                    if(moduleMap.get(id) != null) addAffected.add(id);
+                }
+            }
+        }
+
+        Set<IncrementalModule> dA = delAffected.stream().map(x -> moduleMap.get(x)).collect(Collectors.toSet());
+
+        //remove empty modules
+        for(IncrementalModule im : recompute){
+            IncrementalModule n = moduleMap.get(im.getBaseEntity());
+            if(n.size() == 0){
+                moduleMap.remove(n.getBaseEntity());
+                modules.remove(n);
+                dA.add(n);
+            }
+        }
+        return new ModificationResult(
+                addAffected.stream().map(x -> moduleMap.get(x)).collect(Collectors.toSet()),
+                dA
+        );
     }
 
-    public Set<IncrementalModule> modifyOntology(Set<OWLAxiom> addedAxioms, Set<OWLAxiom> removedAxioms){
+    public ModificationResult modifyOntology(Set<OWLAxiom> addedAxioms, Set<OWLAxiom> removedAxioms){
         //transform to internal representation
         Set<Integer> iRemovedAxioms = removedAxioms.stream().map(x -> getId(x)).collect(Collectors.toSet());
 
-        Set<IncrementalModule> allAffected = new HashSet<>();
+        Set<IncrementalModule> delAffected = new HashSet<>();
+        Set<IncrementalModule> addAffected = new HashSet<>();
 
         //determine first, if the base module is affected by a deletion. If that is the case, then all modules
         //need to be redetermined anyways.
@@ -440,42 +480,67 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         TreeBuilder tb = new TreeBuilder();
         List<Node> forest = tb.buildTree(addedAxioms);
 
+        //determine modules affected by additions
+        List<IncrementalModule> all = new LinkedList<>(modules);
+        all.add(base);
+        IncrementalRuleFolder irf = new IncrementalRuleFolder(this, this, all);
+        irf.buildRules(forest);
+
         if(baseModuleAffected){
             //create new rules without any fancy optimizations
-            NormalRuleFolder nrf = new NormalRuleFolder(this, this);
-            nrf.getRules(forest);
+            //NormalRuleFolder nrf = new NormalRuleFolder(this, this);
+            //nrf.buildRules(forest);
             //redetermine base module and all other modules
             determineBaseModule();
-            Set<Integer> entities = new HashSet<>(moduleMap.keySet());
-            reextractFromScratch(entities);
-            allAffected.addAll(modules);
+            reextractFromScratch(moduleMap.keySet());
+            delAffected.addAll(modules);
+            for(IncrementalModule im : irf.applyAxiomToModules.keySet()){
+                if(im.getBaseEntity() != null) addAffected.add(im);
+            }
         }
         else{
             //find modules unaffected by the removed axioms
-            List<IncrementalModule> reextract = new LinkedList<>();
-            List<IncrementalModule> unaffected = new LinkedList<>();
-            for(IncrementalModule im : modules){
+            Set<IncrementalModule> reextract = new HashSet<>();
+            for(IncrementalModule im : all){
                 boolean found = false;
                 for(Integer i : iRemovedAxioms){
                     if(im.getModule().contains(i)){
+                        delAffected.add(im);
+                        reextract.add(im);
                         found = true;
                         break;
                     }
                 }
-                if(!found)  unaffected.add(im);
-                else        reextract.add(im);
+                if(!found){
+                    List<Integer> add = irf.applyAxiomToModules.get(im);
+                    if(add == null){
+                        continue;
+                    }
+                    if(im.getBaseEntity() != null) addAffected.add(im);
+
+                    incrCases++;
+                    Queue<Integer> procQueue = new LinkedList<>();
+                    for(Integer a : add){
+                        im.addAxiom(a);
+                        for(Integer e : axiomSignatures.get(a)){
+                            addQueue(e, im, procQueue);
+                        }
+                    }
+                    processQueue(procQueue, im);
+                }
             }
-            //base module is always unaffected
-            unaffected.add(base);
             //build rules and determine modules affected by added axioms only
-            IncrementalRuleFolder irf = new IncrementalRuleFolder(this, this, unaffected);
-            irf.buildRules(forest);
+            //IncrementalRuleFolder irf = new IncrementalRuleFolder(this, this, unaffected);
+            //irf.buildRules(forest);
 
             //incrementally extract modules affected by only additions
+            /*
+            Old and probably inefficient piece of code
             for(Map.Entry<Integer, List<Integer>> entry : irf.applyAxiomToModules.entrySet()){
+                IncrementalModule current = all.get(entry.getKey());
+                if(reextract.contains(current)) continue;
+
                 incrCases++;
-                IncrementalModule current = unaffected.get(entry.getKey());
-                allAffected.add(current);
                 Queue<Integer> procQueue = new LinkedList<>();
                 for(Integer a : entry.getValue()){
                     current.addAxiom(a);
@@ -484,12 +549,29 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
                     }
                 }
                 processQueue(procQueue, current);
+            }*/
+            //extract modules for new classes
+            for(OWLAxiom a : addedAxioms){
+                for(OWLClass c : a.getClassesInSignature()){
+                    if(moduleMap.get(c) == null){
+                        addAffected.add(getModule(c));
+                    }
+                }
             }
 
             //reextract modules affected by deletions
-            allAffected.addAll(reextract);
             reextractFromScratch(reextract.stream().map(x -> x.getBaseEntity()).collect(Collectors.toSet()));
+
+            //remove empty modules
+            for(IncrementalModule im : reextract){
+                IncrementalModule n = moduleMap.get(im.getBaseEntity());
+                if(n.size() == 0){
+                    moduleMap.remove(n.getBaseEntity());
+                    modules.remove(n);
+                    delAffected.add(n);
+                }
+            }
         }
-        return allAffected;
+        return new ModificationResult(addAffected, delAffected);
     }
 }

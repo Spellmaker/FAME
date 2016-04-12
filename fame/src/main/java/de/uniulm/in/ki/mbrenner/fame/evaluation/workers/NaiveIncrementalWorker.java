@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 /**
  * Created by spellmaker on 24.03.2016.
  */
-public class RBMEIncrementalWorker implements Callable<IncrTimeResult> {
+public class NaiveIncrementalWorker implements Callable<IncrTimeResult> {
     public File f;
     private int change;
     private int iterations;
@@ -32,7 +32,7 @@ public class RBMEIncrementalWorker implements Callable<IncrTimeResult> {
         EvaluationMain.out.println("[Task " + id + "](NORMAL): " + msg);
     }
 
-    public RBMEIncrementalWorker(File f, int change, int iterations, int id){
+    public NaiveIncrementalWorker(File f, int change, int iterations, int id){
         this.f = f;
         this.change = change;
         this.iterations = iterations;

@@ -1,50 +1,33 @@
 package de.uniulm.in.ki.mbrenner.fame.util;
 
-import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
-import de.tu_dresden.inf.lat.hys.graph_tools.SCCAlgorithm;
 import de.tudresden.inf.lat.jcel.core.algorithm.module.ModuleExtractor;
 import de.tudresden.inf.lat.jcel.coreontology.axiom.NormalizedIntegerAxiom;
 import de.tudresden.inf.lat.jcel.ontology.axiom.complex.ComplexIntegerAxiom;
 import de.tudresden.inf.lat.jcel.ontology.axiom.extension.IntegerOntologyObjectFactoryImpl;
-import de.tudresden.inf.lat.jcel.ontology.datatype.IntegerObjectProperty;
 import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
-import de.tudresden.inf.lat.jcel.owlapi.translator.ReverseAxiomTranslator;
 import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrIncrementalWorker;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrTimeResult;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDefCopy;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v2.OWLDictionary;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v2.RuleStorage;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v3.DummyRuleContainer;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalModule;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v3.ModificationResult;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.TreeBuilder;
 import de.uniulm.in.ki.mbrenner.fame.OntologiePaths;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.folder.IncrementalRuleFolder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.folder.NormalRuleFolder;
-import de.uniulm.in.ki.mbrenner.fame.locality.EquivalenceLocalityEvaluator;
-import de.uniulm.in.ki.mbrenner.fame.locality.SyntacticLocalityEvaluator;
-import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
+import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.nodes.Node;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import de.uniulm.in.ki.mbrenner.oremanager.OREManager;
 import de.uniulm.in.ki.mbrenner.oremanager.filters.ORENoFilter;
-import objectexplorer.MemoryMeasurer;
-import objectexplorer.ObjectExplorer;
-import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.Imports;
-import org.semanticweb.owlapi.reasoner.Node;
-import org.semanticweb.owlapi.reasoner.NodeSet;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
-import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
-import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by spellmaker on 03.03.2016.
@@ -78,27 +61,133 @@ public class MainTest {
     {
         repl.add("http://chen.moe/onto/testObjectOneof#");
     }
-    public static void main(String[] args) throws Exception{
-        String f = "C:\\Users\\spellmaker\\Downloads\\EL-GALEN.owl";
 
+
+    private static void choseNew(int change, Set<OWLAxiom> currentSet, List<OWLAxiom> currentList, Set<OWLAxiom> removedAxioms, Random r){
+        Set<OWLAxiom> nrem = new HashSet<>();
+        for(int i = 0; i < change; i++){
+            OWLAxiom c = currentList.get(r.nextInt(currentList.size()));
+            currentSet.remove(c);
+            currentList.remove(c);
+            nrem.add(c);
+        }
+        currentSet.addAll(removedAxioms);
+        currentList.addAll(removedAxioms);
+        //EvaluationMain.out.println("adding " + removedAxioms);
+        removedAxioms.clear();
+        removedAxioms.addAll(nrem);
+        //EvaluationMain.out.println("removing " + removedAxioms);
+    }
+
+    private static long test(boolean naive) throws Exception{
+        String file = "C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-        OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
-        loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
-        OWLOntology ontology = m.loadOntologyFromOntologyDocument(new FileDocumentSource(new File(f)));//"C:\\Users\\spellmaker\\Downloads\\oboFoundry\\taxrank.owl")), loaderConfig);
+        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(file));
+        List<OWLAxiom> currentList = new ArrayList<>(o.getLogicalAxioms());
+        Set<OWLAxiom> currentSet = new HashSet<>(currentList);
+        Set<OWLAxiom> removedAxioms = new HashSet<>();
+        int change = 1;
+        Random r = new Random();
 
-        System.out.println("file size: " + Files.size(Paths.get(f)));
+        choseNew(change, currentSet, currentList, removedAxioms, r);
 
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(ontology);
-
-        RBMExtractor extr = new RBMExtractor(true, false);
-        for(OWLClass c : ontology.getClassesInSignature()){
-            if(!c.toString().contains("#Posture>")) continue;
-            Set<OWLAxiom> module = extr.extractModule(rs, Collections.singleton(c));
-            System.out.println(EqCorrectnessChecker.isCorrectEqModule(module, extr, ontology, new RBMExtractorNoDef(false).extractModule(rs, Collections.singleton(c))));
+        IncrementalExtractor ie = new IncrementalExtractor(currentSet);
+        for(OWLClass c : o.getClassesInSignature()){
+            ie.extractModule(c);
         }
 
+        long start, end;
+        start = System.currentTimeMillis();
+        for(int i = 0; i < 1000; i++){
+            Set<OWLAxiom> add = new HashSet<>(removedAxioms);
+            choseNew(change, currentSet, currentList, removedAxioms, r);
 
+            if(naive)
+                ie.modifyOntologyNaive(add, removedAxioms);
+            else
+                ie.modifyOntology(add, removedAxioms);
+        }
+        end = System.currentTimeMillis();
+        return end - start;
+    }
 
+    private static void test2() throws Exception{
+        String file = "C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(file));
+        List<OWLAxiom> currentList = new ArrayList<>(o.getLogicalAxioms());
+        Set<OWLAxiom> currentSet = new HashSet<>(currentList);
+        Set<OWLAxiom> removedAxioms = new HashSet<>();
+        int change = 1;
+        Random r = new Random();
+
+        choseNew(change, currentSet, currentList, removedAxioms, r);
+
+        IncrementalExtractor ie1 = new IncrementalExtractor(currentSet);
+        IncrementalExtractor ie2 = new IncrementalExtractor(currentSet);
+        for(OWLClass c : o.getClassesInSignature()){
+            ie1.extractModule(c);
+            ie2.extractModule(c);
+        }
+
+        for(int i = 0; i < 1; i++){
+            Set<OWLAxiom> add = new HashSet<>(removedAxioms);
+            choseNew(change, currentSet, currentList, removedAxioms, r);
+
+            ModificationResult modRes1 = ie1.modifyOntologyNaive(add, removedAxioms);
+            ModificationResult modRes2 = ie2.modifyOntology(add, removedAxioms);
+            if(modRes1.additionAffected.size() != modRes2.additionAffected.size()){
+                System.out.println("different addition affected: " + modRes1.additionAffected.size() + " vs " + modRes2.additionAffected.size());
+            }
+            if(modRes1.deletionAffected.size() != modRes2.deletionAffected.size()){
+                System.out.println("different deletion affected: " + modRes1.deletionAffected.size() + " vs " + modRes2.deletionAffected.size());
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception{
+
+        System.out.println("incr: " + test(false));
+        System.out.println("naiv: " + test(true));
+        test2();
+        System.exit(0);
+
+        String file = "C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
+        IncrIncrementalWorker w = new IncrIncrementalWorker(new File(file), 1, 100, 0, false);
+        IncrTimeResult r1;
+        r1 = w.call();
+        w = new IncrIncrementalWorker(new File(file), 1, 100, 0, true);
+        IncrTimeResult r2 = w.call();
+
+        System.out.println("time incr:" + r1.time);
+        System.out.println("time naiv:" + r2.time);
+        System.out.println("basemod aff: " + IncrIncrementalWorker.basemodaffected);
+
+        /*OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(OntologiePaths.contest1));
+        long start, end;
+
+        TreeBuilder tb = new TreeBuilder();
+        List<Node> forest = tb.buildTree(o.getAxioms());
+        start = System.currentTimeMillis();
+        for(int i = 0; i < 1000; i++){
+            DummyRuleContainer dummy = new DummyRuleContainer();
+            NormalRuleFolder nrf = new NormalRuleFolder(dummy, dummy);
+            nrf.buildRules(forest);
+        }
+        end = System.currentTimeMillis();
+
+        System.out.println("nrf time: " + (end - start));
+
+        start = System.currentTimeMillis();
+        for(int i = 0; i < 1000; i++){
+            DummyRuleContainer dummy = new DummyRuleContainer();
+            IncrementalRuleFolder incr = new IncrementalRuleFolder(dummy, dummy, Collections.emptyList());
+            incr.buildRules(forest);
+        }
+        end = System.currentTimeMillis();
+
+        System.out.println("incr time: " + (end - start));*/
         /*System.out.println("rule set size: " + MemoryMeasurer.measureBytes(rs));
         IncrementalExtractor ie = new IncrementalExtractor(ontology);
         System.out.println("incremental extractor size: " + MemoryMeasurer.measureBytes(ontology));

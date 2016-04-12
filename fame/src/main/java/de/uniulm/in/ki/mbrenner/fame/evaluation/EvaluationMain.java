@@ -106,6 +106,9 @@ public class EvaluationMain {
 		else if(hasArg(args, "rule-gen-hys")){
 			ec.add(new HySRuleGenerationTest());
 		}
+		else if(hasArg(args, "merge")){
+			ec.add(new MergeResults());
+		}
 
 		List<File> ontologies = new LinkedList<>();
 		List<String> options = new LinkedList<>();
@@ -187,6 +190,9 @@ public class EvaluationMain {
 			out.println("WARNING: No ontologies provided");
 		}
 
+		if(ec.size() == 0){
+			out.println("Could not recognize any known evaluation cases");
+		}
 		for(EvaluationCase c : ec) {
 			try {
 				c.evaluate(ontologies, options);

@@ -168,8 +168,16 @@ public class IncrementalTest {
                 newModules.put(e, (new RBMExtractorNoDef(false)).extractModule(rs, Collections.singleton(e)));
             }
 
-            compare(bmrbModules, newModules, modRes_naive, ie_naive);
-            compare(bmrbModules, newModules, modRes_incr, ie_incr);
+            long[] res_naive = compare(bmrbModules, newModules, modRes_naive, ie_naive);
+            long[] res_incr = compare(bmrbModules, newModules, modRes_incr, ie_incr);
+
+            System.out.println("missing add naiv: " + res_naive[0] + " incr: " + res_incr[0]);
+            System.out.println("additional add naiv: " + res_naive[1] + " incr: " + res_incr[1]);
+            System.out.println("missing del naiv: " + res_naive[2] + " incr: " + res_incr[2]);
+            System.out.println("additional del naiv: " + res_naive[3] + " incr: " + res_incr[3]);
+
+            assertTrue("different failures", res_naive[0]==res_incr[0] && res_naive[1]==res_incr[1] && res_naive[2]==res_incr[2] && res_naive[3]==res_incr[3]);
+
             bmrbModules = newModules;
         }
     }

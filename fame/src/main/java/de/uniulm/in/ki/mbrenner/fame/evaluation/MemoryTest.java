@@ -22,7 +22,9 @@ import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -32,30 +34,47 @@ import java.util.Set;
 public class MemoryTest implements EvaluationCase {
     @Override
     public void evaluate(List<File> ontologies, List<String> options) throws Exception {
+        Path outPath = null;
+        if(options.size() > 0) {
+            outPath = Paths.get(options.get(0));
+        }
+
         EvaluationMain.out.println("File;Filesize;RuleSet;Incremental;HyS;JCEL");
+        int cnt = 0;
         for(File f : ontologies){
+            EvaluationMain.out.println("Handling ontology " + ++cnt + " of " + ontologies.size());
             OWLOntologyManager m = OWLManager.createOWLOntologyManager();
             OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
             loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
             OWLOntology ontology = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f));//"C:\\Users\\spellmaker\\Downloads\\oboFoundry\\taxrank.owl")), loaderConfig);
 
-            ObjectExplorer.examineStatic = true;
-            String s = "" + f +";";
+            if(ontology.getLogicalAxiomCount() > EvaluationMain.max_size){
+                EvaluationMain.out.println("Skipping ontology " + f + " as it is too large");
+                continue;
+            }
+            if(ontology.getLogicalAxiomCount() < EvaluationMain.min_size){
+                EvaluationMain.out.println("Skipping ontology " + f + " as it is too small");
+                continue;
+            }
 
-            s += Files.size(f.toPath()) + ";";
+
+            ObjectExplorer.examineStatic = true;
+            String line = "" + f +";";
+
+            line += Files.size(f.toPath()) + ";";
 
             RuleSet rs = (new BottomModeRuleBuilder()).buildRules(ontology);
-            s += MemoryMeasurer.measureBytes(rs) + ";";
+            line += MemoryMeasurer.measureBytes(rs) + ";";
             IncrementalExtractor ie = new IncrementalExtractor(ontology);
-            s += MemoryMeasurer.measureBytes(ontology) + ";";
+            line += MemoryMeasurer.measureBytes(ontology) + ";";
             try{
                 HyS h = new HyS(ontology, ModuleType.BOT);
                 h.condense(SCCAlgorithm.TARJAN);
                 h.condense(SCCAlgorithm.MREACHABILITY);
-                s += MemoryMeasurer.measureBytes(h) +";";
+                line += MemoryMeasurer.measureBytes(h) +";";
             }
             catch(Throwable t){
-                s += "-1;";
+                line += "-1;";
             }
 
             try{
@@ -68,12 +87,15 @@ public class MemoryTest implements EvaluationCase {
                 long b = MemoryMeasurer.measureBytes(trans);
                 b += MemoryMeasurer.measureBytes(normOntology);
                 b += MemoryMeasurer.measureBytes(extr);
-                s += b;
+                line += b;
             }
             catch(Throwable t){
-                s += "-1";
+                line += "-1";
             }
-            EvaluationMain.out.println(s);
+            EvaluationMain.out.println(line);
+            if(outPath != null){
+                Files.write(outPath.resolve(f.getName()), Collections.singleton(line));
+            }
         }
     }
 }

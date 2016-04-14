@@ -109,6 +109,9 @@ public class EvaluationMain {
 		else if(hasArg(args, "merge")){
 			ec.add(new MergeResults());
 		}
+		else if(hasArg(args, "stats")){
+			ec.add(new OntoStat());
+		}
 
 		List<File> ontologies = new LinkedList<>();
 		List<String> options = new LinkedList<>();

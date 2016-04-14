@@ -31,7 +31,7 @@ public class IncrementalTest {
 
     private void defineRemovals(){
         //removed axiom strings in the order of removals
-        removalOrder.add("EquivalentClasses(<http://chen.moe/onto/med/Genetic_Fibrosis> ObjectIntersectionOf(<http://chen.moe/onto/med/Fibrosis> ObjectSomeValuesFrom(<http://chen.moe/onto/med/has_Origin> <http://chen.moe/onto/med/Genetic_Origin>)) )");
+        removalOrder.add("SubClassOf(<http://obi.sourceforge.net/ontology/OBI.owl#OBI_356> <http://obi.sourceforge.net/ontology/OBI.owl#OBI_66>)");
         removalOrder.add("SubClassOf(<http://chen.moe/onto/med/DEFBI_Gene> ObjectIntersectionOf(<http://chen.moe/onto/med/Immuno_Protein_Gene> ObjectSomeValuesFrom(<http://chen.moe/onto/med/associated_With> <http://chen.moe/onto/med/Cystic_Fibrosis>)))");
         removalOrder.add("SubClassOf(<http://obi.sourceforge.net/ontology/OBI.owl#OBI_169> <http://obi.sourceforge.net/ontology/OBI.owl#OBI_250>)");
         removalOrder.add("SubClassOf(<http://obi.sourceforge.net/ontology/OBI.owl#OBI_33> <http://obi.sourceforge.net/ontology/OBI.owl#OBI_15>)");
@@ -39,7 +39,7 @@ public class IncrementalTest {
         removalOrder.add("SubClassOf(ObjectSomeValuesFrom(<http://protege.stanford.edu/plugins/owl/protege#PAL-NAME> owl:Thing) <http://protege.stanford.edu/plugins/owl/protege#PAL-CONSTRAINT>)");
 
         //number of removed elements in each iteration
-        removalCount.add(2);
+        removalCount.add(1);
         removalCount.add(0);
         removalCount.add(0);
         removalCount.add(0);
@@ -65,7 +65,7 @@ public class IncrementalTest {
 
         List<OWLAxiom> allAxioms = new ArrayList<>(ontology.getLogicalAxioms());
         Random r = new Random();
-        int rsize = 2;
+        int rsize = 1;
         List<OWLAxiom> removed = new ArrayList<>(rsize);
         List<OWLAxiom> removalOrder = new ArrayList<>(this.removalOrder.size());
         if(useDefined){
@@ -131,7 +131,7 @@ public class IncrementalTest {
 
             List<OWLAxiom> nremoved = new ArrayList<>();
             if(!useDefined) {
-                int rem = r.nextInt(5);
+                int rem = r.nextInt(1);
                 System.out.println("> removing " + rem + " additional axioms, adding back in " + removed.size() + " axioms");
                 for (int j = 0; j < rem; j++) {
                     int pos = r.nextInt(allAxioms.size());
@@ -152,7 +152,9 @@ public class IncrementalTest {
             }
             allAxioms.addAll(removed);
             workingOntology = m.createOntology(new HashSet<>(allAxioms));
+            System.out.println("naive");
             ModificationResult modRes_naive = ie_naive.modifyOntologyNaive(new HashSet<>(removed), new HashSet<>(nremoved));
+            System.out.println("incr");
             ModificationResult modRes_incr = ie_incr.modifyOntology(new HashSet<>(removed), new HashSet<>(nremoved));
 
             removed = nremoved;
@@ -168,7 +170,9 @@ public class IncrementalTest {
                 newModules.put(e, (new RBMExtractorNoDef(false)).extractModule(rs, Collections.singleton(e)));
             }
 
+            System.out.println("naive:");
             long[] res_naive = compare(bmrbModules, newModules, modRes_naive, ie_naive);
+            System.out.println("incr:");
             long[] res_incr = compare(bmrbModules, newModules, modRes_incr, ie_incr);
 
             System.out.println("missing add naiv: " + res_naive[0] + " incr: " + res_incr[0]);

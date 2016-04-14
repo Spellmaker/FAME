@@ -6,6 +6,7 @@ import de.tudresden.inf.lat.jcel.ontology.axiom.complex.ComplexIntegerAxiom;
 import de.tudresden.inf.lat.jcel.ontology.axiom.extension.IntegerOntologyObjectFactoryImpl;
 import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
 import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrIncrementalAddWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrIncrementalWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrTimeResult;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
@@ -147,21 +148,37 @@ public class MainTest {
 
     public static void main(String[] args) throws Exception{
 
-        System.out.println("incr: " + test(false));
+        /*System.out.println("incr: " + test(false));
         System.out.println("naiv: " + test(true));
         test2();
-        System.exit(0);
+        System.exit(0);*/
 
-        String file = "C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
-        IncrIncrementalWorker w = new IncrIncrementalWorker(new File(file), 1, 100, 0, false);
+        String file = OntologiePaths.galen;//"C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
+        /*IncrIncrementalWorker w = new IncrIncrementalWorker(new File(file), 1, 1000, 0, false, false);
         IncrTimeResult r1;
         r1 = w.call();
-        w = new IncrIncrementalWorker(new File(file), 1, 100, 0, true);
+        w = new IncrIncrementalWorker(new File(file), 1, 1000, 0, true, false);
         IncrTimeResult r2 = w.call();
+        w = new IncrIncrementalWorker(new File(file), 1, 1000, 0, true, true);
+        IncrTimeResult r3 = w.call();
 
         System.out.println("time incr:" + r1.time);
         System.out.println("time naiv:" + r2.time);
-        System.out.println("basemod aff: " + IncrIncrementalWorker.basemodaffected);
+        System.out.println("time half:" + r3.time);
+        System.out.println("basemod aff: " + IncrIncrementalWorker.basemodaffected);*/
+
+        IncrIncrementalAddWorker w2 = new IncrIncrementalAddWorker(new File(file), 1, 10, 0, false, false);
+        IncrTimeResult r1_2 = w2.call();
+        w2 = new IncrIncrementalAddWorker(new File(file), 1, 10, 0, true, false);
+        IncrTimeResult r2_2 = w2.call();
+        w2 = new IncrIncrementalAddWorker(new File(file), 1, 10, 0, false, true);
+        IncrTimeResult r3_2 = w2.call();
+        System.out.println("time incr:" + r1_2.time);
+        System.out.println("time naiv:" + r2_2.time);
+        System.out.println("time half:" + r3_2.time);
+        System.out.println("basemod aff: " + IncrIncrementalAddWorker.basemodaffected);
+
+
 
         /*OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(new File(OntologiePaths.contest1));

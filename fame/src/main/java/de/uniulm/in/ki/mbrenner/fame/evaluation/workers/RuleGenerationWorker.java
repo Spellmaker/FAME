@@ -19,10 +19,8 @@ import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLLogicalAxiom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
@@ -47,7 +45,9 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 	public Long[] call() throws Exception {
 		isRunning = true;
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-		OWLOntology ontology = m.loadOntologyFromOntologyDocument(f);
+		OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
+		loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
+		OWLOntology ontology = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f), loaderConfig);
 		EvaluationMain.out.println("[Task " + id + "] loaded ontology");
 		EvaluationMain.out.println("[Task " + id + "] " + ontology.getAxiomCount() + " axioms in the ontology");
 		Set<OWLAxiom> axioms = ontology.getAxioms();

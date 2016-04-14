@@ -37,8 +37,9 @@ public class IncrTimeWorker implements Callable<IncrTimeBothResult> {
     @Override
     public IncrTimeBothResult call() throws Exception {
         message("Starting up");
-        Future<IncrTimeResult> f1 = pool.submit(new IncrIncrementalWorker(f, change, iterations, id, false));
-        Future<IncrTimeResult> f2 = pool.submit(new IncrIncrementalWorker(f, change, iterations, id, true));
-        return new IncrTimeBothResult(f1.get(), f2.get());
+        Future<IncrTimeResult> f1 = pool.submit(new IncrIncrementalWorker(f, change, iterations, id, false, false));
+        Future<IncrTimeResult> f2 = pool.submit(new IncrIncrementalWorker(f, change, iterations, id, true, false));
+        Future<IncrTimeResult> f3 = pool.submit(new IncrIncrementalWorker(f, change, iterations, id, true, true));
+        return new IncrTimeBothResult(f1.get(), f2.get(), f3.get());
     }
 }

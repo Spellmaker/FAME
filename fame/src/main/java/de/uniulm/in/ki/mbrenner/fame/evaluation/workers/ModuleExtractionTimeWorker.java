@@ -102,6 +102,7 @@ public class ModuleExtractionTimeWorker implements Callable<Long[]> {
         ModuleExtractor jcel = null;
         try {
             trans = new Translator(m.getOWLDataFactory(), new IntegerOntologyObjectFactoryImpl());
+            trans.getTranslationRepository().addAxiomEntities(ontology);
             transOntology = trans.translateSA(ontology.getAxioms());
             normOntology = (new OntologyNormalizer()).normalize(transOntology, trans.getOntologyObjectFactory());
             jcel = new ModuleExtractor();

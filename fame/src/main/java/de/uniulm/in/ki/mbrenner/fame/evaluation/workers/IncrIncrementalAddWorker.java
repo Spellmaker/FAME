@@ -1,21 +1,14 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 
-import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrTimeResult;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalModule;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.ModificationResult;
-import de.uniulm.in.ki.mbrenner.fame.locality.SyntacticLocalityEvaluator;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
-import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
@@ -24,12 +17,11 @@ import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 /**
  * Created by spellmaker on 24.03.2016.
  */
-public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
+public class IncrIncrementalAddWorker implements Callable<IncrTimeResult> {
     public File f;
     private int change;
     private int iterations;
@@ -43,7 +35,7 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
         EvaluationMain.out.println("[Task " + id + "](" + (naive ? "NAIV" : "INCR") + "): " + msg);
     }
 
-    public IncrIncrementalWorker(File f, int change, int iterations, int id, boolean naive, boolean half){
+    public IncrIncrementalAddWorker(File f, int change, int iterations, int id, boolean naive, boolean half){
         this.f = f;
         this.change = change;
         this.iterations = iterations;
@@ -108,19 +100,27 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
         EvaluationMain.out.println("removing " + removedAxioms);
     }
 
-    private void choseNew(){
-        Set<OWLAxiom> nrem = new HashSet<>();
-        for(int i = 0; i < change; i++){
+    private List<OWLAxiom> chooseList;
+    private Iterator<OWLAxiom> nextAxiom;
+
+    private void initList(){
+        chooseList = new LinkedList<>();
+        for(int i = 0; i < change * (iterations + 1); i++){
             OWLAxiom c = currentList.get(r.nextInt(currentList.size()));
             currentSet.remove(c);
             currentList.remove(c);
-            nrem.add(c);
+            chooseList.add(c);
         }
-        currentSet.addAll(removedAxioms);
-        currentList.addAll(removedAxioms);
-        //EvaluationMain.out.println("adding " + removedAxioms);
-        removedAxioms = nrem;
-        //EvaluationMain.out.println("removing " + removedAxioms);
+        nextAxiom = chooseList.iterator();
+    }
+
+
+    private void choseNew(){
+        for(int i = 0; i < change; i++){
+            OWLAxiom n = nextAxiom.next();
+            currentSet.add(n);
+            currentList.add(n);
+        }
     }
 
     private Map<OWLClass, Set<OWLClass>> hierarchyFromScratch(OWLReasoner reasoner, OWLOntology ontology){
@@ -208,7 +208,7 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f), loaderConfig);
 
         message("Ontology loaded");
-        message(o.getAxiomCount() + " axioms and " + o.getLogicalAxiomCount() + " logical axioms in ontology");
+        message(o.getAxiomCount() + " axioms, " + o.getLogicalAxiomCount() + " logical axioms and " + o.getClassesInSignature().size() + " concepts in ontology");
         //create initial
         currentList = new ArrayList<>(o.getLogicalAxioms());
         currentSet = new HashSet<>(currentList);
@@ -218,6 +218,7 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
         bottom = fact.getOWLNothing();
         top = fact.getOWLThing();
         //make initial configuration
+        initList();
         choseNew();
         message("Initial configuration chosen");
         OWLOntology workingOntology = m.createOntology(currentSet);

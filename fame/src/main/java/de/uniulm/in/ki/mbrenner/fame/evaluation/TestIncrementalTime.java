@@ -30,6 +30,10 @@ public class TestIncrementalTime implements EvaluationCase{
 
 		int change = Integer.parseInt(options.get(0));
 		int iterations = Integer.parseInt(options.get(1));
+		Path outDir = null;
+		if(options.size() > 2){
+			outDir = Paths.get(options.get(2));
+		}
 
 		List<Future<IncrTimeBothResult>> futures = new ArrayList<>(files.size());
 		Map<Future<IncrTimeBothResult>, IncrTimeWorker> workerMap = new HashMap<>();
@@ -42,7 +46,10 @@ public class TestIncrementalTime implements EvaluationCase{
 		int finished = 0;
 		boolean terminated = false;
 
+		String header = "File;Normal;Incr;Half";
 		List<String> global = new LinkedList<>();
+		global.add(header);
+		EvaluationMain.out.println(header);
 		while(!terminated){
 			for(int i = 0; i < futures.size(); i++){
 				Future<IncrTimeBothResult> f = futures.get(i);
@@ -50,9 +57,16 @@ public class TestIncrementalTime implements EvaluationCase{
 					finished++;
 					futures.remove(i);
 					i--;
+					EvaluationMain.out.println("finished task (" + finished + "/" + files.size() + ")");
+					EvaluationMain.out.println("");
 					try {
 						IncrTimeBothResult itbr = f.get();
-						EvaluationMain.out.println("Finished " + workerMap.get(f).f + ": Normal time: " + itbr.normal + " Incr time: " + itbr.incremental);
+						String line = workerMap.get(f).f + ";" + itbr.normal + ";" + itbr.incremental + ";" + itbr.half;
+						EvaluationMain.out.println(line);
+						global.add(line);
+						if (outDir != null){
+							Files.write(outDir.resolve(workerMap.get(f).f.getName()), Collections.singleton(line));
+						}
 					}
 					catch(Exception e){
 						EvaluationMain.out.println("evaluation for file " + workerMap.get(f).f + " failed: " + e);
@@ -65,6 +79,7 @@ public class TestIncrementalTime implements EvaluationCase{
 				terminated = true;
 			}
 		}
+		global.forEach(x -> EvaluationMain.out.println(x));
 		mainPool.shutdown();
 		extractorPool.shutdown();
 	}

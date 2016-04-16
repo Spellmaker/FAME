@@ -74,7 +74,7 @@ public class HySModuleExtractionTest implements EvaluationCase{
                 allEntities.addAll(ontology.getObjectPropertiesInSignature());
                 EvaluationMain.out.println("Signature primed");
 
-                String line = ontology.getAxiomCount() + ";" + ontology.getLogicalAxiomCount() + ";";
+                String line = f + ";" + ontology.getAxiomCount() + ";" + ontology.getLogicalAxiomCount() + ";";
                 try{
                     line += new BottomModeRuleBuilder().buildRules(ontology).getBaseModule().size() + ";";
                 }

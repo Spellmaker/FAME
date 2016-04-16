@@ -53,6 +53,7 @@ public class TestModuleSizes implements EvaluationCase{
 		Path oDir = null;
 		if(options.size() >= 1){
 			oDir = Paths.get(options.get(0));
+			EvaluationMain.out.println("writing files to " + oDir);
 		}
 		boolean useBMRB = true;
 		if(options.size() >= 2){
@@ -84,7 +85,7 @@ public class TestModuleSizes implements EvaluationCase{
 					futures.remove(i);
 					i--;
 					Path putPath = null;
-					if(oDir != null) oDir.resolve(workerMap.get(f).file.getName());
+					if(oDir != null) putPath = oDir.resolve(workerMap.get(f).file.getName());
 					try {
 						EvaluationMain.out.println("finished task (" + finished + "/" + files.size() + ")");
 						ModuleSizeResult d = f.get();
@@ -101,7 +102,10 @@ public class TestModuleSizes implements EvaluationCase{
 									";" + d.size_ndef_max_logical + ";" + d.size_def_max_logical + ";" + d.getMaxPercentLogical() +
 									";" + d.size_ndef_avg_logical + ";" + d.size_def_avg_logical + ";" + d.getAvgPercentLogical());
 							global.addAll(lines);
-							if(putPath != null) Files.write(putPath, lines);
+
+							if(putPath != null){
+								Files.write(putPath, lines);
+							}
 						}
 						else{
 							skipped++;

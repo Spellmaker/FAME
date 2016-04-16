@@ -35,7 +35,7 @@ public class ModuleExtractionWorker implements Callable<ModuleSizeSingleResult> 
 		RBMExtractor extr = new RBMExtractor(doDef, false);
 		Set<OWLAxiom> mod = extr.extractModule(ruleSet, Collections.singleton(e));
 
-		if(doDef){
+		/*if(doDef){
 			RBMExtractor extr2 = new RBMExtractor(false, false);
 			Set<OWLAxiom> ref = extr2.extractModule(ruleSet, Collections.singleton(e));
 			//check modules
@@ -43,7 +43,7 @@ public class ModuleExtractionWorker implements Callable<ModuleSizeSingleResult> 
 				EvaluationMain.out.println("produced incorrect eq module for entity " + e);
 				mod = ref;
 			}
-		}
+		}*/
 
 		return new ModuleSizeSingleResult(doDef, mod.size(), Misc.stripNonLogical(mod).size());
 	}

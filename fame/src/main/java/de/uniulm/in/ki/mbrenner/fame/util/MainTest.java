@@ -6,6 +6,7 @@ import de.tudresden.inf.lat.jcel.ontology.axiom.complex.ComplexIntegerAxiom;
 import de.tudresden.inf.lat.jcel.ontology.axiom.extension.IntegerOntologyObjectFactoryImpl;
 import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
 import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.TestModuleSizes;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrIncrementalAddWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrIncrementalWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrTimeResult;
@@ -153,7 +154,31 @@ public class MainTest {
         test2();
         System.exit(0);*/
 
-        String file = OntologiePaths.galen;//"C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
+        String file = "F:\\EL-GALEN.owl";//OntologiePaths.galen;//"C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
+        TestModuleSizes tms = new TestModuleSizes();
+        tms.evaluate(Collections.singletonList(new File(file)), Collections.emptyList());
+
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(file));
+        RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
+
+        /*System.out.println("ontology:");
+        o.getLogicalAxioms().forEach(x -> System.out.println(x));
+        for(OWLClass c : o.getClassesInSignature()){
+            Set<OWLAxiom> redmod = new RBMExtractor(true, false).extractModule(rs, Collections.singleton(c));
+            Set<OWLAxiom> full = new RBMExtractor(false, false).extractModule(rs, Collections.singleton(c));
+
+            if(!redmod.equals(full)){
+                System.out.println(">>class is " + c);
+                redmod.forEach(x -> System.out.println(x));
+                full.stream().filter(x -> !redmod.contains(x) && !(x instanceof OWLDeclarationAxiom)).forEach(x -> System.out.println("MISSING: " + x));
+            }
+
+        }*/
+
+
+        System.exit(0);
+
         /*IncrIncrementalWorker w = new IncrIncrementalWorker(new File(file), 1, 1000, 0, false, false);
         IncrTimeResult r1;
         r1 = w.call();

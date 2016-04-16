@@ -98,7 +98,7 @@ public class TestModuleSizes implements EvaluationCase{
 							if (putPath != null && Files.exists(putPath)) Files.delete(putPath);
 							List<String> lines = new LinkedList<>();
 							lines.add(workerMap.get(f).file + ";" + d.size_ndef_max + ";" + d.size_def_max + ";" + d.getMaxPercent() +
-									";" + d.size_ndef_avg + ";" + d.size_def_avg + ";" + d.getAvgPercent() + ";" +
+									";" + d.size_ndef_avg + ";" + d.size_def_avg + ";" + d.getAvgPercent() +
 									";" + d.size_ndef_max_logical + ";" + d.size_def_max_logical + ";" + d.getMaxPercentLogical() +
 									";" + d.size_ndef_avg_logical + ";" + d.size_def_avg_logical + ";" + d.getAvgPercentLogical());
 							global.addAll(lines);

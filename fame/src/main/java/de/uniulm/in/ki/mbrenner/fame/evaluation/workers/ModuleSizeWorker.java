@@ -12,6 +12,7 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeResult
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeSingleResult;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
 import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
@@ -32,7 +33,19 @@ public class ModuleSizeWorker implements Callable<ModuleSizeResult> {
 	@Override
 	public ModuleSizeResult call() throws Exception {
 		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-		OWLOntology ontology = m.loadOntologyFromOntologyDocument(file);
+		OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
+		loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
+		OWLOntology ontology = m.loadOntologyFromOntologyDocument(new FileDocumentSource(file), loaderConfig);
+
+		if(ontology.getLogicalAxiomCount() > EvaluationMain.max_size){
+			EvaluationMain.out.println("Skipping ontology " + file + " as it is too large");
+			return null;
+		}
+		if(ontology.getLogicalAxiomCount() < EvaluationMain.min_size){
+			EvaluationMain.out.println("Skipping ontology " + file + " as it is too small");
+			return null;
+		}
+
 		EvaluationMain.out.println("[Task " + id + "] loaded ontology");
 		EvaluationMain.out.println("[Task " + id + "]" + ontology.getAxiomCount() + " axioms in the ontology");
 		if(ontology.getAxioms(AxiomType.getTypeForClass(OWLEquivalentClassesAxiom.class)).isEmpty()){

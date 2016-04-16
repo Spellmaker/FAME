@@ -444,7 +444,11 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 			if(cMode == Mode.BottomMode){
 				//A -> A c B
 				ruleBuffer.clear();
-				ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSubClass())));
+				if(axiom.getSuperClass() instanceof OWLClass)
+					ruleBuffer.add(new Rule(null, dictionary.getId(axiom), dictionary.getId(axiom.getSuperClass()), dictionary.getId(axiom.getSubClass())));
+				else
+					ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSubClass())));
+
 				ruleBuffer.addAll(subClassRules);
 			}
 			else if(cMode == Mode.TopMode){

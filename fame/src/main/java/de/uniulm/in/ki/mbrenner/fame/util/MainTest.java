@@ -11,6 +11,7 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrIncrementalAddWorker
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.IncrIncrementalWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrTimeResult;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.DummyRuleContainer;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.ModificationResult;
@@ -26,6 +27,8 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
+import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
+import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -154,13 +157,33 @@ public class MainTest {
         test2();
         System.exit(0);*/
 
-        String file = "F:\\EL-GALEN.owl";//OntologiePaths.galen;//"C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
-        TestModuleSizes tms = new TestModuleSizes();
-        tms.evaluate(Collections.singletonList(new File(file)), Collections.emptyList());
+        String file = "C:\\Users\\Spellmaker\\Desktop\\Uni Arbeit\\00380.owl_functional.owl";//OntologiePaths.galen;//"C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
 
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(new File(file));
+
+        SyntacticLocalityModuleExtractor synt = new SyntacticLocalityModuleExtractor(m, o, ModuleType.BOT);
         RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
+        RBMExtractor def = new RBMExtractor(true, false);
+        RBMExtractorNoDef ndef = new RBMExtractorNoDef(false);
+
+        int i = 0;
+        int size = 0;
+        for(OWLClass c : o.getClassesInSignature()){
+            System.out.println("testing class " + ++i + " of " + o.getClassesInSignature().size());
+            Set<OWLAxiom> owlapi = synt.extract(Collections.singleton(c));
+            Set<OWLAxiom> defmod = def.extractModule(rs, Collections.singleton(c));
+            Set<OWLAxiom> ndefmod = ndef.extractModule(rs, Collections.singleton(c));
+            size += owlapi.stream().filter(x -> x instanceof OWLLogicalAxiom).count();
+            if(!owlapi.equals(ndefmod)){
+                System.out.println("wrong module for " + c + " size " + ndefmod.size() + " vs " + owlapi.size());
+            }
+        }
+
+        System.out.println("size sum: " + size);
+        System.out.println((double) size / (double) i);
+
+
 
         /*System.out.println("ontology:");
         o.getLogicalAxioms().forEach(x -> System.out.println(x));

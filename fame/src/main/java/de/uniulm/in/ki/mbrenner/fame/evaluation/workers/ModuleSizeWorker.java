@@ -111,10 +111,10 @@ public class ModuleSizeWorker implements Callable<ModuleSizeResult> {
 			}
 		}
 		
-		double avg1 = sum1 / count;
-		double avg2 = sum2 / count;
-		double lavg1 = lsum1 / count;
-		double lavg2 = lsum2 / count;
+		double avg1 = (double) sum1 / (double) count;
+		double avg2 = (double) sum2 / (double) count;
+		double lavg1 = (double) lsum1 / (double) count;
+		double lavg2 = (double) lsum2 / (double) count;
 
 		ModuleSizeResult res = new ModuleSizeResult(biggest1, avg1, biggest2, avg2, lbiggest1, lavg1, lbiggest2, lavg2);
 		return res;

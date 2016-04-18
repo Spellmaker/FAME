@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.TestModuleSizes;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeResult;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeSingleResult;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
@@ -22,13 +23,11 @@ public class ModuleSizeWorker implements Callable<ModuleSizeResult> {
 	public File file;
 	private ExecutorService pool;
 	private int id;
-	private boolean useBMRB;
 
-	public ModuleSizeWorker(File f, ExecutorService pool, int id, boolean useBMRB){
+	public ModuleSizeWorker(File f, ExecutorService pool, int id){
 		this.file = f;
 		this.pool = pool;
 		this.id = id;
-		this.useBMRB = useBMRB;
 	}
 	@Override
 	public ModuleSizeResult call() throws Exception {
@@ -48,21 +47,14 @@ public class ModuleSizeWorker implements Callable<ModuleSizeResult> {
 
 		EvaluationMain.out.println("[Task " + id + "] loaded ontology");
 		EvaluationMain.out.println("[Task " + id + "]" + ontology.getAxiomCount() + " axioms in the ontology");
-		if(ontology.getAxioms(AxiomType.getTypeForClass(OWLEquivalentClassesAxiom.class)).isEmpty()){
+		if(TestModuleSizes.skipNonEq && ontology.getAxioms(AxiomType.getTypeForClass(OWLEquivalentClassesAxiom.class)).isEmpty()){
 			EvaluationMain.out.println("[Task " + id + "] Skipped: No equivalent classes axioms in ontology");
 			return new ModuleSizeResult();
 		}
 		RuleSet ruleSet = null;
-		if(!useBMRB) {
-			ELRuleBuilder ruleBuilder = new ELRuleBuilder();
-			ruleBuilder.printUnknown = true;
-			ruleSet = (ruleBuilder).buildRules(ontology);
-		}
-		else{
-			BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
-			bmrb.printUnknown = true;
-			ruleSet = bmrb.buildRules(ontology);
-		}
+		BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+		bmrb.printUnknown = true;
+		ruleSet = bmrb.buildRules(ontology);
 
 		int biggest1 = -1;
 		int biggest2 = -1;

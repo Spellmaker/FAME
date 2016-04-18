@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class IncrementalTest {
     private boolean useDefined = false;
-    private final String file = "C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
+    private final String file = "C:\\Users\\spellmaker\\Downloads\\oboFoundry\\fix.owl";
 
 
     private List<String> removalOrder = new LinkedList<>();

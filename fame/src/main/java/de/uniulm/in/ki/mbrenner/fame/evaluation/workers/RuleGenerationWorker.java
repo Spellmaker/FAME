@@ -155,17 +155,23 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 		}
 
 		try {
-			start = System.currentTimeMillis();
-			for (int i = 0; i < iterations; i++) {
-				Translator trans = new Translator(m.getOWLDataFactory(), new IntegerOntologyObjectFactoryImpl());
-				trans.getTranslationRepository().addAxiomEntities(ontology);
-				Set<ComplexIntegerAxiom> transOntology = trans.translateSA(ontology.getAxioms());
-				Set<NormalizedIntegerAxiom> normOntology = (new OntologyNormalizer()).normalize(transOntology, trans.getOntologyObjectFactory());
-				ModuleExtractor extr = new ModuleExtractor();
+			if(!TestRuleGeneration.skip_jcel) {
+				start = System.currentTimeMillis();
+				for (int i = 0; i < iterations; i++) {
+					Translator trans = new Translator(m.getOWLDataFactory(), new IntegerOntologyObjectFactoryImpl());
+					trans.getTranslationRepository().addAxiomEntities(ontology);
+					Set<ComplexIntegerAxiom> transOntology = trans.translateSA(ontology.getAxioms());
+					Set<NormalizedIntegerAxiom> normOntology = (new OntologyNormalizer()).normalize(transOntology, trans.getOntologyObjectFactory());
+					ModuleExtractor extr = new ModuleExtractor();
+				}
+				end = System.currentTimeMillis();
+				results[8] = end - start;
+				EvaluationMain.out.println("[Task " + id + "] Finished JCEL");
 			}
-			end = System.currentTimeMillis();
-			results[8] = end - start;
-			EvaluationMain.out.println("[Task " + id + "] Finished JCEL");
+			else{
+				results[8] = -1L;
+				EvaluationMain.out.println("[Task " + id + "] Skipped JCEL");
+			}
 		}
 		catch(Throwable e){
 			results[8] = -1L;

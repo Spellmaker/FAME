@@ -14,12 +14,16 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.RuleGenerationWorker;
 import de.uniulm.in.ki.mbrenner.fame.util.DevNull;
 
 public class TestRuleGeneration implements EvaluationCase{
+	public static boolean skip_jcel = false;
 	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		int iterations = Integer.parseInt(options.get(0));
 		Path outDir = null;
 		if(options.size() >= 2){
 			outDir = Paths.get(options.get(1));
+		}
+		if(options.size() >= 3){
+			skip_jcel = options.get(2).equals("true");
 		}
 		//if(options.size() >= 3){
 		//	RuleGenerationWorker.maxsize = Integer.parseInt(options.get(2));

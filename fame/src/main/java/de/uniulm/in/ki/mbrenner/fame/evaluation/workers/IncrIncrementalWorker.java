@@ -30,27 +30,30 @@ import java.util.stream.Collectors;
  * Created by spellmaker on 24.03.2016.
  */
 public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
-    public File f;
-    private int change;
-    private int iterations;
     private Random r;
     private int id;
     private boolean naive;
     private boolean half;
+    private OWLOntology ontology;
+    private OWLOntologyManager m;
+
+    private Iterator<Integer> rCount;
+    private Iterator<OWLAxiom> rAxiom;
 
     private void message(String msg){
 
         EvaluationMain.out.println("[Task " + id + "](" + (naive ? "NAIV" : "INCR") + "): " + msg);
     }
 
-    public IncrIncrementalWorker(File f, int change, int iterations, int id, boolean naive, boolean half){
-        this.f = f;
-        this.change = change;
-        this.iterations = iterations;
+    public IncrIncrementalWorker(OWLOntology ontology, Iterator<Integer> rCount, Iterator<OWLAxiom> rAxiom, int id, boolean naive, boolean half){
+        this.rAxiom = rAxiom;
+        this.rCount = rCount;
         r = new Random();
         this.id = id;
         this.naive = naive;
         this.half = half;
+        this.m = OWLManager.createOWLOntologyManager();
+        this.ontology = ontology;
     }
 
     private List<OWLAxiom> currentList;
@@ -71,11 +74,11 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
 
         debugCount.add(1);
         debugCount.add(1);
-        debugCount.add(1);
-        debugCount.add(1);
+        debugCount.add(0);
+        debugCount.add(0);
 
-        debugRemove.add("SubClassOf(<http://obi.sourceforge.net/ontology/OBI.owl#OBI_185> <http://obi.sourceforge.net/ontology/OBI.owl#OBI_70>)");
-        debugRemove.add("SubClassOf(<http://www.ifomis.org/bfo/1.0/snap#FiatObjectPart> <http://www.ifomis.org/bfo/1.0/snap#IndependentContinuant>)");
+        debugRemove.add("SubClassOf(<http://purl.obolibrary.org/obo/FIX_0000538> <http://purl.obolibrary.org/obo/FIX_0000153>)");
+        debugRemove.add("SubClassOf(<http://purl.obolibrary.org/obo/FIX_0000813> <http://purl.obolibrary.org/obo/FIX_0000794>)");
         debugRemove.add("SubClassOf(<http://obi.sourceforge.net/ontology/OBI.owl#OBI_138> <http://obi.sourceforge.net/ontology/OBI.owl#OBI_137>)");
         debugRemove.add("SubClassOf(<http://www.ifomis.org/bfo/1.0/snap#IndependentContinuant> <http://www.ifomis.org/bfo/1.0/snap#Continuant>)");
 
@@ -110,11 +113,12 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
 
     private void choseNew(){
         Set<OWLAxiom> nrem = new HashSet<>();
-        for(int i = 0; i < change; i++){
-            OWLAxiom c = currentList.get(r.nextInt(currentList.size()));
-            currentSet.remove(c);
-            currentList.remove(c);
-            nrem.add(c);
+        int cnt = rCount.next();
+        for(int i = 0; i < cnt; i++){
+            OWLAxiom nxt = rAxiom.next();
+            currentSet.remove(nxt);
+            currentList.remove(nxt);
+            nrem.add(nxt);
         }
         currentSet.addAll(removedAxioms);
         currentList.addAll(removedAxioms);
@@ -167,8 +171,10 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
             nHierarchy.put(a, nSupClasses);
             return;
         }
-
-        for(OWLClass b : workingOntology.getClassesInSignature()) {
+        Set<OWLClass> all = new HashSet<>(workingOntology.getClassesInSignature());
+        all.add(bottom);
+        all.add(top);
+        for(OWLClass b : all) {
             if(b.equals(a)){
                 continue;
             }
@@ -181,13 +187,13 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
                 nSupClasses.add(b);
             }
         }
-        if(supClasses.contains(bottom) && !delAff){
+        /*if(supClasses.contains(bottom) && !delAff){
             nSupClasses.add(bottom);
         }
         else{
             OWLAxiom ax = new OWLSubClassOfAxiomImpl(a, bottom, Collections.emptySet());
             if(reasoner.isEntailed(ax)) nSupClasses.add(bottom);
-        }
+        }*/
         /*if(supClasses.contains(top) && !delAff){
             nSupClasses.add(top);
         }
@@ -202,15 +208,10 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
 
     @Override
     public IncrTimeResult call() throws Exception{
-        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-        OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
-        loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f), loaderConfig);
-
         message("Ontology loaded");
-        message(o.getAxiomCount() + " axioms and " + o.getLogicalAxiomCount() + " logical axioms in ontology");
+        message(ontology.getAxiomCount() + " axioms and " + ontology.getLogicalAxiomCount() + " logical axioms in ontology");
         //create initial
-        currentList = new ArrayList<>(o.getLogicalAxioms());
+        currentList = new ArrayList<>(ontology.getLogicalAxioms());
         currentSet = new HashSet<>(currentList);
         removedAxioms = new HashSet<>();
 
@@ -240,7 +241,8 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
 
         Set<OWLClass> oldSignature = workingOntology.getClassesInSignature();
         long start = System.currentTimeMillis();
-        for(int i = 0; i < iterations; i++){
+        while(rCount.hasNext()){
+            //System.out.println("iter");
             //remove old ontology
             m.removeOntology(workingOntology);
             Set<OWLAxiom> add = removedAxioms;
@@ -255,7 +257,7 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
             else
                 modRes = ie.modifyOntology(add, removedAxioms);
 
-            /*reasoner = rf.createNonBufferingReasoner(workingOntology);
+            reasoner = rf.createNonBufferingReasoner(workingOntology);
             //find new symbols
             Set<OWLClass> newSignature = workingOntology.getClassesInSignature();
             newSignature.removeAll(oldSignature);
@@ -289,11 +291,11 @@ public class IncrIncrementalWorker implements Callable<IncrTimeResult> {
 
             hierarchy = nHierarchy;
             //determine actual hierarchy
-            if(!compareHierarchy(workingOntology, reasoner)){
+           /*if(!compareHierarchy(workingOntology, reasoner)){
                 EvaluationMain.out.println("error: wrong hierarchy after " + i + " step(s)");
                 System.exit(0);
                 return null;
-            }*/
+           }*/
         }
         long end = System.currentTimeMillis();
         if(naive) basemodaffected = ie.basemodaffected;

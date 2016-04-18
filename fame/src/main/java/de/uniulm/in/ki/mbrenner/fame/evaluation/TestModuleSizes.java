@@ -17,6 +17,8 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeResult
 import de.uniulm.in.ki.mbrenner.fame.util.DevNull;
 
 public class TestModuleSizes implements EvaluationCase{
+	public static boolean skipNonEq = true;
+
 	public static List<Integer> readGenerating(String file) throws Exception{
 		List<Integer> generating = new LinkedList<>();
 		if(Files.exists(Paths.get(file))){
@@ -55,17 +57,17 @@ public class TestModuleSizes implements EvaluationCase{
 			oDir = Paths.get(options.get(0));
 			EvaluationMain.out.println("writing files to " + oDir);
 		}
-		boolean useBMRB = true;
 		if(options.size() >= 2){
-			useBMRB = options.get(1).equals("BMRB");
+			skipNonEq = options.get(1).equals("true");
 		}
+
 		//setup threads
 		ExecutorService mainPool = Executors.newFixedThreadPool(1);
 		ExecutorService extractorPool = Executors.newFixedThreadPool(5);
 		List<Future<ModuleSizeResult>> futures = new ArrayList<>(files.size());
 		Map<Future<ModuleSizeResult>, ModuleSizeWorker> workerMap = new HashMap<>();
 		for(int i = 0; i < files.size(); i++){
-			ModuleSizeWorker w = new ModuleSizeWorker(files.get(i), extractorPool, i, useBMRB);
+			ModuleSizeWorker w = new ModuleSizeWorker(files.get(i), extractorPool, i);
 			Future<ModuleSizeResult> f = mainPool.submit(w);
 			futures.add(f);
 			workerMap.put(f, w);
@@ -89,6 +91,7 @@ public class TestModuleSizes implements EvaluationCase{
 					try {
 						EvaluationMain.out.println("finished task (" + finished + "/" + files.size() + ")");
 						ModuleSizeResult d = f.get();
+						if(d == null) continue;
 						if(d.hasEq) {
 							if(d.getMaxPercent() > 0 || d.getAvgPercent() > 0){
 								reduced++;

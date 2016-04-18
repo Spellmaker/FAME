@@ -21,11 +21,16 @@ public class EqCorrectnessChecker {
         List<OWLAxiom> defAxioms = new LinkedList<>();
         int i = 0;
         for(Map.Entry<OWLObject, OWLAxiom> entry : definitions.entrySet()){
-            for(OWLClassExpression oce : ((OWLEquivalentClassesAxiom) entry.getValue()).getClassExpressions()){
-                if(!oce.equals(entry.getKey())){
-                    eq.addDefinition(entry.getKey(), oce);
-                    break;
+            if(entry.getValue() instanceof OWLEquivalentClassesAxiom) {
+                for (OWLClassExpression oce : ((OWLEquivalentClassesAxiom) entry.getValue()).getClassExpressions()) {
+                    if (!oce.equals(entry.getKey())) {
+                        eq.addDefinition(entry.getKey(), oce);
+                        break;
+                    }
                 }
+            }
+            else if(entry.getValue() instanceof OWLSubClassOfAxiom){
+                eq.addDefinition(entry.getKey(), ((OWLSubClassOfAxiom) entry.getValue()).getSubClass());
             }
             defAxioms.add(entry.getValue());
         }

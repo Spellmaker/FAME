@@ -96,21 +96,25 @@ public class ModuleExtractionTimeWorker implements Callable<Long[]> {
             message("Could not create incremental extractor");
         }
 
-        Translator trans;
+        Translator trans = null;
         Set<ComplexIntegerAxiom> transOntology;
-        Set<NormalizedIntegerAxiom> normOntology;
+        Set<NormalizedIntegerAxiom> normOntology = null;
         ModuleExtractor jcel = null;
-        try {
-            trans = new Translator(m.getOWLDataFactory(), new IntegerOntologyObjectFactoryImpl());
-            trans.getTranslationRepository().addAxiomEntities(ontology);
-            transOntology = trans.translateSA(ontology.getAxioms());
-            normOntology = (new OntologyNormalizer()).normalize(transOntology, trans.getOntologyObjectFactory());
-            jcel = new ModuleExtractor();
+        if(!TestModuleExtraction.skip_jcel) {
+            try {
+                trans = new Translator(m.getOWLDataFactory(), new IntegerOntologyObjectFactoryImpl());
+                trans.getTranslationRepository().addAxiomEntities(ontology);
+                transOntology = trans.translateSA(ontology.getAxioms());
+                normOntology = (new OntologyNormalizer()).normalize(transOntology, trans.getOntologyObjectFactory());
+                jcel = new ModuleExtractor();
+            } catch (Throwable t) {
+                trans = null;
+                normOntology = null;
+                message("Could not create jcel");
+            }
         }
-        catch(Throwable t){
-            trans = null;
-            normOntology = null;
-            message("Could not create jcel");
+        else{
+            message("Skipped jcel");
         }
 
 

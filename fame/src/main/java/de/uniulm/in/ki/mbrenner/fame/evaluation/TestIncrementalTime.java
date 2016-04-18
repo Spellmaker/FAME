@@ -61,6 +61,7 @@ public class TestIncrementalTime implements EvaluationCase{
 					EvaluationMain.out.println("");
 					try {
 						IncrTimeBothResult itbr = f.get();
+						if(itbr == null) continue;
 						String line = workerMap.get(f).f + ";" + itbr.normal + ";" + itbr.incremental + ";" + itbr.half;
 						EvaluationMain.out.println(line);
 						global.add(line);

@@ -44,7 +44,7 @@ public class RBMExtractor {
 		for(int i = 0; i < definitions.length; i++){
 			if(definitions[i] == null || definitions[i] <= 0) continue;
 
-			OWLEquivalentClassesAxiom ax = (OWLEquivalentClassesAxiom) rules.getObject(definitions[i]);
+			OWLAxiom ax = (OWLAxiom) rules.getObject(definitions[i]);
 			OWLObject def = rules.getObject(i);
 
 			result.put(def, ax);

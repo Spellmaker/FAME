@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 public class TestModuleExtraction implements EvaluationCase{
 	public static int sig_size;
 	public static int element_count;
+	public static boolean skip_jcel = false;
 
 	private String makeOut(Long[] res){
 		String s = res[0].toString();
@@ -28,9 +29,13 @@ public class TestModuleExtraction implements EvaluationCase{
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		sig_size = Integer.parseInt(options.get(0));
 		element_count = Integer.parseInt(options.get(1));
+
 		Path outDir = null;
 		if(options.size() >= 3){
 			outDir = Paths.get(options.get(2));
+		}
+		if(options.size() >= 4){
+			skip_jcel = options.get(3).equals("true");
 		}
 
 		EvaluationMain.out.println("Starting module extraction time evaluation for " + files.size() + " ontologies");

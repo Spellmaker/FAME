@@ -1,5 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.util;
 
+import de.tu_dresden.inf.lat.hys.graph_tools.SCCAlgorithm;
 import de.tudresden.inf.lat.jcel.core.algorithm.module.ModuleExtractor;
 import de.tudresden.inf.lat.jcel.coreontology.axiom.NormalizedIntegerAxiom;
 import de.tudresden.inf.lat.jcel.ontology.axiom.complex.ComplexIntegerAxiom;
@@ -20,6 +21,7 @@ import de.uniulm.in.ki.mbrenner.fame.OntologiePaths;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.folder.IncrementalRuleFolder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.folder.NormalRuleFolder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.v3.treebuilder.nodes.Node;
+import de.uniulm.in.ki.mbrenner.fame.related.HyS.HyS;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import de.uniulm.in.ki.mbrenner.oremanager.OREManager;
 import de.uniulm.in.ki.mbrenner.oremanager.filters.ORENoFilter;
@@ -33,6 +35,7 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by spellmaker on 03.03.2016.
@@ -150,38 +153,84 @@ public class MainTest {
         }
     }
 
-    public static void main(String[] args) throws Exception{
-
-        /*System.out.println("incr: " + test(false));
-        System.out.println("naiv: " + test(true));
-        test2();
-        System.exit(0);*/
-
-        String file = "C:\\Users\\Spellmaker\\Desktop\\Uni Arbeit\\00380.owl_functional.owl";//OntologiePaths.galen;//"C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_d5d7a77f-d9fe-4eac-96e9-579f6957b33f_OBI.owl_functional.owl";
-
-        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(file));
-
-        SyntacticLocalityModuleExtractor synt = new SyntacticLocalityModuleExtractor(m, o, ModuleType.BOT);
-        RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
-        RBMExtractor def = new RBMExtractor(true, false);
-        RBMExtractorNoDef ndef = new RBMExtractorNoDef(false);
-
-        int i = 0;
-        int size = 0;
-        for(OWLClass c : o.getClassesInSignature()){
-            System.out.println("testing class " + ++i + " of " + o.getClassesInSignature().size());
-            Set<OWLAxiom> owlapi = synt.extract(Collections.singleton(c));
-            Set<OWLAxiom> defmod = def.extractModule(rs, Collections.singleton(c));
-            Set<OWLAxiom> ndefmod = ndef.extractModule(rs, Collections.singleton(c));
-            size += owlapi.stream().filter(x -> x instanceof OWLLogicalAxiom).count();
-            if(!owlapi.equals(ndefmod)){
-                System.out.println("wrong module for " + c + " size " + ndefmod.size() + " vs " + owlapi.size());
+    private static boolean testDef(OWLClassExpression head, OWLClassExpression def, Set<OWLEntity> sig){
+        if(head instanceof OWLClass){
+            if(!sig.contains(head)){
+                if(def.getSignature().stream().filter(x -> !sig.contains(x)).count() == 0){
+                    return true;
+                }
             }
         }
+        return false;
+    }
 
-        System.out.println("size sum: " + size);
-        System.out.println((double) size / (double) i);
+    private static void printError(OWLAxiom a, Set<OWLEntity> sig, Map<OWLObject, OWLAxiom> rbme){
+        System.out.println(a);
+        for(OWLEntity e : a.getSignature()){
+            System.out.println(e + ": " + sig.contains(e) +  " - " + rbme.get(e));
+        }
+        System.exit(0);
+    }
+
+    public static void main(String[] args) throws Exception{
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(OntologiePaths.galen));
+
+        RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
+        SyntacticLocalityModuleExtractor synt = new SyntacticLocalityModuleExtractor(m, o, ModuleType.BOT);
+
+        int i = 0;
+
+        for(OWLClass c : o.getClassesInSignature()){
+            System.out.println("class " + ++i + " of " + o.getClassesInSignature().size());
+            RBMExtractor rbme = new RBMExtractor(true, false);
+            Set<OWLAxiom> def = rbme.extractModule(rs, Collections.singleton(c));
+            Set<OWLAxiom> ndef = new RBMExtractor(false, false).extractModule(rs, Collections.singleton(c));
+            Set<OWLAxiom> cmod = synt.extract(Collections.singleton(c));
+
+            OWLAxiom f = EqCorrectnessChecker.isCorrectEqModule(def, rbme, o, ndef);
+            if(f != null){
+                System.out.println(f);
+                System.exit(0);
+            }
+
+            /*if(!cmod.equals(ndef)){
+                System.out.println("error in module");
+                System.exit(0);
+            }
+
+            Set<OWLEntity> sig = new HashSet<>();
+            def.forEach(x -> sig.addAll(x.getSignature()));
+
+            if(def.equals(ndef)) continue;
+
+            for(OWLAxiom a : ndef.stream().filter(x -> !def.contains(x)).collect(Collectors.toList())){
+                if(!(a instanceof OWLLogicalAxiom)) continue;
+                if(a instanceof OWLEquivalentClassesAxiom){
+                    OWLEquivalentClassesAxiom sAx = (OWLEquivalentClassesAxiom) a;
+                    OWLClassExpression left = sAx.getClassExpressionsAsList().get(0);
+                    OWLClassExpression right = sAx.getClassExpressionsAsList().get(1);
+
+                    if(!testDef(left, right, sig) && !testDef(right, left, sig)){
+                        printError(a, sig, rbme.getActiveDefinitions());
+                    }
+                }
+                else if(a instanceof OWLSubClassOfAxiom){
+                    OWLSubClassOfAxiom sAx = (OWLSubClassOfAxiom) a;
+                    if(!testDef(sAx.getSuperClass(), sAx.getSubClass(), sig)) {
+                        printError(a, sig, rbme.getActiveDefinitions());
+                    }
+                }
+                else{
+                    System.out.println(a);
+                    System.exit(0);
+                }
+            }*/
+        }
+
+        System.exit(0);
+
+
 
 
 
@@ -214,18 +263,6 @@ public class MainTest {
         System.out.println("time naiv:" + r2.time);
         System.out.println("time half:" + r3.time);
         System.out.println("basemod aff: " + IncrIncrementalWorker.basemodaffected);*/
-
-        IncrIncrementalAddWorker w2 = new IncrIncrementalAddWorker(new File(file), 1, 10, 0, false, false);
-        IncrTimeResult r1_2 = w2.call();
-        w2 = new IncrIncrementalAddWorker(new File(file), 1, 10, 0, true, false);
-        IncrTimeResult r2_2 = w2.call();
-        w2 = new IncrIncrementalAddWorker(new File(file), 1, 10, 0, false, true);
-        IncrTimeResult r3_2 = w2.call();
-        System.out.println("time incr:" + r1_2.time);
-        System.out.println("time naiv:" + r2_2.time);
-        System.out.println("time half:" + r3_2.time);
-        System.out.println("basemod aff: " + IncrIncrementalAddWorker.basemodaffected);
-
 
 
         /*OWLOntologyManager m = OWLManager.createOWLOntologyManager();

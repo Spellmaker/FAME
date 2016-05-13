@@ -1,5 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions;
 
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.OWLRendererProvider;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectComplementOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectInverseOfImpl;
@@ -301,6 +302,6 @@ public class IndicatorClass implements OWLClass {
 
     @Override
     public String toString(){
-        return "I_{" + clazz + "}";
+        return "I_{" + OWLRendererProvider.render(clazz) + "}";
     }
 }

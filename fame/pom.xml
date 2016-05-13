@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>fame</artifactId>
+    <artifactId>fame-extractor</artifactId>
 
     <properties>
         <skipTests>true</skipTests>
@@ -24,52 +24,6 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain</mainClass>
-                        </manifest>
-                        <manifestEntries>
-                            <Premain-Class>objectexplorer.InstrumentationGrabber</Premain-Class>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals><goal>shade</goal></goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>de.spellmaker</groupId>
-                <artifactId>scpmaker</artifactId>
-                <version>1.0-SNAPSHOT</version>
-                <configuration>
-                    <scpuser>mbrenner</scpuser>
-                    <scppassfile>C:\Users\spellmaker\.m2\pfile.txt</scppassfile>
-                    <scphost>samwise.informatik.uni-ulm.de</scphost>
-                    <scppath>fame.jar</scppath>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>scpmaker</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -94,41 +48,15 @@
             <version>4.1.0</version>
         </dependency>
         <dependency>
-            <groupId>de.uniulm.in.ki.mbrenner</groupId>
-            <artifactId>objectexplorer</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>de.tu-dresden.inf.lat.jcel</groupId>
-            <artifactId>jcel-owlapi</artifactId>
-            <version>0.24.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>hys</groupId>
-            <artifactId>hys</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
             <groupId>de.uniulm.in.ki.mbrenner</groupId>
-            <artifactId>oremanager</artifactId>
+            <artifactId>fame-util</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>de.uniulm.in.ki.mbrenner</groupId>
-            <artifactId>objectexplorer</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.owlapi</groupId>
-            <artifactId>org.semanticweb.hermit</artifactId>
-            <version>1.3.8.413</version>
-        </dependency>
-
     </dependencies>
 </project>

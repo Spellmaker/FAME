@@ -7,7 +7,6 @@ import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.ClassPrinter;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
 
 /**
  * Extracts a local module from an ontology

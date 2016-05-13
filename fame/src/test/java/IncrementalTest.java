@@ -1,15 +1,12 @@
-import de.uniulm.in.ki.mbrenner.fame.OntologiePaths;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalModule;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v3.ModificationResult;
+import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
+import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
+import de.uniulm.in.ki.mbrenner.fame.incremental.ModificationResult;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
-import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
-import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 import java.io.File;
 import java.util.*;

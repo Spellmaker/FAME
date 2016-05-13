@@ -2,18 +2,13 @@
  * Created by spellmaker on 08.03.2016.
  */
 
-import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
+import de.uniulm.in.ki.mbrenner.fame.ModuleSetup;
 import de.uniulm.in.ki.mbrenner.fame.extractor.CompressedExtractor;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v3.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.locality.EquivalenceLocalityEvaluator;
-import de.uniulm.in.ki.mbrenner.fame.locality.SyntacticLocalityEvaluator;
+import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
-import de.uniulm.in.ki.mbrenner.fame.util.EqCorrectnessChecker;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleDiff;
-import de.uniulm.in.ki.mbrenner.fame.util.ModuleSetup;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

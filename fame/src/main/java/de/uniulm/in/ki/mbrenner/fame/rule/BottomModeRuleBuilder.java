@@ -2,8 +2,8 @@ package de.uniulm.in.ki.mbrenner.fame.rule;
 
 import java.util.*;
 
-import de.uniulm.in.ki.mbrenner.fame.incremental.v2.OWLDictionary;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v2.RuleStorage;
+import de.uniulm.in.ki.mbrenner.fame.incremental.OWLDictionary;
+import de.uniulm.in.ki.mbrenner.fame.incremental.RuleStorage;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
@@ -389,8 +389,8 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		signature.forEach(x -> dictionary.getId(x));
 		//ontology.getSignature().forEach(x -> dictionary.getId(x));
 		//ontology.getIndividualsInSignature().forEach(x -> dictionary.getId(x));
-		//finalize rule set
-		ruleSet.finalize();
+		//finalizeSet rule set
+		ruleSet.finalizeSet();
 		if(!unknownObjects.isEmpty()){
 			//System.out.println("warning: could not generate rules for at least " + unknownObjects.size() + " things");
 			if(printUnknown){

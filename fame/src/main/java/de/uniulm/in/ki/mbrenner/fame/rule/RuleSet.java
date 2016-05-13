@@ -11,27 +11,17 @@ import java.util.Map;
 import java.util.Set;
 
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v2.OWLDictionary;
-import de.uniulm.in.ki.mbrenner.fame.incremental.v2.RuleStorage;
+import de.uniulm.in.ki.mbrenner.fame.incremental.OWLDictionary;
+import de.uniulm.in.ki.mbrenner.fame.incremental.RuleStorage;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
-import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 
 public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 	protected Set<Integer> baseSignature;
@@ -155,7 +145,7 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 
 	public void finalize(boolean useNoDefExtractor){finalize(useNoDefExtractor, false);}
 
-	public void finalize(){
+	public void finalizeSet(){
 		finalize(false, false);
 	}
 	

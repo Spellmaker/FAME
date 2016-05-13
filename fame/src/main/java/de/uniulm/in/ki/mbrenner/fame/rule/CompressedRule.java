@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
 
 import de.uniulm.in.ki.mbrenner.fame.util.ClassPrinter;
 import org.semanticweb.owlapi.model.OWLObject;

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>fame-project</artifactId>
+        <groupId>de.uniulm.in.ki.mbrenner</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>fame-debug</artifactId>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <artifactId>fame-extractor</artifactId>
+            <groupId>de.uniulm.in.ki.mbrenner</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <artifactId>fame-util</artifactId>
+            <groupId>de.uniulm.in.ki.mbrenner</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <artifactId>fame-evaluation</artifactId>
+            <groupId>de.uniulm.in.ki.mbrenner</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>de.tu-dresden.inf.lat.jcel</groupId>
+            <artifactId>jcel-owlapi</artifactId>
+            <version>0.24.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>hys</groupId>
+            <artifactId>hys</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>de.uniulm.in.ki.mbrenner</groupId>
+            <artifactId>oremanager</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>

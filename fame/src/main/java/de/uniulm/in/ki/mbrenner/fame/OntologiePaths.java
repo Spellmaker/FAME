@@ -3,6 +3,7 @@ package de.uniulm.in.ki.mbrenner.fame;
 public class OntologiePaths {
 	public static final String medical = "C:\\Users\\spellmaker\\git\\rbme\\RuleBasedModuleExtraction\\onto.owl";
 	public static final String contest1 = "C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_896c66df-2415-4e7a-8a3e-aed1f56be49d_ine_roller.ttl_functional.owl";
+	public static final String contest2 = "C:\\Users\\spellmaker\\Downloads\\ore2014_dataset\\dataset\\files\\approximated_da419394-a064-4d26-a6ba-cc48705024ed_ies200512a.owl_functional.owl";
 	public static final String galen = "C:\\Users\\spellmaker\\git\\rbme\\RuleBasedModuleExtraction\\EL-GALEN.owl";
 	public static final String schwurbl = "C:\\Users\\spellmaker\\git\\rbme\\RuleBasedModuleExtraction\\onto-schwurbl.owl";
 	public static final String snowmed_obfuscated = "C:\\Users\\spellmaker\\git\\rbme\\RuleBasedModuleExtraction\\anatomy2012EL-obfuscated.owl";

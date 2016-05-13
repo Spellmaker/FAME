@@ -39,31 +39,30 @@ public class DRBClass extends OWLClassExpressionVisitorAdapter{
 
     @Override
     public void visit(OWLObjectIntersectionOf expression){
-        int cnt = 0;
         Set<OWLClassExpression> classes = new HashSet<>();
         for(OWLClassExpression expr : expression.getOperands()){
             expr.accept(this);
             if(parent.botMode){
-                cnt++;
+                classes.add(expr);
             }
             else{
                 parent.ruleBuffer.pop();
             }
         }
 
-        if(cnt == 0){
+        if(classes.isEmpty()){
             parent.ruleBuffer.push(Collections.emptySet());
             return;
         }
         else{
-            OWLClassExpression[] array = new OWLClassExpression[cnt];
+            OWLClassExpression[] array = new OWLClassExpression[classes.size()];
             int pos = 0;
             for(OWLClassExpression e : classes){
                 array[pos++] = e;
             }
 
             Set<DRBRule> r = new HashSet<>();
-            for(int i = 0; i < cnt; i++) r.addAll(parent.ruleBuffer.pop());
+            for(int i = 0; i < classes.size(); i++) r.addAll(parent.ruleBuffer.pop());
             r.add(DRBRuleFactory.getInternalRule(expression, array));
 
             parent.ruleBuffer.push(r);

@@ -54,7 +54,7 @@ public class DRBRule implements Iterable<OWLObject>{
             res = res.substring(0, res.length() - 2);
         }
 
-        res += OWLRendererProvider.render(getHeadOrAxiom());
+        res += " -> " + OWLRendererProvider.render(getHeadOrAxiom());
         if(!definitions.isEmpty()){
             res += "def: ";
             for(DRBDefinition def : definitions){

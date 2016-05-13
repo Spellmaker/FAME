@@ -8,6 +8,7 @@ import de.uniulm.in.ki.mbrenner.fame.definitions.DefinitionLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.debug.incremental.customextractor.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.definitions.DefinitionUtility;
 import de.uniulm.in.ki.mbrenner.fame.definitions.IndicatorClass;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBAxiom;
 import de.uniulm.in.ki.mbrenner.fame.extractor.DirectLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
@@ -37,35 +38,18 @@ import static com.clarkparsia.owlapi.modularity.locality.LocalityClass.BOTTOM_BO
  */
 public class MainTest{
     public static void main(String[] args) throws Exception{
-        OWLClass a = new OWLClassImpl(IRI.create("A"));
-        OWLClass b = new OWLClassImpl(IRI.create("B"));
-        OWLClass c = new OWLClassImpl(IRI.create("C"));
-        OWLClass d = new OWLClassImpl(IRI.create("D"));
-        Set<OWLClass> set = new HashSet<>();
-        set.add(b);
-        set.add(c);
-        OWLObjectIntersectionOf intersec = new OWLObjectIntersectionOfImpl(set);
-        OWLSubClassOfAxiom ax1 = new OWLSubClassOfAxiomImpl(a, b, Collections.emptySet());
-        OWLSubClassOfAxiom ax2 = new OWLSubClassOfAxiomImpl(a, intersec, Collections.emptySet());
-        OWLSubClassOfAxiom ax3 = new OWLSubClassOfAxiomImpl(d, b, Collections.emptySet());
-
-        Set<OWLEntity> testSig = new HashSet<>();
-        testSig.add(a);
-        testSig.add(d);
-        List<OWLAxiom> axLis = new LinkedList<>();
-        axLis.add(ax1);
-        axLis.add(ax2);
-        axLis.add(ax3);
-
-        DefinitionLocalityExtractor defExtrTest = new DefinitionLocalityExtractor();
-        defExtrTest.getDefinitionLocalityModule(axLis, testSig).forEach(x -> System.out.println(x));
-        System.exit(0);
-
-
 
 
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(OntologiePaths.galen));
+        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(OntologiePaths.medical));
+
+        DRBAxiom builder = new DRBAxiom();
+        builder.buildRules(o).forEach(x -> System.out.println(x));
+
+
+        System.exit(0);
+
+
 
         Set<OWLEntity> sig = new HashSet<>();
         RuleSet rs = new BottomModeRuleBuilder().buildRules(o);

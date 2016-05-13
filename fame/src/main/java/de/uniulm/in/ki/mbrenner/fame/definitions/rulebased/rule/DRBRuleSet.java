@@ -2,15 +2,13 @@ package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule;
 
 import org.semanticweb.owlapi.model.OWLObject;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by Spellmaker on 13.05.2016.
  */
-public class DRBRuleSet {
+public class DRBRuleSet implements Iterable<DRBRule>{
     private Set<DRBRule> rules;
 
     private Map<OWLObject, Set<DRBRule>> ruleMap;
@@ -34,5 +32,20 @@ public class DRBRuleSet {
                 ruleMap.put(o, current);
             }
         }
+    }
+
+    @Override
+    public Iterator<DRBRule> iterator() {
+        return rules.iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super DRBRule> action) {
+        rules.forEach(action);
+    }
+
+    @Override
+    public Spliterator<DRBRule> spliterator() {
+        return rules.spliterator();
     }
 }

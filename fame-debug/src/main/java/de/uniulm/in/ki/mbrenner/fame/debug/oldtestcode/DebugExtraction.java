@@ -1,9 +1,10 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.oldtestcode;
 
 import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
-import de.uniulm.in.ki.mbrenner.fame.extractor.CompressedExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.SyntacticLocalityEvaluator;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;

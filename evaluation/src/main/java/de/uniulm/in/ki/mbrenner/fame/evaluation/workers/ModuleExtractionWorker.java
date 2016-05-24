@@ -9,8 +9,8 @@ import de.uniulm.in.ki.mbrenner.fame.util.Misc;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 public class ModuleExtractionWorker implements Callable<ModuleSizeSingleResult> {

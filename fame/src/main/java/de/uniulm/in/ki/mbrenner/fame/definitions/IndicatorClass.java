@@ -1,6 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.OWLRendererProvider;
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectComplementOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectInverseOfImpl;
@@ -201,7 +202,7 @@ public class IndicatorClass implements OWLClass {
     @Nonnull
     @Override
     public IRI getIRI() {
-        return IRI.create("I_" + clazz.toString());
+        return IRI.create("I_" + OWLPrinter.getString(clazz));
     }
 
     @Override
@@ -302,6 +303,6 @@ public class IndicatorClass implements OWLClass {
 
     @Override
     public String toString(){
-        return "I_{" + OWLRendererProvider.render(clazz) + "}";
+        return "I_{" + OWLPrinter.getString(clazz) + "}";
     }
 }

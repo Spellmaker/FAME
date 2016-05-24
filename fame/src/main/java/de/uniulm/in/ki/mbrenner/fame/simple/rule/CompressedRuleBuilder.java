@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.rule;
+package de.uniulm.in.ki.mbrenner.fame.simple.rule;
 
 import java.util.*;
 

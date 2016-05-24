@@ -1,10 +1,9 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.axiomviewer;
 
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLChars;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
-import org.semanticweb.owlapi.util.OWLAxiomVisitorExAdapter;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Iterator;

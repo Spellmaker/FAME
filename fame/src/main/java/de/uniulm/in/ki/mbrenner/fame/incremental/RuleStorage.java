@@ -1,7 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.incremental;
 
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
-import org.semanticweb.owlapi.model.OWLAxiom;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 
 /**
  * Created by spellmaker on 18.03.2016.

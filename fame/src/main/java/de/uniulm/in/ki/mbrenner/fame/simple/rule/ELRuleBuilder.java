@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.rule;
+package de.uniulm.in.ki.mbrenner.fame.simple.rule;
 import java.util.*;
 
 import org.semanticweb.owlapi.model.*;
@@ -9,11 +9,11 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 import javax.annotation.Nonnull;
 
 /**
- * EL implementation of the RuleBuilder interface.
+ * EL Rule Builder
  * Compiles an EL Ontology into a set of rules to extract modules from it
  * @author spellmaker
  */
-public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpressionVisitor, OWLPropertyExpressionVisitor{
+public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor, OWLPropertyExpressionVisitor{
 	private RuleSet rs;
 	private List<OWLObject> unknownObjects;
 	public boolean printUnknown = false;
@@ -31,7 +31,6 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 		this.finalizeWithDef = finalizeWithDef;
 	}
 
-	@Override
 	public RuleSet buildRules(OWLOntology ontology){
 
 		rs = new RuleSet();
@@ -450,7 +449,6 @@ public class ELRuleBuilder implements RuleBuilder, OWLAxiomVisitor, OWLClassExpr
 		unknownObjects.add(rule);
 	}
 
-	@Override
 	public Collection<OWLObject> unknownObjects() {
 		return unknownObjects;
 	}

@@ -7,8 +7,8 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.RandTimeWorker;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 
 public class FAMEExtractionWorker implements Callable<Long[]>{
 	private Set<OWLEntity> sign;

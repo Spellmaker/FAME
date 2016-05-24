@@ -18,6 +18,7 @@ public class ButtonListener implements MouseListener {
         this.button = button;
         this.count = count;
         this.label = label;
+        if(count <= 0) this.button.setEnabled(false);
     }
 
     @Override

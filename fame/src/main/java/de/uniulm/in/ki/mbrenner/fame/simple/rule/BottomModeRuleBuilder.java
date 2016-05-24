@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.rule;
+package de.uniulm.in.ki.mbrenner.fame.simple.rule;
 
 import java.util.*;
 
@@ -13,7 +13,7 @@ enum Mode{
 	BottomMode, TopMode
 }
 
-public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVisitor, OWLPropertyExpressionVisitor, OWLAxiomVisitor {
+public class BottomModeRuleBuilder implements OWLClassExpressionVisitor, OWLPropertyExpressionVisitor, OWLAxiomVisitor {
 	private Mode cMode;
 	private List<Rule> ruleBuffer;
 	private RuleStorage ruleSet;
@@ -357,7 +357,6 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		unknownObjects.add(owlAnnotationProperty);
 	}
 
-	@Override
 	public RuleSet buildRules(OWLOntology ontology){
 		return buildRules(ontology, false);
 	}
@@ -405,7 +404,6 @@ public class BottomModeRuleBuilder implements RuleBuilder, OWLClassExpressionVis
 		}
 	}
 
-	@Override
 	public Collection<OWLObject> unknownObjects() {
 		return unknownObjects;
 	}

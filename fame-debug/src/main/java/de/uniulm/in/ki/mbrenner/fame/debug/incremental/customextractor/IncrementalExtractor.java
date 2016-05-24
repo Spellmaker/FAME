@@ -5,8 +5,8 @@ import de.uniulm.in.ki.mbrenner.fame.incremental.RuleStorage;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.TreeBuilder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.folder.IncrementalRuleFolder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.nodes.Node;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 

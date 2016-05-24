@@ -1,10 +1,9 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation.relatedtools.atomicdecomposition;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import java.util.*;

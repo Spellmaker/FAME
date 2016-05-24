@@ -11,12 +11,12 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.TestModuleSizes;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeResult;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeSingleResult;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 
 public class ModuleSizeWorker implements Callable<ModuleSizeResult> {
 	public File file;

@@ -2,11 +2,11 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrCorrectnessResult;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleDiff;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;

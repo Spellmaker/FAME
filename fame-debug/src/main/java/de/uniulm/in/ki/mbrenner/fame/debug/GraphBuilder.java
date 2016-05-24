@@ -1,9 +1,9 @@
 package de.uniulm.in.ki.mbrenner.fame.debug;
 
-import de.uniulm.in.ki.mbrenner.fame.OntologiePaths;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.util.OntologiePaths;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;

@@ -1,13 +1,11 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.IndicatorClass;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.ClassDefinition;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.CombinedPropertyDefinition;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.DRBDefinition;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.IdClassDefinition;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
@@ -30,7 +28,14 @@ public class DefFinder extends OWLClassExpressionVisitorAdapter {
         finder.currentObject.push(null);
         finder.otherSide = defineAs;
         expression.accept(finder);
+        //Note: For a simplified version, we first only allow definitions, if the
+        //left hand side is a simple class
+        if(!(defineAs instanceof OWLClass)) return Collections.emptySet();
         return finder.definitions;
+    }
+
+    public static Set<DRBDefinition> getDefinitions(OWLObjectPropertyExpression defineAs, OWLObjectPropertyExpression expression){
+        return Collections.singleton(new DRBDefinition(expression, defineAs, new PropertyDefinition()));
     }
 
     @Override

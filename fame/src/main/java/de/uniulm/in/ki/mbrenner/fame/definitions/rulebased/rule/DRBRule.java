@@ -1,6 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.DRBDefinition;
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -16,9 +17,10 @@ public class DRBRule implements Iterable<OWLObject>{
     public final OWLObject head;
     public final OWLAxiom axiom;
     public final Set<DRBDefinition> definitions;
+    public int id;
 
     public DRBRule(OWLObject head, OWLAxiom axiom, @Nonnull Set<DRBDefinition> definitions, @Nonnull OWLObject...body){
-        this.body = Collections.unmodifiableList(new ArrayList<>(Arrays.asList(body)));
+        this.body = Collections.unmodifiableList(Arrays.asList(body));
         this.head = head;
         this.axiom = axiom;
         this.definitions = Collections.unmodifiableSet(definitions);
@@ -26,6 +28,10 @@ public class DRBRule implements Iterable<OWLObject>{
 
     public @Nonnull OWLObject getHeadOrAxiom(){
         return (head == null) ? axiom : head;
+    }
+
+    public int size(){
+        return body.size();
     }
 
     @Override
@@ -47,16 +53,16 @@ public class DRBRule implements Iterable<OWLObject>{
     public String toString(){
         String res = "";
         for(OWLObject o : body){
-            res += OWLRendererProvider.render(o) + ", ";
+            res += OWLPrinter.getString(o) + ", ";
         }
 
         if(body.size() > 0){
             res = res.substring(0, res.length() - 2);
         }
 
-        res += " -> " + OWLRendererProvider.render(getHeadOrAxiom());
+        res += " -> " + OWLPrinter.getString(getHeadOrAxiom());
         if(!definitions.isEmpty()){
-            res += "def: ";
+            res += " def: ";
             for(DRBDefinition def : definitions){
                 res += def.toString();
             }
@@ -65,4 +71,22 @@ public class DRBRule implements Iterable<OWLObject>{
         return res;
     }
 
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof DRBRule){
+            DRBRule other = (DRBRule) o;
+            return getHeadOrAxiom().equals(other.getHeadOrAxiom()) && definitions.equals(other.definitions) && body.equals(other.body);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode(){
+        int h = 0;
+        if(head != null) h += head.hashCode();
+        if(axiom != null) h += axiom.hashCode();
+        h += definitions.hashCode();
+        h += body.hashCode();
+        return h;
+    }
 }

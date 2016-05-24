@@ -5,14 +5,16 @@ import java.util.*;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.ClassCounter;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.EqCorrectnessChecker;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
 public class CurrentEvaluation implements EvaluationCase {

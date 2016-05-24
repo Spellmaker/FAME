@@ -7,7 +7,7 @@ import de.tudresden.inf.lat.jcel.ontology.axiom.extension.IntegerOntologyObjectF
 import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
 import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.relatedtools.HyS.HyS;
-import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.ELRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.util.ClassCounter;
 import de.uniulm.in.ki.mbrenner.fame.util.Misc;
 import org.semanticweb.owlapi.apibinding.OWLManager;

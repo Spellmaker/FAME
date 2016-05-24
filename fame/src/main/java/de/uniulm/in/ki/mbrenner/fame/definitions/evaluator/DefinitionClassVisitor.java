@@ -25,17 +25,18 @@ public class DefinitionClassVisitor extends DefinitionVisitor implements OWLClas
             return;
         }
 
+
         OWLClassExpression def = (OWLClassExpression) parent.definitions.get(owlClass);
 
         if(def == null){
-            if(parent.signature.contains(owlClass))
+            if(parent.isFinalSymbol(owlClass))
                 currentClass = owlClass;
             else
                 currentClass = parent.data.getOWLNothing();
         }
         else{
-            currentClass = def;
-            parent.usedDefinitions.add(owlClass);
+            def.accept(this);
+            //parent.usedDefinitions.add(owlClass);
         }
     }
 
@@ -45,7 +46,8 @@ public class DefinitionClassVisitor extends DefinitionVisitor implements OWLClas
         OWLClassExpression def = (OWLClassExpression) parent.definitions.get(owlObjectIntersectionOf);
         if(def != null){
             currentClass = def;
-            parent.usedDefinitions.add(owlObjectIntersectionOf);
+            def.accept(this);
+            //parent.usedDefinitions.add(owlObjectIntersectionOf);
             return;
         }
         boolean foundBot = false;
@@ -88,7 +90,7 @@ public class DefinitionClassVisitor extends DefinitionVisitor implements OWLClas
         //if there is some definition, return that definition
         OWLClassExpression def = (OWLClassExpression) parent.definitions.get(owlObjectSomeValuesFrom);
         if(def != null){
-            currentClass = def;
+            def.accept(this);
             parent.usedDefinitions.add(owlObjectSomeValuesFrom);
             return;
         }

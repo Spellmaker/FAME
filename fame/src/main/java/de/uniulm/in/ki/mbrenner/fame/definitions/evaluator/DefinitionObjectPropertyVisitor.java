@@ -18,14 +18,15 @@ public class DefinitionObjectPropertyVisitor extends DefinitionVisitor implement
     public void visit(@Nonnull OWLObjectProperty owlObjectProperty) {
         OWLObjectPropertyExpression def = (OWLObjectPropertyExpression) parent.definitions.get(owlObjectProperty);
         if(def == null){
-            if(!parent.signature.contains(owlObjectProperty))
+            if(!parent.isFinalSymbol(owlObjectProperty))
                 currentProperty = parent.data.getOWLBottomObjectProperty();
             else
                 currentProperty = owlObjectProperty;
         }
         else{
-            currentProperty = def;
-            parent.usedDefinitions.add(owlObjectProperty);
+            def.accept(this);
+            //currentProperty = def;
+            //parent.usedDefinitions.add(owlObjectProperty);
         }
     }
 

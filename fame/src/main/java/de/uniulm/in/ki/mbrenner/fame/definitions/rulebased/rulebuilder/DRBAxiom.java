@@ -3,11 +3,9 @@ package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleFactory;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.Stack;
 
@@ -66,6 +64,14 @@ public class DRBAxiom extends OWLAxiomVisitorAdapter {
     }
 
     @Override
+    public void visit(OWLSubObjectPropertyOfAxiom axiom){
+        ruleSet.addRule(DRBRuleFactory.getExternalRule(axiom,
+                DefFinder.getDefinitions(axiom.getSubProperty(), axiom.getSuperProperty()),
+                axiom.getSubProperty()));
+
+    }
+
+    @Override
     public void visit(OWLEquivalentClassesAxiom axiom){
         OWLClassExpression left = axiom.getClassExpressionsAsList().get(0);
         OWLClassExpression right = axiom.getClassExpressionsAsList().get(1);
@@ -93,12 +99,7 @@ public class DRBAxiom extends OWLAxiomVisitorAdapter {
     }
 
     @Override
-    public void visit(OWLSubObjectPropertyOfAxiom axiom){
-
-    }
-
-    @Override
     public void visit(OWLTransitiveObjectPropertyAxiom axiom){
-
+        ruleSet.addRule(DRBRuleFactory.getExternalRule(axiom, axiom.getProperty()));
     }
 }

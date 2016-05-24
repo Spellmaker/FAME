@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.debug.axiomviewer;
+package de.uniulm.in.ki.mbrenner.fame.util.printer;
 
 /**
  * Created by spellmaker on 12.05.2016.

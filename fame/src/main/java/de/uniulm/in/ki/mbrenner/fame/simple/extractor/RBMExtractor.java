@@ -1,11 +1,11 @@
-package de.uniulm.in.ki.mbrenner.fame.extractor;
+package de.uniulm.in.ki.mbrenner.fame.simple.extractor;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
-import de.uniulm.in.ki.mbrenner.fame.util.ClassPrinter;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 /**
@@ -54,12 +54,12 @@ public class RBMExtractor {
 
 	/**
 	 * Uses the rules provided by the rule set to extract a module using the given signature
-	 * @param rules A set of rules constructed by a RuleBuilder
+	 * @param rules A set of rules constructed by a rule builder
 	 * @param signature A set of OWL classes forming a signature
 	 * @return A set of OWL axioms forming a module for the signature
 	 */
 	public Set<OWLAxiom> extractModule(RuleSet rules, Set<OWLEntity> signature){
-		if(debug) System.out.println("> Extraction start");
+		if(debug) System.out.println("> Starting extraction with signature " + OWLPrinter.getString(signature));
 		this.rules = rules;
 		//initialize the processing queue to the signature
 		module = new HashSet<>();
@@ -118,7 +118,11 @@ public class RBMExtractor {
 			finalModule.forEach(x -> System.out.println(ClassPrinter.printAxiom(x)));
 			}
 		}*/
-		
+		if(debug){
+			System.out.println("> base module:");
+			finalModule.forEach(x -> System.out.println(x));
+			System.out.println("> entering main loop");
+		}
 		//main processing loop
 		for(Integer front = queue.poll(); front != null; front = queue.poll()){
 			//System.out.println("looking at item " + rules.lookup(front));
@@ -163,9 +167,9 @@ public class RBMExtractor {
 							//if there already is a definition for the symbol, roll back 
 							if(oldDefAxiom != null){
 								if(debug){
-									System.out.println("collapsing definition for " + 
-												rules.getObject(definedSymbol) + " due to axiom " +
-												ClassPrinter.printAxiom((OWLAxiom) rules.getObject(currentAxiom)));
+									System.out.println("def of " + OWLPrinter.getString(
+												rules.getObject(definedSymbol)) + " collapsed (" +
+												OWLPrinter.getString(rules.getObject(currentAxiom)) + ")");
 									
 								}
 								if(oldDefAxiom != -1) collapseDefinition(oldDefAxiom);
@@ -181,18 +185,18 @@ public class RBMExtractor {
 								definitions[definedSymbol] = currentAxiom;
 								knownNotBottom[definedSymbol] = true;
 								queue.add(definedSymbol);
-								if(debug) System.out.println("defining symbol " + 
-										rules.getObject(definedSymbol) + " via axiom " +
-										ClassPrinter.printAxiom((OWLAxiom) rules.getObject(currentAxiom)));
+								if(debug) System.out.println("def " +
+										OWLPrinter.getString(rules.getObject(definedSymbol)) + " via " +
+										OWLPrinter.getString(rules.getObject(currentAxiom)));
 							}
 						}
 						else{
 							//in case the head is an axiom, add all new vocabulary from the axiom
 							//into the processing queue
+							if(debug && !(rules.getObject(currentAxiom) instanceof OWLDeclarationAxiom)) System.out.println("+" + OWLPrinter.getString(rules.getObject(currentAxiom)));
 							rules.getAxiomSignature(ruleAxioms[cRule]).forEach(x -> addQueue(x));
 							module.add(ruleAxioms[cRule]);
 							knownNotBottom[ruleAxioms[cRule]] = true;
-							if(debug && !(rules.getObject(currentAxiom) instanceof OWLDeclarationAxiom)) System.out.println("added axiom " + ClassPrinter.printAxiom((OWLAxiom) rules.getObject(currentAxiom)));
 						}
 					}
 					else{
@@ -200,6 +204,7 @@ public class RBMExtractor {
 							System.out.println("this is awkward...");
 						}*/
 						//in case of an intermediate rule, add the head
+						if(debug) System.out.println(rules.getRule(cRule).toDebugString(rules));
 						addQueue(head);
 					}
 				}
@@ -228,8 +233,8 @@ public class RBMExtractor {
 			return false;
 		}
 		if(doDefinitions && definitions[o] != null && definitions[o] >= 0){
+			if(debug) System.out.println("def of " + OWLPrinter.getString(rules.getObject(o)) + " collapsed (double adding, " + OWLPrinter.getString(rules.getObject(o)) + ")");
 			collapseDefinition(o);
-			if(debug) System.out.println("collapsing definition of element " + rules.getObject(o) + " due to double adding");
 		}
 		//add the entity to the list of those known to be possibly not bottom
 		if(knownNotBottom[o] == false){
@@ -255,7 +260,7 @@ public class RBMExtractor {
 		definitions[definedSymbol] = -1;
 		//add equivalence axiom to the module
 		module.add(defAxiom);
-		if(debug) System.out.println("collapsing adds axiom " + ClassPrinter.printAxiom((OWLAxiom) rules.getObject(defAxiom)));
+		if(debug) System.out.println("+" + OWLPrinter.getString(rules.getObject(defAxiom)) + " (collapsing)");
 		knownNotBottom[defAxiom] = true;
 		//add signature
 		rules.getAxiomSignature(defAxiom).forEach(x -> addQueue(x));

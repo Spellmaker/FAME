@@ -1,17 +1,11 @@
 package de.uniulm.in.ki.mbrenner.fame.debug;
 
-import de.uniulm.in.ki.mbrenner.fame.OntologiePaths;
 import de.uniulm.in.ki.mbrenner.fame.incremental.OWLDictionary;
 import de.uniulm.in.ki.mbrenner.fame.incremental.RuleStorage;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
-import org.semanticweb.owlapi.apibinding.OWLManager;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import org.semanticweb.owlapi.model.*;
 
-import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by spellmaker on 22.04.2016.

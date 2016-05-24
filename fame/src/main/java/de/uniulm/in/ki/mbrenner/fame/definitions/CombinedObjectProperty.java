@@ -1,5 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions;
 
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nonnull;
@@ -148,7 +149,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     public IRI getIRI() {
         String iri = "";
         for(Map.Entry<IndicatorClass, OWLClassExpression> entry : mapping.entrySet()){
-            iri += entry.getKey().getIRI().toString() + "_" + entry.getValue().toString();
+            iri += OWLPrinter.getString(entry.getKey().getIRI()) + "_" + OWLPrinter.getString(entry.getValue());
         }
 
         return IRI.create(iri);
@@ -196,13 +197,13 @@ public class CombinedObjectProperty implements OWLObjectProperty{
 
     @Override
     public void accept(@Nonnull OWLPropertyExpressionVisitor owlPropertyExpressionVisitor) {
-
+        owlPropertyExpressionVisitor.visit(this);
     }
 
     @Nonnull
     @Override
     public <O> O accept(@Nonnull OWLPropertyExpressionVisitorEx<O> owlPropertyExpressionVisitorEx) {
-        return null;
+        return owlPropertyExpressionVisitorEx.visit(this);
     }
 
     @Override

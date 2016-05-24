@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame;
+package de.uniulm.in.ki.mbrenner.fame.util;
 
 public class OntologiePaths {
 	public static final String medical = "C:\\Users\\spellmaker\\git\\rbme\\RuleBasedModuleExtraction\\onto.owl";

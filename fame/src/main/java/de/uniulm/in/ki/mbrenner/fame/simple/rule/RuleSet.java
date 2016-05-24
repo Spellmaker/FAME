@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.rule;
+package de.uniulm.in.ki.mbrenner.fame.simple.rule;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,16 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.OWLDictionary;
 import de.uniulm.in.ki.mbrenner.fame.incremental.RuleStorage;
+import de.uniulm.in.ki.mbrenner.fame.util.ArrayIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 

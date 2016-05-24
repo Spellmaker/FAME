@@ -1,13 +1,13 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
-import de.uniulm.in.ki.mbrenner.fame.extractor.CompressedExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;

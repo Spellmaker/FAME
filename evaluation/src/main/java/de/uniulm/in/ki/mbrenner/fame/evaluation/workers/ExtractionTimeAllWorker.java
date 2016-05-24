@@ -14,10 +14,10 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.ELRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 

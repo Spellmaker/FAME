@@ -4,7 +4,7 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrTimeResult;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.ModificationResult;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;

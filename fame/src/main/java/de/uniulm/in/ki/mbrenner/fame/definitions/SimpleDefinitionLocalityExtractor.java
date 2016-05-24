@@ -2,12 +2,11 @@ package de.uniulm.in.ki.mbrenner.fame.definitions;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.builder.DefinitionBuilder;
 import de.uniulm.in.ki.mbrenner.fame.definitions.evaluator.DefinitionEvaluator;
-import de.uniulm.in.ki.mbrenner.fame.extractor.DirectLocalityExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObject;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.DirectLocalityExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,10 +14,9 @@ import java.util.stream.Collectors;
 /**
  * Created by spellmaker on 28.04.2016.
  */
-public class DefinitionLocalityExtractor {
-    public DefinitionLocalityExtractor(){
-
-    }
+public class SimpleDefinitionLocalityExtractor{
+    public static boolean debug = false;
+    public static boolean verify = false;
 
     //data structures to track definitions
     private Map<OWLAxiom, Set<OWLObject>> axiomToDefinitions = new HashMap<>(); //maps axioms to definitions for later deletion
@@ -27,18 +25,18 @@ public class DefinitionLocalityExtractor {
     public Set<OWLEntity> finalSignature;
     public Set<OWLEntity> finalExtSignature;
 
-    public Set<OWLAxiom> getDefinitionLocalityModule(Collection<OWLAxiom> axiomCollection, Set<OWLEntity> sign){
-        Set<OWLAxiom> axioms = new HashSet<>(axiomCollection);
+    public Set<OWLAxiom> extract(Collection<OWLAxiom> axiomCollection, Collection<OWLEntity> sign){
+        List<OWLAxiom> axioms = new LinkedList<>(axiomCollection);
         Set<OWLEntity> signature = new HashSet<>(sign);
         Map<OWLObject, OWLObject> definitions = new HashMap<>();
         Set<OWLAxiom> module = new HashSet<>();
-        Set<OWLAxiom> remaining = new HashSet<>(axioms);
+        List<OWLAxiom> remaining = new LinkedList<>(axioms);
 
         //get a rule set for the axioms, this will be used to restrict the range of axioms, which need to be checked
         //for locality
         RuleSet rs = new RuleSet();
         BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
-        bmrb.buildRules(axioms, axioms.stream().map(x -> x.getSignature()).flatMap(Collection::stream).collect(Collectors.toSet()), true, rs, rs);
+        bmrb.buildRules(new HashSet<>(axioms), axioms.stream().map(x -> x.getSignature()).flatMap(Collection::stream).collect(Collectors.toSet()), true, rs, rs);
         DirectLocalityExtractor direct = new DirectLocalityExtractor(false);
 
         //the extended signature is the normal signature extended by the elements, for which there are definitions
@@ -50,9 +48,16 @@ public class DefinitionLocalityExtractor {
 
         int prev_size = remaining.size();
         int step = 0;
+
+        if(debug) System.out.println("Entering main loop");
+
         while(true){
+            if(debug) System.out.println("Iteration " + step);
             OWLAxiom nonLocal = null;
-            for(OWLAxiom ax : direct.extractModule(rs, extSignature)){
+
+            List<OWLAxiom> directNonLocal = remaining;
+            //Set<OWLAxiom> directNonLocal = direct.extractModule(rs, extSignature);
+            for(OWLAxiom ax : directNonLocal){
                 if(!remaining.contains(ax)) continue;
                 if(!de.isDefinitionLocal(ax, signature, definitions)){
                     nonLocal = ax;
@@ -60,27 +65,38 @@ public class DefinitionLocalityExtractor {
                 }
             }
             if(nonLocal == null) break;
-            //System.out.println("non-local axiom is " + nonLocal);
+            if(debug) System.out.println("non-local: " + OWLPrinter.getString(nonLocal));
 
+            extSignature.addAll(nonLocal.getSignature());
             //try to fix the non-local axiom
             //TODO: Can a higher order definition hide other definitions?
             Map<OWLObject, OWLObject> ndef = db.tryDefine(nonLocal, definitions, signature);
             if(ndef == null){
-                //System.out.println("rolling back definitions");
-                //System.out.println(remaining.size());
+                if(debug) System.out.println("definition attempt failed, consequences:");
                 Set<OWLAxiom> change = resolveConflict(nonLocal, signature, definitions);
+                if(debug) change.forEach(x -> System.out.println("+" + OWLPrinter.getString(x)));
                 module.addAll(change);
                 remaining.removeAll(change);
                 //System.out.println(remaining.size());
                 //System.out.println(prev_size);
+                if(debug){
+                    System.out.println("remaining definitions:");
+                    for(Map.Entry<OWLObject, OWLObject> e : definitions.entrySet()){
+                        if(e.getKey() instanceof OWLClass || e.getKey() instanceof OWLObjectProperty){
+                            System.out.println(OWLPrinter.getString(e.getKey()) + " -> " + OWLPrinter.getString(e.getValue()));
+                        }
+                    }
+                }
             }
             else{
+                if(debug) System.out.println("definition attempt succeeded, consequences:");
                 //System.out.println("axiom is local now");
                 Set<OWLObject> axiomDefinitions = new HashSet<>();
                 for(Map.Entry<OWLObject, OWLObject> entry : ndef.entrySet()){
                     if(definitions.get(entry.getKey()) != null) continue;
 
                     //System.out.println("new definition: " + entry);
+                    if(debug) System.out.println(OWLPrinter.getString(entry.getKey()) + " -> " + OWLPrinter.getString(entry.getValue()));
 
                     //for each new definition
                     //1. add it to the set of definitions
@@ -88,7 +104,7 @@ public class DefinitionLocalityExtractor {
                     //2. add them to the set of things defined by the axiom
                     axiomDefinitions.add(entry.getKey());
                     //3. add the defined symbols to the extended Signature
-                    extSignature.addAll(entry.getKey().getSignature());
+                    //extSignature.addAll(entry.getKey().getSignature());
                 }
                 axiomToDefinitions.put(nonLocal, axiomDefinitions);
                 for(OWLEntity e : db.getDependent()){
@@ -103,13 +119,26 @@ public class DefinitionLocalityExtractor {
             //debug check to determine correctness: Either the found axiom is local after the change or the
             //size has decreased
             //System.out.println("prev: " + prev_size + " rem: " + remaining.size());
-            if(!de.isDefinitionLocal(nonLocal, signature, definitions) && prev_size <= remaining.size()){
-                //if(remaining.contains(nonLocal)) System.out.println("nonlocal is in remaining");
-                throw new IllegalArgumentException("error in implementation (step is " + step + ")");
+            if(verify) {
+                if (!de.isDefinitionLocal(nonLocal, signature, definitions) && prev_size <= remaining.size()) {
+                    //if(remaining.contains(nonLocal)) System.out.println("nonlocal is in remaining");
+
+                    System.out.println("axiom is " + OWLPrinter.getString(nonLocal));
+                    System.out.println("definitions are:");
+                    for (Map.Entry<OWLObject, OWLObject> e : definitions.entrySet()) {
+                        System.out.println(OWLPrinter.getString(e.getKey()) + " -> " + OWLPrinter.getString(e.getValue()));
+                    }
+                    de.isDefinitionLocal(nonLocal, signature, definitions);
+
+                    throw new IllegalArgumentException("error in implementation (step is " + step + ")");
+                }
             }
             prev_size = remaining.size();
             step++;
+            if(debug) System.out.println();
         }
+
+        if(debug) System.out.println("No non-local axiom found, terminating");
 
         finalDefinitions = Collections.unmodifiableMap(definitions);
         finalSignature = Collections.unmodifiableSet(signature);
@@ -121,6 +150,9 @@ public class DefinitionLocalityExtractor {
     private Set<OWLAxiom> resolveConflict(OWLAxiom root, Set<OWLEntity> signature, Map<OWLObject, OWLObject> definitions){
         Set<OWLAxiom> modAdd = new HashSet<>();
         modAdd.add(root);
+        /*if(root.toString().equals("SubClassOf(<http://www.co-ode.org/ontologies/galen#DomainCategory> <http://www.co-ode.org/ontologies/galen#TopCategory>)")){
+            System.out.println("adding axiom in question");
+        }*/
         signature.addAll(root.getSignature());
         for(OWLEntity e : root.getSignature()){
             Set<OWLAxiom> s = entityToAxioms.get(e);

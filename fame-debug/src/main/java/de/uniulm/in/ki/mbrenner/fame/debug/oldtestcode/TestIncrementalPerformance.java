@@ -1,12 +1,12 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.oldtestcode;
 
 import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
-import de.uniulm.in.ki.mbrenner.fame.OntologiePaths;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.util.OntologiePaths;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.SyntacticLocalityEvaluator;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAxiom;

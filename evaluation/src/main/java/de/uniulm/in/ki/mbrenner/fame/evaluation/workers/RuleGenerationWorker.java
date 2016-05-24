@@ -14,6 +14,8 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.TestRuleGeneration;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;

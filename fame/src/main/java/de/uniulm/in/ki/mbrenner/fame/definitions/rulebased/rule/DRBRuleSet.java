@@ -2,6 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule;
 
 import org.semanticweb.owlapi.model.OWLObject;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -20,18 +21,25 @@ public class DRBRuleSet implements Iterable<DRBRule>{
         this.baseRules = new HashSet<>();
     }
 
-    public void addRule(DRBRule rule){
+    public void addRule(@Nonnull DRBRule rule){
         if(rule.body.isEmpty()){
             //base rule, always executed
             baseRules.add(rule);
         }
         else if(rules.add(rule)){
+            rule.id = rules.size() - 1;
             for(OWLObject o : rule){
                 Set<DRBRule> current = ruleMap.getOrDefault(o, new HashSet<>());
                 current.add(rule);
                 ruleMap.put(o, current);
             }
         }
+    }
+
+    public Iterator<DRBRule> rulesForObjects(@Nonnull OWLObject o){
+        Set<DRBRule> s = ruleMap.get(o);
+        if(s == null) return Collections.emptyIterator();
+        return s.iterator();
     }
 
     @Override
@@ -47,5 +55,9 @@ public class DRBRuleSet implements Iterable<DRBRule>{
     @Override
     public Spliterator<DRBRule> spliterator() {
         return rules.spliterator();
+    }
+
+    public int size(){
+        return rules.size();
     }
 }

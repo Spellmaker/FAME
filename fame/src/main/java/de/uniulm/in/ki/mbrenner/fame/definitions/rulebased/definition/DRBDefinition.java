@@ -1,6 +1,8 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.OWLRendererProvider;
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 
 /**
@@ -19,7 +21,7 @@ public class DRBDefinition {
 
     @Override
     public String toString(){
-        return "[" + OWLRendererProvider.render(definedSymbol) + " -> " + definition.toString() + "]";
+        return "[" + OWLPrinter.getString(definedSymbol) + " -> " + definition.toString() + "]";
     }
 
     @Override
@@ -34,7 +36,3 @@ public class DRBDefinition {
     }
 }
 
-@FunctionalInterface
-interface DefinitionFunction{
-    OWLObject action(OWLObject object);
-}

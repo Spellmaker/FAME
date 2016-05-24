@@ -1,5 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.axiomviewer;
 
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLChars;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -7,7 +8,6 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.Iterator;
 
 /**

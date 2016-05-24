@@ -1,7 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.debug;
 
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.*;

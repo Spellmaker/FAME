@@ -1,5 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.evaluator;
 
+import de.uniulm.in.ki.mbrenner.fame.definitions.CombinedObjectProperty;
+import de.uniulm.in.ki.mbrenner.fame.definitions.IndicatorClass;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
@@ -22,6 +24,7 @@ public class DefinitionEvaluator{
     //OWLClass unknownClass;
     //OWLObjectProperty unknownProperty;
 
+    @Deprecated
     Set<OWLObject> usedDefinitions;
 
     public DefinitionEvaluator(){
@@ -60,7 +63,12 @@ public class DefinitionEvaluator{
         return axiomVisitor.locality;
     }
 
+    @Deprecated
     public Set<OWLObject> getUsedDefinitions(){
         return usedDefinitions;
+    }
+
+    public boolean isFinalSymbol(OWLObject o){
+        return signature.contains(o) || o instanceof IndicatorClass || o instanceof CombinedObjectProperty;
     }
 }

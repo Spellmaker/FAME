@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.extractor;
+package de.uniulm.in.ki.mbrenner.fame.simple.extractor;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -9,8 +9,8 @@ import java.util.Set;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRule;
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleSet;
 
 public class CompressedExtractor {
 

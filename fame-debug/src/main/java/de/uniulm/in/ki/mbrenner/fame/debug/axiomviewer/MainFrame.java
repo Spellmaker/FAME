@@ -1,22 +1,24 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.axiomviewer;
 
-import de.uniulm.in.ki.mbrenner.fame.OntologiePaths;
-import de.uniulm.in.ki.mbrenner.fame.definitions.DefinitionLocalityExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.DirectLocalityExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.util.OntologiePaths;
+import de.uniulm.in.ki.mbrenner.fame.definitions.SimpleDefinitionLocalityExtractor;
+import de.uniulm.in.ki.mbrenner.fame.definitions.evaluator.DefinitionEvaluator;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.DRBExtractor;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBAxiom;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.DirectLocalityExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
-import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
-import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +30,10 @@ public class MainFrame extends JFrame{
     private Iterator<OWLAxiom> axioms;
 
     private JPanel renderedAxiom;
+
+    private RuleSet rs;
+    private DRBRuleSet drs;
+    private OWLOntology ontology;
 
     public boolean hasNext(){
         return axioms.hasNext();
@@ -46,18 +52,19 @@ public class MainFrame extends JFrame{
         Set<OWLEntity> signature = new HashSet<>();
         //somehow obtain an entity
         for(OWLEntity ent : o.getSignature()){
-            if(ent.toString().equals("<http://www.co-ode.org/ontologies/galen#PalatineTonsil>")) signature.add(ent);
+            if(ent.toString().equals("<http://www.co-ode.org/ontologies/galen#PositiveFamilyHistory>")) signature.add(ent);
         }
         RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
+        DRBRuleSet drs = new DRBAxiom().buildRules(o);
 
-        DefinitionLocalityExtractor def = new DefinitionLocalityExtractor();
+        /*SimpleDefinitionLocalityExtractor def = new SimpleDefinitionLocalityExtractor();
 
         SyntacticLocalityModuleExtractor syntExtr = new SyntacticLocalityModuleExtractor(m, o, ModuleType.STAR);
 
         Set<OWLAxiom> defMod = def.getDefinitionLocalityModule(o.getAxioms(), signature);
         Set<OWLAxiom> botMod = new RBMExtractorNoDef(false).extractModule(rs, signature);
         Set<OWLAxiom> starMod = syntExtr.extract(signature);
-        Set<OWLAxiom> starDefMod = new DefinitionLocalityExtractor().getDefinitionLocalityModule(starMod, signature);
+        Set<OWLAxiom> starDefMod = new SimpleDefinitionLocalityExtractor().getDefinitionLocalityModule(starMod, signature);
         System.out.println(signature.iterator().next() +
                 ": bot " + botMod.stream().filter(x -> x instanceof OWLLogicalAxiom).count() +
                 " star " + starMod.stream().filter(x -> x instanceof OWLLogicalAxiom).count() +
@@ -67,13 +74,56 @@ public class MainFrame extends JFrame{
 
         DirectLocalityExtractor direct = new DirectLocalityExtractor(false);
         Set<OWLAxiom> culprits = direct.extractModule(rs, def.finalExtSignature).stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());
-        culprits = culprits.stream().filter(x -> !defMod.contains(x)).collect(Collectors.toSet());
+        culprits = culprits.stream().filter(x -> !defMod.contains(x)).collect(Collectors.toSet());*/
 
-        MainFrame frame = new MainFrame(culprits, def.finalDefinitions, def.finalSignature);
+        MainFrame frame = new MainFrame(rs, drs, o); //culprits, def.finalDefinitions, def.finalSignature);
         frame.setVisible(true);
+        frame.loadEntity(signature);
     }
 
-    public MainFrame(Collection<OWLAxiom> axioms, Map<OWLObject, OWLObject> definitions, Set<OWLEntity> signature) throws Exception{
+    private void loadEntitySimple(Set<OWLEntity> signature) throws Exception{
+        this.signature = signature;
+
+        SimpleDefinitionLocalityExtractor def = new SimpleDefinitionLocalityExtractor();
+        Set<OWLAxiom> defMod = def.extract(ontology.getAxioms(), signature);
+
+        DirectLocalityExtractor direct = new DirectLocalityExtractor(false);
+        Set<OWLAxiom> culprits = direct.extractModule(rs, def.finalExtSignature).stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());
+
+        culprits = culprits.stream().filter(x -> !defMod.contains(x)).collect(Collectors.toSet());
+        System.out.println("loading signature " + signature + " resulted in " + culprits.size() + " axioms to examine");
+
+        generateGUI(culprits, def.finalDefinitions, def.finalSignature);
+    }
+
+    private void loadEntityRule(Set<OWLEntity> signature) throws Exception{
+        this.signature = signature;
+
+        DRBExtractor extractor = new DRBExtractor(true);
+        Set<OWLAxiom> defMod = extractor.extractModule(drs, signature);
+        Set<OWLEntity> finalSignature = defMod.stream().map(x -> x.getSignature()).flatMap(x -> x.stream()).collect(Collectors.toSet());
+        Set<OWLEntity> finalExtSignature = new HashSet<>(finalSignature);
+        finalExtSignature.addAll(extractor.getDefinitions().entrySet().stream().map(x -> (OWLEntity) x.getKey()).collect(Collectors.toSet()));
+
+        DirectLocalityExtractor direct = new DirectLocalityExtractor(false);
+        Set<OWLAxiom> culprits = direct.extractModule(rs, finalExtSignature).stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());
+
+        culprits = culprits.stream().filter(x -> !defMod.contains(x)).collect(Collectors.toSet());
+        System.out.println("loading signature " + signature + " resulted in " + culprits.size() + " axioms to examine");
+        System.out.println("full module size is " + new RBMExtractorNoDef(false).extractModule(rs, signature).size() + " vs definition based size " + defMod.size());
+        System.out.println("definitions are:");
+        extractor.getDefinitions().entrySet().forEach(x -> System.out.println(OWLPrinter.getString(x.getKey()) + " -> " + OWLPrinter.getString(x.getValue())));
+        generateGUI(culprits, extractor.getDefinitions(), finalSignature);
+    }
+
+
+    public void loadEntity(Set<OWLEntity> signature) throws Exception{
+        loadEntityRule(signature);
+        //loadEntitySimple(signature);
+    }
+
+    private void generateGUI(Collection<OWLAxiom> axioms, Map<OWLObject, OWLObject> definitions, Set<OWLEntity> signature) throws Exception{
+        this.getContentPane().removeAll();
         this.axioms = axioms.iterator();
         this.definitions = definitions;
         this.signature = signature;
@@ -82,6 +132,13 @@ public class MainFrame extends JFrame{
 
         this.getContentPane().setLayout(new BorderLayout());
         JPanel navigation = new JPanel();
+        JButton btnFilter = new JButton("View");
+        JTextField txtFilter = new JTextField(80);
+        btnFilter.addMouseListener(new ChangeSignatureListener(this, txtFilter, ontology.getSignature()));
+        navigation.add(btnFilter);
+        navigation.add(txtFilter);
+
+
         JLabel lblCount = new JLabel("" + (axioms.size() - 1));
         navigation.add(lblCount);
         JButton btnNext = new JButton("Next");
@@ -90,25 +147,12 @@ public class MainFrame extends JFrame{
         this.getContentPane().add(navigation, BorderLayout.SOUTH);
 
         next();
+    }
 
-        /*OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new File(OntologiePaths.galen));
-
-        OWLAxiom test = null;
-        Iterator<OWLLogicalAxiom> iter = o.getLogicalAxioms().iterator();
-        do{
-            test = iter.next();
-        }while(!test.toString().equals("EquivalentClasses(<http://www.co-ode.org/ontologies/galen#RiskOfCerebrovascularPathology> ObjectIntersectionOf(<http://www.co-ode.org/ontologies/galen#Risking> ObjectSomeValuesFrom(<http://www.co-ode.org/ontologies/galen#hasSpecificConsequence> <http://www.co-ode.org/ontologies/galen#CerebrovascularPathology>)) )"));//test instanceof OWLTransitiveObjectPropertyAxiom);
-
-        Map<OWLObject, OWLObject> tmp = new HashMap<>();
-        for(OWLEntity e : test.getSignature()){
-            tmp.put(e, new OWLDataFactoryImpl().getOWLNothing());
-        }
-
-        System.out.println(test);
-
-
-        this.pack();*/
+    public MainFrame(RuleSet rs, DRBRuleSet drs, OWLOntology ontology) throws Exception{
+        this.rs = rs;
+        this.drs = drs;
+        this.ontology = ontology;
     }
 
     private void switchTo(OWLAxiom axiom){
@@ -123,9 +167,16 @@ public class MainFrame extends JFrame{
         OWLDataFactory data = new OWLDataFactoryImpl();
         Map<OWLObject, OWLObject> interpretation = new HashMap<>();
         for(Map.Entry<OWLObject, OWLObject> entry : definitions.entrySet()){
-            if(!(entry.getKey() instanceof OWLObjectProperty) && !(entry.getKey() instanceof OWLClass)) continue;
-
-            interpretation.put(entry.getKey(), entry.getValue());
+            if(entry.getKey() instanceof OWLClass){
+                DefinitionEvaluator de = new DefinitionEvaluator();
+                interpretation.put(entry.getKey(), de.getDefined((OWLClassExpression)entry.getValue(), signature, definitions));
+            }
+            else if(entry.getKey() instanceof OWLObjectProperty){
+                DefinitionEvaluator de = new DefinitionEvaluator();
+                interpretation.put(entry.getKey(), de.getDefined((OWLObjectProperty)entry.getValue(), signature, definitions));
+            }
+            //if(!(entry.getKey() instanceof OWLObjectProperty) && !(entry.getKey() instanceof OWLClass)) continue;
+            //interpretation.put(entry.getKey(), entry.getValue());
         }
 
         for(OWLEntity e : signature){

@@ -4,7 +4,7 @@ import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
 import de.uniulm.in.ki.mbrenner.fame.incremental.OWLDictionary;
 import de.uniulm.in.ki.mbrenner.fame.incremental.RuleStorage;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.nodes.*;
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 

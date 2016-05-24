@@ -1,8 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.incremental;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import org.semanticweb.HermiT.ReasonerFactory;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;

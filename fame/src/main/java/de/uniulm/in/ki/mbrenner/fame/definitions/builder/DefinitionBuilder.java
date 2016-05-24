@@ -42,9 +42,9 @@ public class DefinitionBuilder {
         DefinitionEvaluator de = new DefinitionEvaluator();
 
         if(target instanceof OWLClassExpression)
-            this.target = de.getDefined((OWLClassExpression) target, signature, definitions);
+            this.target = target;//de.getDefined((OWLClassExpression) target, signature, definitions);
         else
-            this.target = de.getDefined((OWLPropertyExpression) target, signature, definitions);
+            this.target = target;//de.getDefined((OWLPropertyExpression) target, signature, definitions);
 
         this.currentTarget = this.target;
         this.error = false;

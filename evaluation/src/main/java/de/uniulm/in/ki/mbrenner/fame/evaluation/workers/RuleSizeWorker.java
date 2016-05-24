@@ -7,11 +7,11 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.ELRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import objectexplorer.MemoryMeasurer;
 
 public class RuleSizeWorker implements Callable<Long[]>{

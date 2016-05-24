@@ -24,6 +24,7 @@ public class DBClassVisitor implements OWLClassExpressionVisitor {
         //only possible if
         //1. class is not part of the signature
         //2. there is no definition for class
+        //3. class is bottom or top and therefore not definable
         if(parent.signature.contains(owlClass)){
             if(parent.currentTarget.equals(owlClass)){
                 return;
@@ -31,6 +32,13 @@ public class DBClassVisitor implements OWLClassExpressionVisitor {
             parent.error = true;
             return;
         }
+        if((owlClass.isTopEntity() && !parent.currentTarget.isTopEntity()) ||
+                (owlClass.isBottomEntity() && !parent.currentTarget.isBottomEntity())){
+            parent.error = true;
+            return;
+        }
+
+
         OWLObject def = parent.definitions.get(owlClass);
         if(def != null && !def.equals(owlClass)){
             parent.error = true;

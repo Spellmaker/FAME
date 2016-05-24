@@ -2,7 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLEntity;

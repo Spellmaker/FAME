@@ -4,6 +4,7 @@
 import de.uniulm.in.ki.mbrenner.fame.ModuleSetup;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleDiff;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,6 +1,8 @@
-package de.uniulm.in.ki.mbrenner.fame.rule;
+package de.uniulm.in.ki.mbrenner.fame.simple.rule;
 
-import javax.annotation.Nonnull;
+import de.uniulm.in.ki.mbrenner.fame.util.ArrayIterator;
+import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -108,15 +110,15 @@ public class Rule implements Iterable<Integer>{
 		String res = "";
 		if(body != null)
 			for(Integer e : body){
-				res = res + (res.equals("") ? "" : " & ") + rs.debugLookup(e);
+				res = res + (res.equals("") ? "" : " & ") + OWLPrinter.getString(rs.debugLookup(e));
 			}
 
 		res += " -> ";
-		if(head != null) res += rs.debugLookup(head);
+		if(head != null) res += OWLPrinter.getString(rs.debugLookup(head));
 		else{
 			res += rs.debugLookup(axiom);
 			if(define != null){
-				res += " def " + rs.debugLookup(define);
+				res += " def " + OWLPrinter.getString(rs.debugLookup(define));
 			}
 		}
 
@@ -172,24 +174,3 @@ public class Rule implements Iterable<Integer>{
 	}
 }
 
-class ArrayIterator<T> implements Iterator<T>{
-	private final T[] array;
-	private int position;
-	
-	public ArrayIterator(T[] array){
-		this.array = array;
-		this.position = -1;
-	}
-	
-	@Override
-	public boolean hasNext() {
-		if(array == null) return false;
-		return position < array.length - 1;
-	}
-
-	@Override
-	public T next() {
-		return array[++position];
-	}
-	
-}

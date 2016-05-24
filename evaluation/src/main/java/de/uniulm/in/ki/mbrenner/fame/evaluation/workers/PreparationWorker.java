@@ -2,10 +2,10 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 
 import de.uniulm.in.ki.mbrenner.fame.ModuleSetup;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.rule.ELRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.ELRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.EqCorrectnessChecker;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleIO;
 import org.semanticweb.owlapi.apibinding.OWLManager;

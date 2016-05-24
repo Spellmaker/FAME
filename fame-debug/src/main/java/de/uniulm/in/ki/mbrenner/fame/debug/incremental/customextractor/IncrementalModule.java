@@ -4,7 +4,7 @@ package de.uniulm.in.ki.mbrenner.fame.debug.incremental.customextractor;
  * Created by spellmaker on 18.03.2016.
  */
 
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.*;

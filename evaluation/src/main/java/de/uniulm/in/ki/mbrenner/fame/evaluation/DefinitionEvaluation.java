@@ -1,6 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
-import de.uniulm.in.ki.mbrenner.fame.definitions.DefinitionLocalityExtractor;
+import de.uniulm.in.ki.mbrenner.fame.definitions.SimpleDefinitionLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.util.ClassCounter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -39,7 +39,7 @@ public class DefinitionEvaluation implements EvaluationCase{
 
             for(OWLEntity e : ontology.getSignature()) {
                 long s1 = ie.extractModuleStatic(Collections.singleton(e)).getOWLModule().stream().filter(x -> x instanceof OWLLogicalAxiom).count();
-                long s2 = new DefinitionLocalityExtractor().getDefinitionLocalityModule(ontology.getAxioms(), Collections.singleton(e)).size();
+                long s2 = new SimpleDefinitionLocalityExtractor().extract(ontology.getAxioms(), Collections.singleton(e)).size();
 
                 owlapi += s1;
                 def += s2;

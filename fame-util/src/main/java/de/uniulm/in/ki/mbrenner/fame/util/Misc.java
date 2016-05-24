@@ -1,7 +1,9 @@
 package de.uniulm.in.ki.mbrenner.fame.util;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,5 +35,14 @@ public class Misc {
 
     public static Set<OWLAxiom> stripNonLogical(Set<OWLAxiom> module){
         return module.stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());
+    }
+
+    public static OWLEntity getEntity(OWLOntology o, String s){
+        for(OWLEntity e : o.getSignature()){
+            if(e.toString().equals(s)){
+                return e;
+            }
+        }
+        return null;
     }
 }

@@ -1,9 +1,9 @@
 package de.uniulm.in.ki.mbrenner.fame;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.EqCorrectnessChecker;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleIO;
 import org.semanticweb.owlapi.apibinding.OWLManager;

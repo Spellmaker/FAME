@@ -1,9 +1,9 @@
 package de.uniulm.in.ki.mbrenner.fame.debug;
 
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRule;
-import de.uniulm.in.ki.mbrenner.fame.rule.CompressedRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -3,11 +3,12 @@
  */
 
 import de.uniulm.in.ki.mbrenner.fame.ModuleSetup;
-import de.uniulm.in.ki.mbrenner.fame.extractor.CompressedExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.rule.*;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleDiff;
 import org.junit.Test;
 import org.junit.runner.RunWith;

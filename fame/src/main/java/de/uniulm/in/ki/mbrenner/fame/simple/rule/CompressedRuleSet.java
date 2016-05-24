@@ -1,4 +1,4 @@
-package de.uniulm.in.ki.mbrenner.fame.rule;
+package de.uniulm.in.ki.mbrenner.fame.simple.rule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import de.uniulm.in.ki.mbrenner.fame.extractor.CompressedExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;

@@ -1,7 +1,7 @@
-package de.uniulm.in.ki.mbrenner.fame.extractor;
+package de.uniulm.in.ki.mbrenner.fame.simple.extractor;
 
-import de.uniulm.in.ki.mbrenner.fame.rule.Rule;
-import de.uniulm.in.ki.mbrenner.fame.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -37,7 +37,7 @@ public class RBMExtractorNoDef {
 
 	/**
 	 * Uses the rules provided by the rule set to extract a module using the given signature
-	 * @param rules A set of rules constructed by a RuleBuilder
+	 * @param rules A set of rules constructed by a rule builder
 	 * @param signature A set of OWL classes forming a signature
 	 * @return A set of OWL axioms forming a module for the signature
 	 */

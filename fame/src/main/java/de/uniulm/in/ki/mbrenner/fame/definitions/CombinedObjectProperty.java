@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
+ * Represents a special property which maps IndicatorClass objects to other classes
+ *
  * Created by spellmaker on 04.05.2016.
  */
 public class CombinedObjectProperty implements OWLObjectProperty{
@@ -35,6 +37,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     }
 
     public OWLClassExpression getMapping(OWLClassExpression oce){
+        if(!(oce instanceof IndicatorClass)) return null;
         return mapping.get(oce);
     }
 
@@ -75,7 +78,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public OWLClass asOWLClass() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Override
@@ -91,7 +94,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public OWLDataProperty asOWLDataProperty() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Override
@@ -102,7 +105,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public OWLNamedIndividual asOWLNamedIndividual() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Override
@@ -113,7 +116,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public OWLDatatype asOWLDatatype() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Override
@@ -124,13 +127,13 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public OWLAnnotationProperty asOWLAnnotationProperty() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Nonnull
     @Override
     public String toStringID() {
-        return null;
+        return getIRI().toString();
     }
 
     @Override
@@ -141,7 +144,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public <O> O accept(@Nonnull OWLEntityVisitorEx<O> owlEntityVisitorEx) {
-        return null;
+        return owlEntityVisitorEx.visit(this);
     }
 
     @Nonnull
@@ -157,37 +160,37 @@ public class CombinedObjectProperty implements OWLObjectProperty{
 
     @Override
     public void accept(@Nonnull OWLNamedObjectVisitor owlNamedObjectVisitor) {
-
+        owlNamedObjectVisitor.visit(this);
     }
 
     @Nonnull
     @Override
     public <O> O accept(@Nonnull OWLNamedObjectVisitorEx<O> owlNamedObjectVisitorEx) {
-        return null;
+        return owlNamedObjectVisitorEx.visit(this);
     }
 
     @Nonnull
     @Override
     public OWLObjectProperty asOWLObjectProperty() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Nonnull
     @Override
     public OWLObjectPropertyExpression getInverseProperty() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Nonnull
     @Override
     public OWLObjectPropertyExpression getSimplified() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Nonnull
     @Override
     public OWLObjectProperty getNamedProperty() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Override
@@ -239,7 +242,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public Set<OWLClassExpression> getNestedClassExpressions() {
-        return null;
+        throw new OWLRuntimeException();
     }
 
     @Override
@@ -250,7 +253,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     @Nonnull
     @Override
     public <O> O accept(@Nonnull OWLObjectVisitorEx<O> owlObjectVisitorEx) {
-        return null;
+        return owlObjectVisitorEx.visit(this);
     }
 
     @Override
@@ -264,8 +267,8 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     }
 
     @Override
-    public int compareTo(OWLObject o) {
-        return 0;
+    public int compareTo(@Nonnull OWLObject o) {
+        return o.equals(this) ? 0 : -1;
     }
 
     @Nonnull
@@ -331,7 +334,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     }
 
     @Override
-    public String toString(){
+    public @Nonnull String toString(){
         return mapping.toString();
     }
 }

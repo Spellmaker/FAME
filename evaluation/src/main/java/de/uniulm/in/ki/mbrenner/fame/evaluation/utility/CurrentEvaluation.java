@@ -6,8 +6,7 @@ import java.util.*;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.*;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.ClassCounter;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.EqCorrectnessChecker;
@@ -70,7 +69,7 @@ public class CurrentEvaluation implements EvaluationCase {
 				}
 			}
 			EvaluationMain.out.println("check completed");
-			BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+			RuleBuilder bmrb = new RuleBuilder();
 			RuleSet rs = bmrb.buildRules(o);
 			if(checkSkip(bmrb.unknownObjects())){
 				EvaluationMain.out.println("unknown objects in rule builder, skipping ontology " + f);

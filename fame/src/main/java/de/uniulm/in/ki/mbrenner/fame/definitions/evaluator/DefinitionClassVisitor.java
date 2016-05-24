@@ -9,13 +9,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Class Visitor for the DefinitionEvaluator
+ *
  * Created by spellmaker on 27.04.2016.
  */
-public class DefinitionClassVisitor extends DefinitionVisitor implements OWLClassExpressionVisitor{
+public class DefinitionClassVisitor implements OWLClassExpressionVisitor{
     OWLClassExpression currentClass;
+    private DefinitionEvaluator parent;
 
     public DefinitionClassVisitor(DefinitionEvaluator parent) {
-        super(parent);
+        this.parent = parent;
     }
 
     @Override
@@ -91,7 +94,6 @@ public class DefinitionClassVisitor extends DefinitionVisitor implements OWLClas
         OWLClassExpression def = (OWLClassExpression) parent.definitions.get(owlObjectSomeValuesFrom);
         if(def != null){
             def.accept(this);
-            parent.usedDefinitions.add(owlObjectSomeValuesFrom);
             return;
         }
         //evaluate operands

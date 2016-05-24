@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -15,7 +16,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.ELRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
@@ -37,7 +37,7 @@ public class ExtractionTimeAllWorker implements Callable<Long[]> {
 		EvaluationMain.out.println("[Task " + id + "]" + ontology.getAxiomCount() + " axioms in the ontology");
 		
 		
-		RuleSet modeRules = (new BottomModeRuleBuilder()).buildRules(ontology);
+		RuleSet modeRules = (new RuleBuilder()).buildRules(ontology);
 		RuleSet elRules = (new ELRuleBuilder()).buildRules(ontology);
 		SyntacticLocalityModuleExtractor owlapi = new SyntacticLocalityModuleExtractor(m, ontology, ModuleType.BOT);
 		RBMExtractor rbme1 = new RBMExtractor(false, false);

@@ -2,7 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
 import de.tu_dresden.inf.lat.hys.graph_tools.SCCAlgorithm;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.relatedtools.HyS.HyS;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -51,7 +51,7 @@ public class HySRuleGenerationTest implements EvaluationCase{
 
                 String line = ontology.getAxiomCount() + ";" + ontology.getLogicalAxiomCount() + ";";
                 try{
-                    line += new BottomModeRuleBuilder().buildRules(ontology).getBaseModule().size() + ";";
+                    line += new RuleBuilder().buildRules(ontology).getBaseModule().size() + ";";
                 }
                 catch(Throwable t){
                     EvaluationMain.out.println("couldn't determine base module");

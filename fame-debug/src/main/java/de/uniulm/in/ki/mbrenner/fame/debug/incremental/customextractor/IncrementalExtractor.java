@@ -5,7 +5,7 @@ import de.uniulm.in.ki.mbrenner.fame.incremental.RuleStorage;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.TreeBuilder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.folder.IncrementalRuleFolder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.nodes.Node;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
@@ -40,14 +40,14 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
     public IncrementalExtractor(OWLOntology ontology){
         init(ontology.getAxiomCount());
         //initialize rules
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         bmrb.buildRules(ontology, true, this, this);
         determineBaseModule();
     }
 
     public IncrementalExtractor(Set<OWLAxiom> ontology){
         init(ontology.size());
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         Set<OWLEntity> signature = new HashSet<>();
         ontology.forEach(x -> signature.addAll(x.getSignature()));
         bmrb.buildRules(ontology, signature, true, this, this);

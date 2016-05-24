@@ -4,8 +4,8 @@ import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.TreeBuilder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.folder.IncrementalRuleFolder;
 import de.uniulm.in.ki.mbrenner.fame.incremental.treebuilder.nodes.Node;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.SyntacticLocalityEvaluator;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
@@ -57,7 +57,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         //List<Node> forest = tb.buildTree(ontology.getAxioms(Imports.INCLUDED));
         //NormalRuleFolder nrf = new NormalRuleFolder(this, this);
         //nrf.buildRules(forest);
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         bmrb.buildRules(ontology, true, this, this);
         determineBaseModule();
     }
@@ -70,7 +70,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         //NormalRuleFolder nrf = new NormalRuleFolder(this, this);
         //nrf.buildRules(forest);
 
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         Set<OWLEntity> signature = new HashSet<>();
         ontology.forEach(x -> signature.addAll(x.getSignature()));
         bmrb.buildRules(ontology, signature, true, this, this);

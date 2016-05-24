@@ -6,17 +6,20 @@ import org.semanticweb.owlapi.model.*;
 import javax.annotation.Nonnull;
 
 /**
+ * Axiom Visitor for the DefinitionEvaluator
+ *
  * Created by spellmaker on 27.04.2016.
  */
-public class DefinitionAxiomVisitor extends DefinitionVisitor implements OWLAxiomVisitor{
+public class DefinitionAxiomVisitor implements OWLAxiomVisitor{
     OWLAxiom currentAxiom;
     boolean locality;
 
-    //currently not supported: ABox
+    private DefinitionEvaluator parent;
 
     public DefinitionAxiomVisitor(DefinitionEvaluator parent) {
-        super(parent);
+        this.parent = parent;
     }
+    //currently not supported: ABox
 
     @Override
     public void visit(@Nonnull OWLDeclarationAxiom owlDeclarationAxiom) {

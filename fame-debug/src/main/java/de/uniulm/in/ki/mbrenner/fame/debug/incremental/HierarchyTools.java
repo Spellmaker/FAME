@@ -1,7 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.incremental;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -54,8 +54,8 @@ public class HierarchyTools {
 
             for(OWLClass d : correct){
                 if(!compare.contains(d)){
-                    boolean cin = (new BottomModeRuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(c);
-                    boolean din = (new BottomModeRuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(d);
+                    boolean cin = (new RuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(c);
+                    boolean din = (new RuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(d);
 
 
                     EvaluationMain.out.println("does not contain subsumption " + c + " C " + d + "(" + cin + ", " + din + ")");
@@ -64,8 +64,8 @@ public class HierarchyTools {
             }
             for(OWLClass d : compare){
                 if(!correct.contains(d)){
-                    boolean cin = (new BottomModeRuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(c);
-                    boolean din = (new BottomModeRuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(d);
+                    boolean cin = (new RuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(c);
+                    boolean din = (new RuleBuilder()).buildRules(workingOntology).getBaseSignature().contains(d);
                     EvaluationMain.out.println("contains additional subsumption " + c + " C " + d + "(" + cin + ", " + din + ")");
                     failed = true;
                 }

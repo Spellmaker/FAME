@@ -9,7 +9,7 @@ import de.tudresden.inf.lat.jcel.ontology.normalization.OntologyNormalizer;
 import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.relatedtools.HyS.HyS;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import objectexplorer.MemoryMeasurer;
 import objectexplorer.ObjectExplorer;
@@ -63,7 +63,7 @@ public class MemoryTest implements EvaluationCase {
 
             line += Files.size(f.toPath()) + ";";
 
-            RuleSet rs = (new BottomModeRuleBuilder()).buildRules(ontology);
+            RuleSet rs = (new RuleBuilder()).buildRules(ontology);
             line += MemoryMeasurer.measureBytes(rs) + ";";
             IncrementalExtractor ie = new IncrementalExtractor(ontology);
             line += MemoryMeasurer.measureBytes(ontology) + ";";

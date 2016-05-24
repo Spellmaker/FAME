@@ -16,11 +16,11 @@ import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.timeworkers.*;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
 
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 
 public class RandTimeWorker implements Callable<Long[]>{
@@ -78,7 +78,7 @@ public class RandTimeWorker implements Callable<Long[]>{
 		//preparation work
 		//RuleSet rulesEL = (new ELRuleBuilder()).buildRules(ontology);
 
-		RuleSet rulesMode = (new BottomModeRuleBuilder()).buildRules(ontology);
+		RuleSet rulesMode = (new RuleBuilder()).buildRules(ontology);
 
 		Translator trans = null;
 		Set<ComplexIntegerAxiom> transOntology = null;
@@ -167,7 +167,7 @@ public class RandTimeWorker implements Callable<Long[]>{
 		for(OWLAxiom a : ontology.getAxioms()){
 			if(a instanceof OWLLogicalAxiom) result[1]++;
 		}
-		result[2] = Long.valueOf((new BottomModeRuleBuilder()).buildRules(ontology).getBaseModule().size());
+		result[2] = Long.valueOf((new RuleBuilder()).buildRules(ontology).getBaseModule().size());
 
 
 		int begin = futures.size();

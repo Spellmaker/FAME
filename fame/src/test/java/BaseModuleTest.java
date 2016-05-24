@@ -3,7 +3,6 @@
  */
 import de.uniulm.in.ki.mbrenner.fame.ModuleSetup;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleDiff;
 import org.junit.Test;
@@ -51,14 +50,14 @@ public class BaseModuleTest {
 
     @Test
     public void testBaseModuleRS() throws OWLOntologyCreationException{
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(getOntology(), false);
+        RuleSet rs = (new RuleBuilder()).buildRules(getOntology(), false);
         ModuleDiff diff = ModuleDiff.diff(baseModulePath(), rs.getBaseModule());
         assertTrue(makeMessage("Rule Set", diff), diff.modulesTempEqual());
     }
 
     @Test
     public void testBaseModuleRSNoDef() throws OWLOntologyCreationException{
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(getOntology(), true);
+        RuleSet rs = (new RuleBuilder()).buildRules(getOntology(), true);
         ModuleDiff diff = ModuleDiff.diff(baseModulePath(), rs.getBaseModule());
         assertTrue(makeMessage("Rule Set with NoDef", diff), diff.modulesTempEqual());
     }

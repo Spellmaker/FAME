@@ -1,5 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.debug;
 
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.util.OntologiePaths;
 import de.uniulm.in.ki.mbrenner.fame.debug.annotationtest.PrintOnShutdown;
 import de.uniulm.in.ki.mbrenner.fame.definitions.SimpleDefinitionLocalityExtractor;
@@ -7,10 +8,9 @@ import de.uniulm.in.ki.mbrenner.fame.debug.incremental.customextractor.Increment
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.DRBExtractor;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBAxiom;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.ClassCounter;
@@ -73,7 +73,7 @@ public class MainTest{
         o1.add(eq2);
 
         RuleSet rs1 = new RuleSet();
-        new BottomModeRuleBuilder().buildRules(o1, sig1, false, rs1, rs1);
+        new RuleBuilder().buildRules(o1, sig1, false, rs1, rs1);
 
         new RBMExtractor(true, false).extractModule(rs1, Collections.singleton(a)).forEach(x -> System.out.println(x));
         System.exit(0);*/
@@ -91,8 +91,8 @@ public class MainTest{
 
         long strt, nd;
         RBMExtractorNoDef rbme = new RBMExtractorNoDef(false);
-        RuleSet nrs = new BottomModeRuleBuilder().buildRules(o);
-        DRBRuleSet drs = new DRBAxiom().buildRules(o);
+        RuleSet nrs = new RuleBuilder().buildRules(o);
+        DRBRuleSet drs = new DRBRuleBuilder().buildRules(o);
         DRBExtractor drb = new DRBExtractor();
         SimpleDefinitionLocalityExtractor dloc = new SimpleDefinitionLocalityExtractor();
         Set<OWLAxiom> tm = new HashSet<>();
@@ -114,10 +114,10 @@ public class MainTest{
 
 
         Set<OWLEntity> sig = new HashSet<>();
-        RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
+        RuleSet rs = new RuleBuilder().buildRules(o);
         SyntacticLocalityModuleExtractor syntExtr = new SyntacticLocalityModuleExtractor(m, o, ModuleType.STAR);
 
-        DRBRuleSet drb2 = new DRBAxiom().buildRules(o);
+        DRBRuleSet drb2 = new DRBRuleBuilder().buildRules(o);
         System.out.println(drb2.size());
         System.out.println(rs.ruleCount());
 
@@ -300,7 +300,7 @@ public class MainTest{
         System.exit(0);
 
         //System.setOut(new WaitStream(System.out));
-        RuleSet unoptimized = new BottomModeRuleBuilder().buildRules(o);
+        RuleSet unoptimized = new RuleBuilder().buildRules(o);
         RuleSet optimized = RuleOptimizer.optimizeRules(unoptimized);
         System.out.println("rule sets finished");
 

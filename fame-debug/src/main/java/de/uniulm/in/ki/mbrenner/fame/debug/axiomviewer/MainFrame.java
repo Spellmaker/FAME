@@ -1,14 +1,14 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.axiomviewer;
 
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.util.OntologiePaths;
 import de.uniulm.in.ki.mbrenner.fame.definitions.SimpleDefinitionLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.definitions.evaluator.DefinitionEvaluator;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.DRBExtractor;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBAxiom;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.DirectLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -54,8 +54,8 @@ public class MainFrame extends JFrame{
         for(OWLEntity ent : o.getSignature()){
             if(ent.toString().equals("<http://www.co-ode.org/ontologies/galen#PositiveFamilyHistory>")) signature.add(ent);
         }
-        RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
-        DRBRuleSet drs = new DRBAxiom().buildRules(o);
+        RuleSet rs = new RuleBuilder().buildRules(o);
+        DRBRuleSet drs = new DRBRuleBuilder().buildRules(o);
 
         /*SimpleDefinitionLocalityExtractor def = new SimpleDefinitionLocalityExtractor();
 

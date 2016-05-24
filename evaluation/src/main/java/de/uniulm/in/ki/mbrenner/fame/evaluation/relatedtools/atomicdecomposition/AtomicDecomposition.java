@@ -1,7 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation.relatedtools.atomicdecomposition;
 
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -17,7 +17,7 @@ public class AtomicDecomposition {
     public void decompose(OWLOntology ontology){
         List<OWLAxiom> toDoAxioms = new LinkedList<>();
 
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(ontology);
+        RuleSet rs = (new RuleBuilder()).buildRules(ontology);
 
         Set<OWLAxiom> topModule = (new RBMExtractorNoDef(false)).extractModule(rs, ontology.getSignature());
         Set<OWLAxiom> botModule = rs.getBaseModule();

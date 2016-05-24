@@ -71,7 +71,7 @@ public class CandidateFinder implements OWLDictionary, RuleStorage{
     }
 
     public List<Integer> findCandidates(OWLOntology ontology, OWLAxiom axiom) throws OWLOntologyCreationException {
-        /*BottomModeRuleBuilder ruleBuilder = new BottomModeRuleBuilder();
+        /*RuleBuilder ruleBuilder = new RuleBuilder();
         intToObj = new ArrayList<>();
         objToInt = new HashMap<>();
         rules = new HashSet<>();

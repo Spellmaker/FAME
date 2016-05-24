@@ -11,7 +11,7 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.TestModuleSizes;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeResult;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeSingleResult;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -51,7 +51,7 @@ public class ModuleSizeWorker implements Callable<ModuleSizeResult> {
 			return new ModuleSizeResult();
 		}
 		RuleSet ruleSet = null;
-		BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+		RuleBuilder bmrb = new RuleBuilder();
 		bmrb.printUnknown = true;
 		ruleSet = bmrb.buildRules(ontology);
 

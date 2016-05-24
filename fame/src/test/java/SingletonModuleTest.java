@@ -7,7 +7,6 @@ import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleDiff;
 import org.junit.Test;
@@ -59,7 +58,7 @@ public class SingletonModuleTest {
     @Test
     public void testModuleBMRBNormal() throws OWLOntologyCreationException{
         OWLOntology o = getOntology();
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(o, false);
+        RuleSet rs = (new RuleBuilder()).buildRules(o, false);
         for(OWLEntity e : o.getSignature()){
             if(!(e instanceof OWLClass) && !(e instanceof OWLObjectProperty)) continue;
             if(!modulePath(e).exists()) continue;
@@ -74,7 +73,7 @@ public class SingletonModuleTest {
     @Test
     public void testModuleBMRBNoDef() throws OWLOntologyCreationException{
         OWLOntology o = getOntology();
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(o, true);
+        RuleSet rs = (new RuleBuilder()).buildRules(o, true);
         for(OWLEntity e : o.getSignature()){
             if(!(e instanceof OWLClass) && !(e instanceof OWLObjectProperty)) continue;
             if(!modulePath(e).exists()) continue;
@@ -173,7 +172,7 @@ public class SingletonModuleTest {
 
     @Test
     public void testEqModuleBMRB() throws OWLOntologyCreationException{
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         OWLOntology o = getOntology();
         RuleSet rs = bmrb.buildRules(o);
         for(OWLEntity e : o.getSignature()){

@@ -5,7 +5,7 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrCorrectnessR
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleDiff;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -56,7 +56,7 @@ public class IncrCorrectnessWorker implements Callable<IncrCorrectnessResult> {
     }
 
     private ModuleDiff checkModules(OWLOntology o, IncrementalExtractor ie){
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(o);
+        RuleSet rs = (new RuleBuilder()).buildRules(o);
         int size = o.getSignature().size();
         message("Signature size is " + size);
         int cnt = 0;

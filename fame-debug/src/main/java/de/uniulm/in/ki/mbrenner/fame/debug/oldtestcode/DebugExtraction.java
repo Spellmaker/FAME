@@ -3,7 +3,6 @@ package de.uniulm.in.ki.mbrenner.fame.debug.oldtestcode;
 import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.*;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.SyntacticLocalityEvaluator;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -144,7 +143,7 @@ public class DebugExtraction {
         SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(m, o, ModuleType.BOT);
         SyntacticLocalityEvaluator eval = new SyntacticLocalityEvaluator(LocalityClass.BOTTOM_BOTTOM);
         System.out.println("> build normal rule set");
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(o);
+        RuleSet rs = (new RuleBuilder()).buildRules(o);
         System.out.println("> build compressed rule set");
         CompressedRuleSet crs = (new CompressedRuleBuilder()).buildRules(o);
         System.out.println("> rule sets finished");

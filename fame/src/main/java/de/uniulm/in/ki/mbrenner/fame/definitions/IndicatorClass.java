@@ -1,16 +1,16 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions;
 
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.OWLRendererProvider;
 import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectComplementOfImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectInverseOfImpl;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Set;
 
 /**
+ * Represents a class which is always interpreted with exactly one special element.
+ *
  * Created by spellmaker on 04.05.2016.
  */
 public class IndicatorClass implements OWLClass {
@@ -21,11 +21,8 @@ public class IndicatorClass implements OWLClass {
     }
 
     @Override
-    public boolean equals(Object o){
-        if(o instanceof IndicatorClass){
-            return ((IndicatorClass)o).clazz.equals(clazz);
-        }
-        return false;
+    public boolean equals(Object o) {
+        return o instanceof IndicatorClass && ((IndicatorClass) o).clazz.equals(clazz);
     }
 
     @Nonnull
@@ -244,7 +241,7 @@ public class IndicatorClass implements OWLClass {
     }
 
     @Override
-    public int compareTo(OWLObject o) {
+    public int compareTo(@Nonnull OWLObject o) {
         return 0;
     }
 
@@ -302,7 +299,7 @@ public class IndicatorClass implements OWLClass {
     }
 
     @Override
-    public String toString(){
+    public @Nonnull String toString(){
         return "I_{" + OWLPrinter.getString(clazz) + "}";
     }
 }

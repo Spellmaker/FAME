@@ -10,9 +10,14 @@ import java.util.Set;
 import java.util.Stack;
 
 /**
+ * Builds extraction rules for a given ontology
+ *
+ * These rules can be used to extract a definition locality or even a simple bot-locality module
+ * from the given ontology
+ *
  * Created by Spellmaker on 13.05.2016.
  */
-public class DRBAxiom extends OWLAxiomVisitorAdapter {
+public class DRBRuleBuilder extends OWLAxiomVisitorAdapter {
     boolean botMode;
     Stack<Set<DRBRule>> ruleBuffer;
 
@@ -20,10 +25,18 @@ public class DRBAxiom extends OWLAxiomVisitorAdapter {
 
     DRBRuleSet ruleSet;
 
-    public DRBAxiom(){
+    /**
+     * Default constructor
+     */
+    public DRBRuleBuilder(){
         this.classVisitor = new DRBClass(this);
     }
 
+    /**
+     * Builds rules for the provided ontology
+     * @param ontology An OWL Ontology which lies in the EL+ language
+     * @return A DRBRuleSet containing the rules and necessary data structures for fast access
+     */
     public DRBRuleSet buildRules(OWLOntology ontology){
         ruleSet = new DRBRuleSet();
         ruleBuffer = new Stack<>();

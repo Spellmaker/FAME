@@ -2,7 +2,7 @@ import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
 import de.uniulm.in.ki.mbrenner.fame.incremental.ModificationResult;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -101,7 +101,7 @@ public class IncrementalTest {
         }
 
         OWLOntology workingOntology = m.createOntology(new HashSet<>(allAxioms));
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(workingOntology);
+        RuleSet rs = (new RuleBuilder()).buildRules(workingOntology);
 
         //System.out.println("partition is: ");
         //System.out.println("remaining:");
@@ -157,7 +157,7 @@ public class IncrementalTest {
             removed = nremoved;
 
 
-            rs = (new BottomModeRuleBuilder()).buildRules(workingOntology);
+            rs = (new RuleBuilder()).buildRules(workingOntology);
             //check base modules
 
             Map<OWLEntity, Set<OWLAxiom>> newModules = new HashMap<>();
@@ -229,7 +229,7 @@ public class IncrementalTest {
         }
 
         OWLOntology workingOntology = m.createOntology(new HashSet<>(allAxioms));
-        RuleSet rs = (new BottomModeRuleBuilder()).buildRules(workingOntology);
+        RuleSet rs = (new RuleBuilder()).buildRules(workingOntology);
 
         //System.out.println("partition is: ");
         //System.out.println("remaining:");
@@ -281,7 +281,7 @@ public class IncrementalTest {
             removed = nremoved;
 
 
-            rs = (new BottomModeRuleBuilder()).buildRules(workingOntology);
+            rs = (new RuleBuilder()).buildRules(workingOntology);
             //check base modules
 
             Set<OWLAxiom> baseMod = rs.getBaseModule();

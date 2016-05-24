@@ -3,7 +3,7 @@ package de.uniulm.in.ki.mbrenner.fame.definitions;
 import de.uniulm.in.ki.mbrenner.fame.definitions.builder.DefinitionBuilder;
 import de.uniulm.in.ki.mbrenner.fame.definitions.evaluator.DefinitionEvaluator;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.DirectLocalityExtractor;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
@@ -12,19 +12,54 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * Extracts definition based modules from an ontology.
+ *
+ * The algorithm works similar to the owlapi locality extraction algorithm,
+ * in that it evaluates the locality of all axioms of the ontology, which are not yet
+ * part of the module under the current settings (in this case: signature of the module
+ * and chosen definitions) until it finds a non-local one.
+ * Instead of immediately extending the module with this non-local axiom the algorithm
+ * tries to find a definition under which this axiom becomes local and extends its definition
+ * set.
+ * If no such definition can be found, the axiom is added to the module.
+ *
  * Created by spellmaker on 28.04.2016.
  */
+@Deprecated
 public class SimpleDefinitionLocalityExtractor{
+    /**
+     * If set to true produces additional debug messages
+     */
     public static boolean debug = false;
+    /**
+     * If set to true verifies that the algorithm will terminate
+     */
     public static boolean verify = false;
 
     //data structures to track definitions
     private Map<OWLAxiom, Set<OWLObject>> axiomToDefinitions = new HashMap<>(); //maps axioms to definitions for later deletion
     private Map<OWLEntity, Set<OWLAxiom>> entityToAxioms = new HashMap<>();    //maps entities to dependent axioms
+    /**
+     * The final definitions used to keep axioms out of the module
+     */
     public Map<OWLObject, OWLObject> finalDefinitions;
+    /**
+     * The final signature of the module
+     */
     public Set<OWLEntity> finalSignature;
+    /**
+     * The final extended signature of the module.
+     *
+     * The extended signature contains the
+     */
     public Set<OWLEntity> finalExtSignature;
 
+    /**
+     * Extracts a definition locality based module from the provided collection of axioms
+     * @param axiomCollection A collection of axioms from which the module is to be extracted
+     * @param sign The signature for which the module is to be extracted
+     * @return A definition local module for the provided signature
+     */
     public Set<OWLAxiom> extract(Collection<OWLAxiom> axiomCollection, Collection<OWLEntity> sign){
         List<OWLAxiom> axioms = new LinkedList<>(axiomCollection);
         Set<OWLEntity> signature = new HashSet<>(sign);
@@ -35,8 +70,8 @@ public class SimpleDefinitionLocalityExtractor{
         //get a rule set for the axioms, this will be used to restrict the range of axioms, which need to be checked
         //for locality
         RuleSet rs = new RuleSet();
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
-        bmrb.buildRules(new HashSet<>(axioms), axioms.stream().map(x -> x.getSignature()).flatMap(Collection::stream).collect(Collectors.toSet()), true, rs, rs);
+        RuleBuilder bmrb = new RuleBuilder();
+        bmrb.buildRules(new HashSet<>(axioms), axioms.stream().map(OWLAxiom::getSignature).flatMap(Collection::stream).collect(Collectors.toSet()), true, rs, rs);
         DirectLocalityExtractor direct = new DirectLocalityExtractor(false);
 
         //the extended signature is the normal signature extended by the elements, for which there are definitions
@@ -55,8 +90,7 @@ public class SimpleDefinitionLocalityExtractor{
             if(debug) System.out.println("Iteration " + step);
             OWLAxiom nonLocal = null;
 
-            List<OWLAxiom> directNonLocal = remaining;
-            //Set<OWLAxiom> directNonLocal = direct.extractModule(rs, extSignature);
+            Set<OWLAxiom> directNonLocal = direct.extractModule(rs, extSignature);
             for(OWLAxiom ax : directNonLocal){
                 if(!remaining.contains(ax)) continue;
                 if(!de.isDefinitionLocal(ax, signature, definitions)){
@@ -81,11 +115,9 @@ public class SimpleDefinitionLocalityExtractor{
                 //System.out.println(prev_size);
                 if(debug){
                     System.out.println("remaining definitions:");
-                    for(Map.Entry<OWLObject, OWLObject> e : definitions.entrySet()){
-                        if(e.getKey() instanceof OWLClass || e.getKey() instanceof OWLObjectProperty){
-                            System.out.println(OWLPrinter.getString(e.getKey()) + " -> " + OWLPrinter.getString(e.getValue()));
-                        }
-                    }
+                    definitions.entrySet().stream().filter(e -> e.getKey() instanceof OWLClass || e.getKey() instanceof OWLObjectProperty).forEach(e ->
+                        System.out.println(OWLPrinter.getString(e.getKey()) + " -> " + OWLPrinter.getString(e.getValue()))
+                    );
                 }
             }
             else{
@@ -162,9 +194,7 @@ public class SimpleDefinitionLocalityExtractor{
                 if(axiomToDefinitions.get(ax) == null){
                     continue;
                 }
-                for(OWLObject o : axiomToDefinitions.get(ax)){
-                    definitions.remove(o);
-                }
+                axiomToDefinitions.get(ax).forEach(definitions::remove);
                 axiomToDefinitions.remove(ax);
                 //modAdd.add(ax);
                 //signature.addAll(ax.getSignature());

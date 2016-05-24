@@ -13,13 +13,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Class Visitor for the DRBRuleBuilder
+ *
  * Created by Spellmaker on 13.05.2016.
  */
 public class DRBClass extends OWLClassExpressionVisitorAdapter{
-    private DRBAxiom parent;
+    private DRBRuleBuilder parent;
 
-    public DRBClass(DRBAxiom drbAxiom) {
-        this.parent = drbAxiom;
+    public DRBClass(DRBRuleBuilder drbRuleBuilder) {
+        this.parent = drbRuleBuilder;
     }
 
     @Override

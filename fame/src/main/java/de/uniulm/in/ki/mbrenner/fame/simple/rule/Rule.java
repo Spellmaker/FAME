@@ -136,7 +136,6 @@ public class Rule implements Iterable<Integer>{
 		if(body != null)
 			for(Object o : body){
 				res += o.hashCode();
-				if(o == null) System.out.println(this);
 			}
 		return res;
 	}
@@ -170,7 +169,7 @@ public class Rule implements Iterable<Integer>{
 
 	@Override
 	public Iterator<Integer> iterator() {
-		return new ArrayIterator<Integer>(body);
+		return new ArrayIterator<>(body);
 	}
 }
 

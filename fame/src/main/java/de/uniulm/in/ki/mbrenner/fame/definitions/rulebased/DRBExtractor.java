@@ -18,6 +18,7 @@ import static de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter.getString;
  * The current implementation does not perform all possible definitions,
  * but instead relies on simple definitions, which only define complex expressions
  * via single concepts
+ *
  * Created by spellmaker on 20.05.2016.
  */
 public class DRBExtractor{

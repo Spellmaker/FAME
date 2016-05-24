@@ -1,6 +1,5 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.builder;
 
-import de.uniulm.in.ki.mbrenner.fame.definitions.evaluator.DefinitionEvaluator;
 import de.uniulm.in.ki.mbrenner.fame.definitions.CombinedObjectProperty;
 import de.uniulm.in.ki.mbrenner.fame.definitions.IndicatorClass;
 import org.semanticweb.owlapi.model.*;
@@ -8,6 +7,8 @@ import org.semanticweb.owlapi.model.*;
 import javax.annotation.Nonnull;
 
 /**
+ * Class visitor for the definition builder
+ *
  * Created by spellmaker on 28.04.2016.
  */
 public class DBClassVisitor implements OWLClassExpressionVisitor {

@@ -5,7 +5,7 @@ import de.uniulm.in.ki.mbrenner.fame.util.OntologiePaths;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.SyntacticLocalityEvaluator;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -56,7 +56,7 @@ public class TestIncrementalPerformance {
             seeds.addAll(o2.getClassesInSignature());
             seeds.addAll(o2.getObjectPropertiesInSignature());
             //extract all modules
-            RuleSet rs = (new BottomModeRuleBuilder()).buildRules(o2);
+            RuleSet rs = (new RuleBuilder()).buildRules(o2);
             RBMExtractorNoDef ndef = new RBMExtractorNoDef(false);
             List<IncrementalExtractor> incrextractors = new ArrayList<>(iterations);
             for(int j = 0; j < iterations; j++){
@@ -85,7 +85,7 @@ public class TestIncrementalPerformance {
             System.out.println("time: " + (end - start));
             inctime += end - start;
 
-            RuleSet rs2 = (new BottomModeRuleBuilder()).buildRules(o);
+            RuleSet rs2 = (new RuleBuilder()).buildRules(o);
             SyntacticLocalityEvaluator eval = new SyntacticLocalityEvaluator(LocalityClass.BOTTOM_BOTTOM);
             start = System.currentTimeMillis();
             for(int j = 0; j < iterations; j++) {

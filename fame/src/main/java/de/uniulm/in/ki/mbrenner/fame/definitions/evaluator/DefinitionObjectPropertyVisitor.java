@@ -5,13 +5,17 @@ import org.semanticweb.owlapi.model.*;
 import javax.annotation.Nonnull;
 
 /**
+ * Property Visitor for the DefinitionEvaluator
+ *
  * Created by spellmaker on 27.04.2016.
  */
-public class DefinitionObjectPropertyVisitor extends DefinitionVisitor implements OWLPropertyExpressionVisitor{
+public class DefinitionObjectPropertyVisitor implements OWLPropertyExpressionVisitor{
     OWLPropertyExpression currentProperty;
 
+    private DefinitionEvaluator parent;
+
     public DefinitionObjectPropertyVisitor(DefinitionEvaluator parent) {
-        super(parent);
+        this.parent = parent;
     }
 
     @Override

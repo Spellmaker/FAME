@@ -2,7 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame;
 
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.EqCorrectnessChecker;
 import de.uniulm.in.ki.mbrenner.fame.util.ModuleIO;
@@ -86,7 +86,7 @@ public class ModuleSetup {
                     System.out.println("eq file is " + eqFile);
 
                     Set<OWLEntity> signature = Collections.singleton(e);
-                    BottomModeRuleBuilder el = new BottomModeRuleBuilder();
+                    RuleBuilder el = new RuleBuilder();
                     RuleSet rs = el.buildRules(o);
                     if (el.unknownObjects().isEmpty()) {
                         RBMExtractor rbme = new RBMExtractor(true, false);

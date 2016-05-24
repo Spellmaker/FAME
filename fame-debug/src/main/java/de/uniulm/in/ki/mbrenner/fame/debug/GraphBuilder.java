@@ -1,7 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.debug;
 
 import de.uniulm.in.ki.mbrenner.fame.util.OntologiePaths;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -36,7 +36,7 @@ public class GraphBuilder {
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(f);
         System.out.println("loaded");
-        RuleSet rs = new BottomModeRuleBuilder().buildRules(o);
+        RuleSet rs = new RuleBuilder().buildRules(o);
         System.out.println("rules build");
 
         nodes = new HashMap<>();

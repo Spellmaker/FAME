@@ -13,8 +13,7 @@ import de.tudresden.inf.lat.jcel.owlapi.translator.Translator;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.TestRuleGeneration;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.rule.*;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -67,11 +66,11 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 			return null;
 		}
 
-		results[2] = Long.valueOf((new BottomModeRuleBuilder().buildRules(ontology)).getBaseModule().size());
+		results[2] = Long.valueOf((new RuleBuilder().buildRules(ontology)).getBaseModule().size());
 
 
 		//ELRuleBuilder elRules = new ELRuleBuilder();
-		BottomModeRuleBuilder btmRules = new BottomModeRuleBuilder();
+		RuleBuilder btmRules = new RuleBuilder();
 		//CompressedRuleBuilder compr = new CompressedRuleBuilder();
 		//CompressedRuleSet crs = null;
 		RuleSet rs = null;
@@ -98,11 +97,11 @@ public class RuleGenerationWorker implements Callable<Long[]>{
 			}
 			end = System.currentTimeMillis();
 			results[4] = end - start;
-			EvaluationMain.out.println("[Task " + id + "] Finished BottomModeRuleBuilder");
+			EvaluationMain.out.println("[Task " + id + "] Finished RuleBuilder");
 		}
 		catch(Throwable e){
 			results[4] = -1L;
-			EvaluationMain.out.println("[Task " + id + "] BottomModeRuleBuilder had errors: " + e);
+			EvaluationMain.out.println("[Task " + id + "] RuleBuilder had errors: " + e);
 		}
 
 		/*try {

@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
+ * Axiom visitor for the DefinitionBuilder
+ *
  * Created by spellmaker on 28.04.2016.
  */
 public class DBAxiomVisitor implements OWLAxiomVisitor{

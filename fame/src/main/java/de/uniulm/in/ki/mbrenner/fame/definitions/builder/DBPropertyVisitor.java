@@ -5,10 +5,12 @@ import org.semanticweb.owlapi.model.*;
 import javax.annotation.Nonnull;
 
 /**
+ * Property visitor for the DefinitionBuilder
+ *
  * Created by spellmaker on 28.04.2016.
  */
 public class DBPropertyVisitor implements OWLPropertyExpressionVisitor {
-    OWLPropertyExpression currentProperty;
+    //OWLPropertyExpression currentProperty;
     DefinitionBuilder parent;
 
     public DBPropertyVisitor(DefinitionBuilder parent){

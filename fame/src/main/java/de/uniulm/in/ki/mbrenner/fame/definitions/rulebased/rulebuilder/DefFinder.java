@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.Stack;
 
 /**
+ * Constructs definitions which define one class or property expression as another
+ *
  * Created by Spellmaker on 13.05.2016.
  */
 public class DefFinder extends OWLClassExpressionVisitorAdapter {
@@ -23,6 +25,12 @@ public class DefFinder extends OWLClassExpressionVisitorAdapter {
         currentObject = new Stack<>();
     }
 
+    /**
+     * Provides definitions which define one class expression as another
+     * @param defineAs The target value
+     * @param expression The source value
+     * @return A set of definitions which define expression as defineAs
+     */
     public static Set<DRBDefinition> getDefinitions(OWLClassExpression defineAs, OWLClassExpression expression){
         DefFinder finder = new DefFinder();
         finder.currentObject.push(null);
@@ -33,7 +41,14 @@ public class DefFinder extends OWLClassExpressionVisitorAdapter {
         if(!(defineAs instanceof OWLClass)) return Collections.emptySet();
         return finder.definitions;
     }
-
+    /**
+     * Provides definitions which define one property expression as another
+     *
+     * Currently only works for ObjectProperties, as EL does not support any complex property expressions
+     * @param defineAs The target value
+     * @param expression The source value
+     * @return A set of definitions which define expression as defineAs
+     */
     public static Set<DRBDefinition> getDefinitions(OWLObjectPropertyExpression defineAs, OWLObjectPropertyExpression expression){
         return Collections.singleton(new DRBDefinition(expression, defineAs, new PropertyDefinition()));
     }

@@ -4,8 +4,8 @@ import com.clarkparsia.owlapi.modularity.locality.LocalityClass;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.IncrTimeResult;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.SyntacticLocalityEvaluator;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -69,7 +69,7 @@ public class NaiveIncrementalWorker implements Callable<IncrTimeResult> {
         choseNew();
         message("Initial configuration chosen");
         OWLOntology workingOntology = m.createOntology(currentSet);
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         RBMExtractorNoDef fame = new RBMExtractorNoDef(false);
         RuleSet rs = bmrb.buildRules(workingOntology);
 

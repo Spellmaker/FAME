@@ -12,7 +12,7 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.TestModuleExtraction;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -62,7 +62,7 @@ public class ModuleExtractionTimeWorker implements Callable<Long[]> {
         res[0] = (long) ontology.getAxiomCount();
         res[1] = (long) ontology.getLogicalAxiomCount();
         try{
-            res[2] = (long) new BottomModeRuleBuilder().buildRules(ontology).getBaseModule().size();
+            res[2] = (long) new RuleBuilder().buildRules(ontology).getBaseModule().size();
         }
         catch(Throwable e){
             message("Error determining base module for ontology " + f);
@@ -80,7 +80,7 @@ public class ModuleExtractionTimeWorker implements Callable<Long[]> {
             }
         }
         RuleSet rs = null;
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         try {
             rs = bmrb.buildRules(ontology);
         }

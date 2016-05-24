@@ -1,6 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -32,7 +32,7 @@ public class OntoStat implements EvaluationCase {
                 loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
                 OWLOntology ontology = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f), loaderConfig);
 
-                String s = f + ";" + ontology.getAxiomCount() + ";" + ontology.getLogicalAxiomCount() + ";" + new BottomModeRuleBuilder().buildRules(ontology).getBaseModule().size();
+                String s = f + ";" + ontology.getAxiomCount() + ";" + ontology.getLogicalAxiomCount() + ";" + new RuleBuilder().buildRules(ontology).getBaseModule().size();
                 lines.add(s);
             }
             catch(Exception e){

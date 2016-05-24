@@ -3,15 +3,12 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation.workers;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.*;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.ELRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import objectexplorer.MemoryMeasurer;
 
 public class RuleSizeWorker implements Callable<Long[]>{
@@ -27,7 +24,7 @@ public class RuleSizeWorker implements Callable<Long[]>{
 		OWLOntology ontology = m.loadOntologyFromOntologyDocument(file);
 		
 		RuleSet r1 = (new ELRuleBuilder()).buildRules(ontology);
-		RuleSet r2 = (new BottomModeRuleBuilder()).buildRules(ontology);
+		RuleSet r2 = (new RuleBuilder()).buildRules(ontology);
 		CompressedRuleSet r3 = (new CompressedRuleBuilder()).buildRules(ontology);
 		
 		Long[] res = new Long[8];

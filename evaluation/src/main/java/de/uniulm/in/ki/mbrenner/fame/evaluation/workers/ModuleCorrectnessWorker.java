@@ -4,7 +4,7 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
-import de.uniulm.in.ki.mbrenner.fame.simple.rule.BottomModeRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleSet;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
@@ -45,7 +45,7 @@ public class ModuleCorrectnessWorker implements Callable<Object[]> {
         OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
         loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
         OWLOntology o = m.loadOntologyFromOntologyDocument(new FileDocumentSource(f), loaderConfig);
-        BottomModeRuleBuilder bmrb = new BottomModeRuleBuilder();
+        RuleBuilder bmrb = new RuleBuilder();
         CompressedRuleBuilder crb = new CompressedRuleBuilder();
 
         RuleSet rs = (bmrb).buildRules(o);

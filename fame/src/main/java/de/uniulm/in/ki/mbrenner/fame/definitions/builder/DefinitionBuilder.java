@@ -15,16 +15,16 @@ import java.util.Set;
  * Created by spellmaker on 28.04.2016.
  */
 public class DefinitionBuilder {
-    DBClassVisitor classVisitor;
-    DBPropertyVisitor propertyVisitor;
-    DBAxiomVisitor axiomVisitor;
+    private final DBClassVisitor classVisitor;
+    final DBPropertyVisitor propertyVisitor;
+    private final DBAxiomVisitor axiomVisitor;
 
     Map<OWLObject, OWLObject> definitions;
     Set<OWLEntity> signature;
-    OWLObject target;
+    private OWLObject target;
     OWLObject currentTarget;
 
-    OWLDataFactory data;
+    final OWLDataFactory data;
 
     boolean error;
 

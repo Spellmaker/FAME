@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.incremental.OWLDictionary;
@@ -24,27 +25,34 @@ import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
+/**
+ * Manages a set of module extraction rules
+ * Internally indexes the rules for easier access
+ */
 public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
-	protected Set<Integer> baseSignature;
-	protected Set<OWLAxiom> baseModule;
+	private Set<Integer> baseSignature;
+	private Set<OWLAxiom> baseModule;
 
-	protected Map<Integer, List<Integer>> ruleMap;
+	private Map<Integer, List<Integer>> ruleMap;
 
-	protected Map<Integer, List<Integer>> axiomSignatures;
-	protected List<OWLObject> dictionary;
-	protected List<Boolean> isDeclRule;
-	protected Map<OWLObject, Integer> invDictionary;
-	protected OWLObject[] arrDictionary;
-	protected Boolean[] arrisDeclRule;
-	protected int newCounter = 0;
+	private final Map<Integer, List<Integer>> axiomSignatures;
+	private List<OWLObject> dictionary;
+	private final List<Boolean> isDeclRule;
+	private final Map<OWLObject, Integer> invDictionary;
+	private OWLObject[] arrDictionary;
+	private Boolean[] arrisDeclRule;
+	private int newCounter = 0;
 
 
-	protected Set<Rule> rules;
-	protected Rule[] rulesArray;
-	protected int pos;
+	private Set<Rule> rules;
+	private Rule[] rulesArray;
+	private int pos;
 	
 	private int size = -1;
-	
+
+	/**
+	 * Constructs a new rule set
+	 */
 	public RuleSet(){
 		this.ruleMap = new HashMap<>();
 		this.rules = new LinkedHashSet<>();
@@ -66,15 +74,32 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 	public OWLObject getObject(Integer id){
 		return arrDictionary[id];
 	}
-	
+
+	/**
+	 * Looks up an object for the provided index
+	 * Can be used before finalizing the set
+	 * @param i The index of the object
+	 * @return The object for the provided index
+     */
 	public OWLObject debugLookup(int i){
 		return dictionary.get(i);
 	}
-	
+
+	/**
+	 * Retrieves the predetermined signature of the provided axiom
+	 * Note that i must refer to an axiom
+	 * @param i The index of an axiom
+	 * @return The signature of the requested axiom
+     */
 	public List<Integer> getAxiomSignature(int i){
 		return axiomSignatures.get(i);
 	}
-	
+
+	/**
+	 * Determines if the rule with the provided index adds a declaration axiom
+	 * @param i The index of a rule
+	 * @return True, if the execution of the rule adds a declaration axiom
+     */
 	public boolean isDeclRule(int i){
 		return arrisDeclRule[i];
 	}
@@ -96,9 +121,7 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 			if(o instanceof OWLAxiom){
 				List<Integer> sign = new LinkedList<>();
 				OWLAxiom ax = (OWLAxiom) o;
-				for(OWLObject obj : ax.getSignature()){
-					sign.add(getId(obj));
-				}
+				sign.addAll(ax.getSignature().stream().map(this::getId).collect(Collectors.toList()));
 				axiomSignatures.put(index, Collections.unmodifiableList(sign));
 				//ax.accept(this);
 			}
@@ -106,6 +129,11 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 		return index;
 	}
 
+	/**
+	 * Finalizes this set with additional customization
+	 * @param useNoDefExtractor If set to true, the noDef Extractor will be used for the finalization
+	 * @param useDefinitions If set to true, finalization will determine the base module using definitions
+     */
 	public void finalize(boolean useNoDefExtractor, boolean useDefinitions){
 		//run module extraction once with the base signature to determine the correct
 		//base module and -signature
@@ -144,12 +172,24 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 		baseModule = Collections.unmodifiableSet(baseModule);
 	}
 
+	/**
+	 * Finalizes the rule set
+	 * @param useNoDefExtractor If set to true, the noDef extractor will be used to extract the base module
+     */
 	public void finalize(boolean useNoDefExtractor){finalize(useNoDefExtractor, false);}
 
+	/**
+	 * Finalizes the rule set
+	 */
 	public void finalizeSet(){
 		finalize(false, false);
 	}
-	
+
+	/**
+	 * Retrieves a rule from the set
+	 * @param i The index of the rule
+	 * @return The rule with the given index
+     */
 	public Rule getRule(int i){
 		/*Iterator<Rule> it = rules.iterator();
 		Rule c = it.next();
@@ -159,7 +199,13 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 		return c;*/
 		return rulesArray[i];
 	}
-	
+
+	/**
+	 * Adds a new rule to the set
+	 * @param cause The axiom responsible for the creation of the rule
+	 * @param r The rule
+     * @return An index for the provided rule
+     */
 	public int addRule(Integer cause, Rule r){
 		if(rules == null){
 			throw new UnsupportedOperationException("RuleSet has already been finalized, cannot add rule '" + r + "'");
@@ -222,32 +268,49 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 		//baseModule.add(ax);
 	}*/
 
+	@Override
 	public int findRule(Rule r){
 		throw new NotImplementedException();
 	}
-	
+
+	/**
+	 * Provides the base module of this rule set
+	 * The base module is part of every other module regardless of its signature
+	 * @return The base module
+     */
 	public Set<OWLAxiom> getBaseModule(){
 		return baseModule;
 	}
-	
+
+	/**
+	 * Provides the signature of the base module of this rule set
+	 * @return The signature of the base module of this rule set
+     */
 	public Set<Integer> getBaseSignature(){
 		return baseSignature;
 	}
-	
+
+	@Override
 	public int ruleCount(){
 		return size;
 	}
-	
+
+	@Override
 	public int dictionarySize(){
 		return arrDictionary.length;
 	}
-	
+
+	/**
+	 * Finds all rules which have a certain object in their body
+	 * @param o The object to look for
+	 * @return All rules with o in their body
+     */
 	public List<Integer> findRules(Integer o){
 		return ruleMap.get(o);
 	}
 
 	@Override
 	public Iterator<Rule> iterator() {
-		return new ArrayIterator<Rule>(rulesArray);
+		return new ArrayIterator<>(rulesArray);
 	}
 }

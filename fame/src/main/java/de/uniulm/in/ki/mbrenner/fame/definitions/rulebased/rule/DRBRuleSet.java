@@ -14,10 +14,10 @@ import java.util.function.Consumer;
  * Created by Spellmaker on 13.05.2016.
  */
 public class DRBRuleSet implements Iterable<DRBRule>{
-    private Set<DRBRule> rules;
+    private final Set<DRBRule> rules;
 
-    private Map<OWLObject, Set<DRBRule>> ruleMap;
-    private Set<DRBRule> baseRules;
+    private final Map<OWLObject, Set<DRBRule>> ruleMap;
+    private final Set<DRBRule> baseRules;
 
     /**
      * Default constructor

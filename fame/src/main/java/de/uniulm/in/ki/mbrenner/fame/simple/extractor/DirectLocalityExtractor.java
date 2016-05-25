@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
  */
 public class DirectLocalityExtractor {
 
-    private Set<Integer> module;
     private Set<OWLAxiom> finalModule;
     private boolean[] knownNotBottom;//Set<Integer> knownNotBottom;
     private Queue<Integer> queue;
@@ -27,10 +26,18 @@ public class DirectLocalityExtractor {
 
     private Set<OWLAxiom> base;
 
+    /**
+     * Default constructor
+     * @param debug If set to true additional information will be displayed
+     */
     public DirectLocalityExtractor(boolean debug){
         this.debug = debug;
     }
 
+    /**
+     * Sets the base axioms which will be added regardless of the signature
+     * @param base A set of axioms
+     */
     public void setBase(Set<OWLAxiom> base){
         this.base = base;
     }
@@ -44,7 +51,7 @@ public class DirectLocalityExtractor {
     public Set<OWLAxiom> extractModule(RuleSet rules, Set<OWLEntity> signature){
         if(debug) System.out.println("> Extraction start");
         //initialize the processing queue to the signature
-        module = new HashSet<>();
+        Set<Integer> module = new HashSet<>();
         finalModule = new HashSet<>();
         knownNotBottom = new boolean[rules.dictionarySize()];
         //TODO: Make this safe against inclusions of owl top and unknown vocabulary
@@ -72,7 +79,7 @@ public class DirectLocalityExtractor {
 
         //add base module and signature
         finalModule.addAll(rules.getBaseModule());
-        rules.getBaseSignature().forEach(x -> addQueue(x));
+        rules.getBaseSignature().forEach(this::addQueue);
         //System.out.println("queue now contains " + queue.size() + " elements");
         //add predefined base if available
         if(base != null){
@@ -130,12 +137,12 @@ public class DirectLocalityExtractor {
     }
 
     private boolean addQueue(Integer o){
-        if(o == owlThing){
+        if(o.equals(owlThing)){
             //handle owl:thing as a special case
             return false;
         }
         //add the entity to the list of those known to be possibly not bottom
-        if(knownNotBottom[o] == false){
+        if(!knownNotBottom[o]){
             knownNotBottom[o] = true;
             //check if the entity was previously considered defined. If so, add the appropriate axiom to the module
 			/*if(definitions[o] != null){

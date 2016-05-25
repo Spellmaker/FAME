@@ -8,10 +8,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * Class Expression Visitor for the TreeBuilder
+ *
  * Created by spellmaker on 18.03.2016.
  */
-public class TreeClassExpressionVisitor extends OWLClassExpressionVisitorAdapter {
-    private TreeBuilder master;
+class TreeClassExpressionVisitor extends OWLClassExpressionVisitorAdapter {
+    private final TreeBuilder master;
 
     public TreeClassExpressionVisitor(TreeBuilder master){
         this.master = master;
@@ -205,12 +207,7 @@ public class TreeClassExpressionVisitor extends OWLClassExpressionVisitorAdapter
             master.makeOrNode(ce, nodes);
         }
 
-        if(ce.getCardinality() == 0){
-            master.botMode = false;
-        }
-        else{
-            master.botMode = true;
-        }
+        master.botMode = ce.getCardinality() != 0;
     }
 
     @Override

@@ -15,16 +15,18 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertTrue;
 
 /**
+ * Tests incremental module extraction
+ *
  * Created by spellmaker on 30.03.2016.
  */
 public class IncrementalTest {
-    private boolean useDefined = false;
+    private final boolean useDefined = false;
     private final String file = "C:\\Users\\spellmaker\\Downloads\\oboFoundry\\fix.owl";
 
 
-    private List<String> removalOrder = new LinkedList<>();
-    private List<Integer> removalCount = new LinkedList<>();
-    private String checkEntity = null;
+    private final List<String> removalOrder = new LinkedList<>();
+    private final List<Integer> removalCount = new LinkedList<>();
+    private final String checkEntity = null;
 
     private void defineRemovals(){
         //removed axiom strings in the order of removals
@@ -44,16 +46,28 @@ public class IncrementalTest {
         //checkEntity = "<http://www.ifomis.org/bfo/1.0/snap#Function>";
     }
 
+    /**
+     * Tests the correctness of the naive incremental algorithm
+     * @throws Exception If an error occurred
+     */
     @Test
     public void testNaiveIncremental() throws Exception{
         test(true);
     }
 
+    /**
+     * Tests the correctness of the full incremental algorithm
+     * @throws Exception If an error occurred
+     */
     @Test
     public void testIncremental() throws Exception{
         test(false);
     }
 
+    /**
+     * Tests the correctness of the incremental classification
+     * @throws Exception If an error occurred
+     */
     @Test
     public void testModRes() throws Exception{
         if(useDefined) defineRemovals();
@@ -96,9 +110,7 @@ public class IncrementalTest {
             }
         }
         System.out.println("removed axioms:");
-        for(OWLAxiom a : removed){
-            System.out.println(a);
-        }
+        removed.forEach(System.out::println);
 
         OWLOntology workingOntology = m.createOntology(new HashSet<>(allAxioms));
         RuleSet rs = (new RuleBuilder()).buildRules(workingOntology);
@@ -224,9 +236,7 @@ public class IncrementalTest {
             }
         }
         System.out.println("removed axioms:");
-        for(OWLAxiom a : removed){
-            System.out.println(a);
-        }
+        removed.forEach(System.out::println);
 
         OWLOntology workingOntology = m.createOntology(new HashSet<>(allAxioms));
         RuleSet rs = (new RuleBuilder()).buildRules(workingOntology);
@@ -329,7 +339,7 @@ public class IncrementalTest {
                     }
                 }
                 if(!mod.equals(im.getOWLModule())){
-                    im.getOWLModule().forEach(x -> System.out.println(x));
+                    im.getOWLModule().forEach(System.out::println);
                 }
                 assertTrue("failed after " + i + " iterations: expected size " + mod.size() + " got " + im.size() + " for entity " + e, mod.equals(im.getOWLModule()));
             }

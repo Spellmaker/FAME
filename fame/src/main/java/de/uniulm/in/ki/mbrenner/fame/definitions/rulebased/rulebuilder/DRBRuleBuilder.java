@@ -21,7 +21,7 @@ public class DRBRuleBuilder extends OWLAxiomVisitorAdapter {
     boolean botMode;
     Stack<Set<DRBRule>> ruleBuffer;
 
-    DRBClass classVisitor;
+    private final DRBClass classVisitor;
 
     DRBRuleSet ruleSet;
 

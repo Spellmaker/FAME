@@ -6,10 +6,12 @@ import org.semanticweb.owlapi.model.*;
 import javax.annotation.Nonnull;
 
 /**
+ * Entity Visitor for the Tree Builder
+ *
  * Created by spellmaker on 18.03.2016.
  */
-public class TreeEntityVisitor implements OWLEntityVisitor{
-    private TreeBuilder master;
+class TreeEntityVisitor implements OWLEntityVisitor{
+    private final TreeBuilder master;
 
     public TreeEntityVisitor(TreeBuilder master){
         this.master = master;

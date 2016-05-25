@@ -5,10 +5,12 @@ import org.semanticweb.owlapi.model.*;
 import javax.annotation.Nonnull;
 
 /**
+ * Object property visitor for the TreeBuilder
+ *
  * Created by spellmaker on 18.03.2016.
  */
-public class TreeObjectPropertyVisitor implements OWLPropertyExpressionVisitor{
-    private TreeBuilder master;
+class TreeObjectPropertyVisitor implements OWLPropertyExpressionVisitor{
+    private final TreeBuilder master;
 
     public TreeObjectPropertyVisitor(TreeBuilder master){
         this.master = master;

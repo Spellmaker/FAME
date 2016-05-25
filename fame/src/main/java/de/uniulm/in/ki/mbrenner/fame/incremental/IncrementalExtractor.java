@@ -14,6 +14,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * Incremental module extractor class
+ *
+ * Provides methods for simple and incremental module extraction and is able to manage a set of modules
+ * in the face of a changing ontology
+ *
  * Created by spellmaker on 18.03.2016.
  */
 public class IncrementalExtractor implements RuleStorage, OWLDictionary {
@@ -21,6 +26,11 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
     private Set<Integer> baseSignature;
     private Set<Integer> baseModule;
 
+    /**
+     * Determines if the provided axiom is in the base module
+     * @param a An axiom
+     * @return True, if the axiom is contained in the base module
+     */
     public boolean isInBaseSet(OWLAxiom a){
         return baseModule.contains(getId(a));
     }
@@ -50,8 +60,13 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
     private Map<Integer, IncrementalModule> moduleMap;
     private List<IncrementalModule> modules;
 
+    /**
+     * Builds a new incremental extractor for the provided ontology
+     * This includes the generation of rules for the module extraction
+     * @param ontology An OWL ontology
+     */
     public IncrementalExtractor(OWLOntology ontology){
-        init(ontology.getAxiomCount());
+        init();//ontology.getAxiomCount());
         //TreeBuilder tb = new TreeBuilder();
 
         //List<Node> forest = tb.buildTree(ontology.getAxioms(Imports.INCLUDED));
@@ -62,8 +77,13 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         determineBaseModule();
     }
 
+    /**
+     * Builds a new incremental extractor for the provided axioms
+     * This includes the generation of rules for the module extraction
+     * @param ontology A set of axioms
+     */
     public IncrementalExtractor(Set<OWLAxiom> ontology){
-        init(ontology.size());
+        init();//ontology.size());
         //TreeBuilder tb = new TreeBuilder();
 
         //List<Node> forest = tb.buildTree(ontology);
@@ -77,7 +97,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         determineBaseModule();
     }
 
-    private void init(int size){
+    private void init(){
         ruleCounter = 0;
         baseSignature = new HashSet<>(); baseModule = new HashSet<>();
         ruleSetMap = new HashMap<>();
@@ -95,6 +115,11 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         getId(factory.getOWLThing());
     }
 
+    /**
+     * Resolves the object into a unique internal index
+     * @param object The object to be resolved
+     * @return An index for the object
+     */
     public Integer getId(OWLObject object){
         Integer res = invDictionary.get(object);
         if(res == null){
@@ -105,6 +130,12 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         return res;
     }
 
+    /**
+     * Resolves the provided index into the object it refers to
+     * May throw an ArrayIndexOutOfBoundsException if the index is not valid
+     * @param id An index
+     * @return Returns the object associated with the index
+     */
     public OWLObject getObject(Integer id){
         return dictionary.get(id);
     }
@@ -127,29 +158,56 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         l.add(value);
     }
 
+    /**
+     * Provides the number of rules in the set
+     * @return The number of rules in the set
+     */
     public int ruleCount(){
         return ruleCounter;
     }
 
+    /**
+     * Finds the index of the rule
+     * @param r A rule
+     * @return The index of the rule
+     */
     public int findRule(Rule r){
         return ruleSetMap.get(r).getId();
     }
 
+    /**
+     * Counts the number of elements in the dictionary
+     * @return The number of elements in the dictionary
+     */
     public int dictionarySize(){
         return dictionary.size();
     }
 
+    /**
+     * Provides access to the generated rules
+     * @return The rules generated for the current axioms
+     */
     public List<Rule> getRuleList(){
-        return ruleList;
+        return Collections.unmodifiableList(ruleList);
     }
     /*public Rule getRule(int r){
         return rules.get(r);
     }*/
 
+    /**
+     * Finalizes the rule set
+     * Currently performs no actions
+     */
     public void finalizeSet(){
 
     }
 
+    /**
+     * Adds a rule to the set
+     * @param cause An index refering to the axiom for which the rule has been generated
+     * @param r The rule
+     * @return The index under which the rule has been added
+     */
     public int addRule(Integer cause, Rule r){
         //skip if rule is already in the system
         if(!ruleSetMap.containsKey(r)) {
@@ -219,6 +277,12 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         }
     }
 
+    /**
+     * Provides a module for the given entity
+     * If no such module has been extracted yet, the module will be extracted
+     * @param e An entity for which the module is to be extracted
+     * @return A module for the entity
+     */
     public IncrementalModule getModule(OWLEntity e){
         if(e == null) return base;
         IncrementalModule res = moduleMap.get(getId(e));
@@ -244,7 +308,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         }
     }
 
-    public void determineBaseModule(){
+    private void determineBaseModule(){
         base = new IncrementalModule(this, null);
         Queue<Integer> procQueue = new LinkedList<>();
         baseModule.forEach(x -> addAxiomToModule(x, base, procQueue));
@@ -255,15 +319,34 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         //baseModule.forEach(x -> baseSignature.addAll(axiomSignatures.get(x)));
     }
 
+    /**
+     * Provides access to the base module
+     * The base module is added to every module regardless of the signature
+     * @return A set of indices forming the base module
+     */
     public Set<Integer> getBaseModule(){
         return this.base.getModule();
     }
 
+    /**
+     * Extracts a module for the given entity.
+     * The entity may be null, in which case the base module will be returned.
+     * The resulting module will be stored in the extractor and the extractor
+     * will provide an updated version, if the ontology has been changed
+     * @param entity The entity for which the module is to be extracted
+     * @return A module for the provided entity
+     */
     public IncrementalModule extractModule(OWLEntity entity){
         if(entity == null) return extractModule(true, (Integer) null);
         return extractModule(true, getId(entity));
     }
 
+    /**
+     * Extracts a module for the provided signature
+     * The resulting module is not stored in the extractor
+     * @param entity A signature
+     * @return A module for the signature
+     */
     public IncrementalModule extractModuleStatic(Set<OWLEntity> entity){
         if(entity == null) return extractModule(false, (Integer) null);
         Integer[] e = new Integer[entity.size()];
@@ -272,6 +355,12 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         return extractModule(false, e);
     }
 
+    /**
+     * Extracts a module for the provided signature
+     * @param store If set to true, the module will be stored and managed in the extractor
+     * @param entity The signature for the module
+     * @return A module for the provided signature
+     */
     private IncrementalModule extractModule(boolean store, Integer...entity){
         if(entity == null) return base;
 
@@ -336,18 +425,31 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
     }
 
     private int incrCases = 0;
+    /**
+     * Counts the number of cases in which the base module was affected by a change
+     */
     public static int basemodaffected = 0;
 
+    /**
+     * Provides the number of cases in which the incremental optimization actually triggered
+     * @return The number of incremental cases
+     */
     public int getIncrCases(){
         return incrCases;
     }
 
+    /**
+     * Naively modifies the ontology and updates the managed modules by reextracting all affected modules from scratch
+     * @param addedAxioms Axioms added to the ontology
+     * @param removedAxioms Axioms removed from the ontology
+     * @return The result of the modification
+     */
     public ModificationResult modifyOntologyNaive(Collection<OWLAxiom> addedAxioms, Collection<OWLAxiom> removedAxioms){
         Set<Integer> delAffected = new HashSet<>();
         Set<Integer> addAffected = new HashSet<>();
         SyntacticLocalityEvaluator synt = new SyntacticLocalityEvaluator(LocalityClass.BOTTOM_BOTTOM);
         //transform to internal representation
-        Set<Integer> iRemovedAxioms = removedAxioms.stream().map(x -> getId(x)).collect(Collectors.toSet());
+        Set<Integer> iRemovedAxioms = removedAxioms.stream().map(this::getId).collect(Collectors.toSet());
         //determine first, if the base module is affected by a deletion. If that is the case, then all modules
         //need to be redetermined anyways.
         boolean baseModuleAffected = false;
@@ -455,9 +557,15 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         );
     }
 
+    /**
+     * Modifies the ontology and updates the managed modules by incrementally extending add affected modules and determining the affected modules via rule generation
+     * @param addedAxioms Axioms added to the ontology
+     * @param removedAxioms Axioms removed from the ontology
+     * @return The result of the modification
+     */
     public ModificationResult modifyOntology(Collection<OWLAxiom> addedAxioms, Collection<OWLAxiom> removedAxioms){
         //transform to internal representation
-        Set<Integer> iRemovedAxioms = removedAxioms.stream().map(x -> getId(x)).collect(Collectors.toSet());
+        Set<Integer> iRemovedAxioms = removedAxioms.stream().map(this::getId).collect(Collectors.toSet());
 
         Set<IncrementalModule> delAffected = new HashSet<>();
         Set<IncrementalModule> addAffected = new HashSet<>();
@@ -494,9 +602,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
             reextract.addAll(moduleMap.keySet());
             //reextractFromScratch(moduleMap.keySet());
             delAffected.addAll(modules);
-            for(IncrementalModule im : irf.applyAxiomToModules.keySet()){
-                if(im.getBaseEntity() != null) addAffected.add(im);
-            }
+            addAffected.addAll(irf.applyAxiomToModules.keySet().stream().filter(im -> im.getBaseEntity() != null).collect(Collectors.toList()));
         }
         else{
             //find modules unaffected by the removed axioms
@@ -557,9 +663,15 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
         return new ModificationResult(addAffected, delAffected);
     }
 
+    /**
+     * Modifies the ontology and updates the managed modules by determining the affected modules via rule generation and reextracting them from scratch
+     * @param addedAxioms Axioms added to the ontology
+     * @param removedAxioms Axioms removed from the ontology
+     * @return The result of the modification
+     */
     public ModificationResult modifyOntologyHalfNaive(Collection<OWLAxiom> addedAxioms, Collection<OWLAxiom> removedAxioms){
         //transform to internal representation
-        Set<Integer> iRemovedAxioms = removedAxioms.stream().map(x -> getId(x)).collect(Collectors.toSet());
+        Set<Integer> iRemovedAxioms = removedAxioms.stream().map(this::getId).collect(Collectors.toSet());
 
         Set<IncrementalModule> delAffected = new HashSet<>();
         Set<IncrementalModule> addAffected = new HashSet<>();
@@ -596,9 +708,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
             reextract.addAll(moduleMap.keySet());
             //reextractFromScratch(moduleMap.keySet());
             delAffected.addAll(modules);
-            for(IncrementalModule im : irf.applyAxiomToModules.keySet()){
-                if(im.getBaseEntity() != null) addAffected.add(im);
-            }
+            addAffected.addAll(irf.applyAxiomToModules.keySet().stream().filter(im -> im.getBaseEntity() != null).collect(Collectors.toList()));
         }
         else{
             //find modules unaffected by the removed axioms

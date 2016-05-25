@@ -9,17 +9,21 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Transforms an ontology into a set of rules for module extraction
+ * These rules contain additional information, which allows to avoid adding equivalence axioms in some situations
+ */
 public class RuleBuilder implements OWLClassExpressionVisitor, OWLPropertyExpressionVisitor, OWLAxiomVisitor {
 	private boolean botMode;
 	private List<Rule> ruleBuffer;
 	private RuleStorage ruleSet;
 	private OWLDictionary dictionary;
 	private List<OWLObject> unknownObjects;
+	/**
+	 * If set to true unknown elements will be printed after rule generation has been completed
+	 */
 	public boolean printUnknown = false;
 
-	
-	public RuleBuilder(){
-	}
 	@Override
 	public void visit(@Nonnull OWLClass ce) {
 		//ignore mode here
@@ -340,16 +344,34 @@ public class RuleBuilder implements OWLClassExpressionVisitor, OWLPropertyExpres
 		unknownObjects.add(owlAnnotationProperty);
 	}
 
+	/**
+	 * Builds the module extraction rules for the provided ontology
+	 * @param ontology An OWL ontology
+	 * @return A set of rules usable for module extraction
+     */
 	public RuleSet buildRules(OWLOntology ontology){
 		return buildRules(ontology, false);
 	}
 
+	/**
+	 * Builds the module extraction rules for the provided ontology
+	 * @param ontology An OWL ontology
+	 * @param useNoDefExtractor If set to true, the noDef extractor will be used to finalize the rule set
+     * @return A set of rules usable for module extraction
+     */
 	public RuleSet buildRules(OWLOntology ontology, boolean useNoDefExtractor) {
 		RuleSet rs = new RuleSet();
 		buildRules(ontology, useNoDefExtractor, rs, rs);
 		return rs;
 	}
 
+	/**
+	 * Builds the module extraction rules for the provided ontology
+	 * @param ontology An OWL ontology
+	 * @param useNoDefExtractor If set to true, the noDef extractor will be used to finalize the rule set
+	 * @param rs A rule storage to be used for the rule generation
+     * @param dict A dictionary to be used for the rule generation
+     */
 	public void buildRules(OWLOntology ontology, boolean useNoDefExtractor, RuleStorage rs, OWLDictionary dict){
 		Set<OWLEntity> signature = new HashSet<>();
 		//TODO: Check if necessary
@@ -358,6 +380,14 @@ public class RuleBuilder implements OWLClassExpressionVisitor, OWLPropertyExpres
 		buildRules(ontology.getAxioms(Imports.INCLUDED), signature, useNoDefExtractor, rs, dict);
 	}
 
+	/**
+	 * Builds the module extraction rules for the provided axioms
+	 * @param ontology A set of axioms
+	 * @param signature The combined signature of the provided axioms
+	 * @param useNoDefExtractor If set to true, the noDef extractor will be used to finalize the rule set
+	 * @param rs A rule storage to be used for the rule generation
+     * @param dict A dictionary to be used for the rule generation
+     */
 	public void buildRules(Set<OWLAxiom> ontology, Set<OWLEntity> signature, boolean useNoDefExtractor, RuleStorage rs, OWLDictionary dict){
 		this.ruleSet = rs;
 		this.dictionary = dict;
@@ -385,6 +415,10 @@ public class RuleBuilder implements OWLClassExpressionVisitor, OWLPropertyExpres
 		}
 	}
 
+	/**
+	 * Provides the objects which could not be processed in the last rule generation
+	 * @return The unprocessed objects of the last rule generation
+     */
 	public Collection<OWLObject> unknownObjects() {
 		return unknownObjects;
 	}

@@ -10,20 +10,36 @@ import org.semanticweb.owlapi.model.OWLObject;
 import java.util.*;
 
 /**
+ * Folds a tree structure into module extraction rules
+ * Currently unused, as using the normal RuleBuilder prooved sufficient
+ *
  * Created by spellmaker on 18.03.2016.
  */
+@Deprecated
 public class NormalRuleFolder extends NodeFolder {
     private List<Rule> rules;
-    private OWLDictionary dictionary;
-    private RuleStorage storage;
+    private final OWLDictionary dictionary;
+    private final RuleStorage storage;
     private OWLAxiom currentReason;
+    /**
+     * The last rule
+     */
     public Rule last;
 
+    /**
+     * Constructs a new instance
+     * @param dictionary A dictionary to manage the conversion of indices to objects and vice versa
+     * @param storage A storage for the generated rules
+     */
     public NormalRuleFolder(OWLDictionary dictionary, RuleStorage storage){
         this.dictionary = dictionary;
         this.storage = storage;
     }
 
+    /**
+     * Builds rules from the provided trees
+     * @param roots A set of trees
+     */
     public void buildRules(List<Node> roots){
         rules = new LinkedList<>();
         for(Node n : roots){

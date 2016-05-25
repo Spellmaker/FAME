@@ -7,15 +7,20 @@ import org.semanticweb.owlapi.model.OWLObject;
 import java.util.*;
 
 /**
+ * Transforms an ontology into a tree structure representing the interplay of symbols in the locality and non-locality of the axioms
+ *
  * Created by spellmaker on 18.03.2016.
  */
 public class TreeBuilder {
     boolean botMode;
     Node currentNode; //null means tautology, empty node means fact
-    TreeObjectPropertyVisitor treeObjectPropertyVisitor;
-    TreeClassExpressionVisitor treeClassExpressionVisitor;
-    TreeAxiomVisitor treeAxiomVisitor;
+    final TreeObjectPropertyVisitor treeObjectPropertyVisitor;
+    final TreeClassExpressionVisitor treeClassExpressionVisitor;
+    private final TreeAxiomVisitor treeAxiomVisitor;
 
+    /**
+     * Constructs a new instance
+     */
     public TreeBuilder(){
         botMode = true;
         treeObjectPropertyVisitor = new TreeObjectPropertyVisitor(this);
@@ -45,6 +50,11 @@ public class TreeBuilder {
         currentNode = new LeafNode(object);
     }
 
+    /**
+     * Compiles the provided axioms into trees, which reflect the dependency of symbols for the locality of axioms
+     * @param ax A collection of axioms
+     * @return A list of nodes forming the root of trees
+     */
     public List<Node> buildTree(Collection<OWLAxiom> ax){
         List<Node> nodes = new LinkedList<>();
         for(OWLAxiom a : ax){
@@ -55,7 +65,7 @@ public class TreeBuilder {
         return nodes;
     }
 
-    public Node buildTree(OWLAxiom ax){
+    private Node buildTree(OWLAxiom ax){
         ax.accept(treeAxiomVisitor);
         return currentNode;
     }

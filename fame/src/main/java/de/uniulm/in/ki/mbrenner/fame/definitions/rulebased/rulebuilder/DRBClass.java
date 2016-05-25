@@ -17,8 +17,8 @@ import java.util.Set;
  *
  * Created by Spellmaker on 13.05.2016.
  */
-public class DRBClass extends OWLClassExpressionVisitorAdapter{
-    private DRBRuleBuilder parent;
+class DRBClass extends OWLClassExpressionVisitorAdapter{
+    private final DRBRuleBuilder parent;
 
     public DRBClass(DRBRuleBuilder drbRuleBuilder) {
         this.parent = drbRuleBuilder;
@@ -54,7 +54,6 @@ public class DRBClass extends OWLClassExpressionVisitorAdapter{
 
         if(classes.isEmpty()){
             parent.ruleBuffer.push(Collections.emptySet());
-            return;
         }
         else{
             OWLClassExpression[] array = new OWLClassExpression[classes.size()];
@@ -74,9 +73,6 @@ public class DRBClass extends OWLClassExpressionVisitorAdapter{
     @Override
     public void visit(OWLClass expression){
         parent.ruleBuffer.push(Collections.emptySet());
-        if(expression.isTopEntity())
-            parent.botMode = false;
-        else
-            parent.botMode = true;
+        parent.botMode = !expression.isTopEntity();
     }
 }

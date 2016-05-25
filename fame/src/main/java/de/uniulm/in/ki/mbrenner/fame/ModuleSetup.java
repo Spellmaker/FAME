@@ -19,24 +19,41 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Prepares test ontologies for the test cases
+ * More specifically, it attempts to load ontologies and then extracts all modules for single elements and stores them
+ * in a provided directory to avoid recomputation
+ *
  * Created by spellmaker on 08.03.2016.
  */
 public class ModuleSetup {
+    /**
+     * The directory of the ontologies
+     */
     public static final String ontologyDirectory = "C:\\Users\\spellmaker\\SemanticWeb\\unitTest\\ontologies\\";
+    /**
+     * The module directory
+     */
     public static final String moduleDirectory = "C:\\Users\\spellmaker\\SemanticWeb\\unitTest\\modules\\";
 
+    /**
+     * Program entry point
+     * @param args Program parameters, ignored
+     */
     public static void main(String[] args) {
         prepare();
     }
 
+    /**
+     * Prepares the ontologies for testing
+     */
     public static void prepare(){
         Path modulePath = Paths.get(moduleDirectory);
         try(DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(ontologyDirectory))){
             for(Path path : directoryStream){
                 Path tdir = modulePath.resolve(path.getFileName());
 
-                OWLOntology o = null;
-                OWLOntologyManager m = null;
+                OWLOntology o;
+                OWLOntologyManager m;
                 try {
                     m = OWLManager.createOWLOntologyManager();OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
                     loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
@@ -105,10 +122,21 @@ public class ModuleSetup {
         }
     }
 
+    /**
+     * Removes some illegal symbols from filenames
+     * @param input The input name
+     * @return A sanitized name
+     */
     public static String sanitizeFilename(String input){
         return input.replace("<", "_").replace(">", "_").replace("#", "_").replace("/", "_").replace(":", "_");
     }
 
+    /**
+     * Converts the current progress to a percentage
+     * @param max The maximum number
+     * @param curr The current number
+     * @return The percentage
+     */
     public static double printPercent(int max, int curr){
         return ((double) curr * 100) / (double) max;
     }

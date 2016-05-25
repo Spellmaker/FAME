@@ -1,6 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased;
 
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.DRBDefinition;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBDefinition;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
@@ -10,8 +10,6 @@ import org.semanticweb.owlapi.model.OWLObject;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-
-import static de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter.getString;
 
 /**
  * Extracts a definition based locality module from a given ontology
@@ -23,7 +21,6 @@ import static de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter.getString;
  */
 public class DRBExtractor{
     private Queue<OWLObject> procQueue;
-    private int[] ruleCounter;
     private Set<OWLObject> notBot;
     private Set<OWLObject> inSignature;
 
@@ -35,14 +32,21 @@ public class DRBExtractor{
     private Map<OWLEntity, Set<OWLAxiom>> objectsToAxioms;
 
     private Set<OWLAxiom> module;
-    private Set<OWLAxiom> extModule;
 
-    public static boolean debug = false;
+    private static boolean debug = false;
 
+    /**
+     * Default constructor
+     */
     public DRBExtractor(){
         debug = false;
     }
 
+    /**
+     * Constructs a new instance
+     * Allows to choose the debugging mode
+     * @param d If debug mode is to be enabled
+     */
     public DRBExtractor(boolean d){
         debug = d;
     }
@@ -60,23 +64,31 @@ public class DRBExtractor{
         set.add(symbol);
     }
 
+    /**
+     * Provides the definitions used by the last extraction process
+     * @return The definitions used by the last extraction process
+     */
     public Map<OWLObject, OWLObject> getDefinitions(){
         Map<OWLObject, OWLObject> defs = new HashMap<>();
-        for(Map.Entry<OWLObject, OWLObject> e : isDefinedAs.entrySet()){
-            if(!inSignature.contains(e.getKey())) defs.put(e.getKey(), e.getValue());
-        }
+        isDefinedAs.entrySet().stream().filter(e -> !inSignature.contains(e.getKey())).forEach(e -> defs.put(e.getKey(), e.getValue()));
         return Collections.unmodifiableMap(defs);
     }
 
+    /**
+     * Extracts a definition local module for the provided signature
+     * @param rules A set of extraction rules generated for an ontology
+     * @param signature The signature for the module
+     * @return A definition local module for the provided signature
+     */
     public Set<OWLAxiom> extractModule(@Nonnull DRBRuleSet rules, @Nonnull Set<OWLEntity> signature){
         procQueue = new LinkedList<>();
-        ruleCounter = new int[rules.size()];
+        int[] ruleCounter = new int[rules.size()];
         notBot = new HashSet<>();
         inSignature = new HashSet<>();
         isDefinedAs = new HashMap<>();
         isReasonFor = new HashMap<>();
         objectsToAxioms = new HashMap<>();
-        extModule = new HashSet<>();
+        Set<OWLAxiom> extModule = new HashSet<>();
         invariants = new HashMap<>();
         invariantAxioms = new HashMap<>();
 
@@ -145,7 +157,7 @@ public class DRBExtractor{
                 //axiom relies on the definition of the symbol
                 dependentOn.add(symbol);
                 //find out what the symbol needs to be defined as
-                OWLObject defAs = def.definition.action(def.definingSymbol);
+                OWLObject defAs = def.definingSymbol;//def.definition.action(def.definingSymbol);
                 //resolve the definition to the definition set it belongs to
                 OWLObject defAsResolved = inSignature.contains(defAs) ? defAs : isDefinedAs.get(defAs);
                 if(defAsResolved == null) defAsResolved = defAs;
@@ -234,9 +246,7 @@ public class DRBExtractor{
         invariants.remove(o1);
         invariantAxioms.remove(o1);
         if(s != null){
-            for(OWLObject o2 : s){
-                removeInvariant(o2);
-            }
+            s.forEach(this::removeInvariant);
         }
     }
 
@@ -277,18 +287,16 @@ public class DRBExtractor{
             Set<OWLAxiom> affectedAxioms = objectsToAxioms.get(e);
             objectsToAxioms.remove(e);
             if(affectedAxioms != null){
-                affectedAxioms.forEach(x -> rollback(x));
+                affectedAxioms.forEach(this::rollback);
             }
         }
         //verify all affected
-        for(OWLObject o : changed){
-            if(!invariantHolds(o)){
-                Set<OWLAxiom> s = invariantAxioms.get(o);
-                removeInvariant(o);
-                if(s != null){
-                    s.forEach(x -> rollback(x));
-                }
+        changed.stream().filter(o -> !invariantHolds(o)).forEach(o -> {
+            Set<OWLAxiom> s = invariantAxioms.get(o);
+            removeInvariant(o);
+            if (s != null) {
+                s.forEach(this::rollback);
             }
-        }
+        });
     }
 }

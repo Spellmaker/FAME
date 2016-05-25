@@ -16,13 +16,13 @@ import java.util.Set;
  */
 public class DefinitionEvaluator{
     Map<OWLObject, OWLObject> definitions;
-    Set<OWLObject> definingSymbols;
+    private Set<OWLObject> definingSymbols;
     Set<OWLEntity> signature;
-    OWLDataFactory data;
+    final OWLDataFactory data;
 
-    DefinitionAxiomVisitor axiomVisitor;
-    DefinitionObjectPropertyVisitor propertyVisitor;
-    DefinitionClassVisitor classVisitor;
+    private final DefinitionAxiomVisitor axiomVisitor;
+    final DefinitionObjectPropertyVisitor propertyVisitor;
+    final DefinitionClassVisitor classVisitor;
     //OWLClass unknownClass;
     //OWLObjectProperty unknownProperty;
 
@@ -34,9 +34,6 @@ public class DefinitionEvaluator{
         this.propertyVisitor = new DefinitionObjectPropertyVisitor(this);
         this.classVisitor = new DefinitionClassVisitor(this);
         data = new OWLDataFactoryImpl();
-
-        //unknownClass = data.getOWLClass(IRI.create("?UNKNOWNCLASS?"));
-        //unknownProperty = data.getOWLObjectProperty(IRI.create("?UNKNOWNPROPERTY?"));
     }
 
     private void init(Set<OWLEntity> signature, Map<OWLObject, OWLObject> definitions){
@@ -86,8 +83,7 @@ public class DefinitionEvaluator{
         return axiomVisitor.locality;
     }
 
-    boolean isFinalSymbol(OWLObject o){
-        if(!(o instanceof OWLEntity)) return false;
-        return signature.contains(o) || o instanceof IndicatorClass || o instanceof CombinedObjectProperty;
+    boolean isFinalSymbol(OWLObject o) {
+        return o instanceof OWLEntity && (signature.contains(o) || o instanceof IndicatorClass || o instanceof CombinedObjectProperty);
     }
 }

@@ -14,8 +14,12 @@ import java.util.Set;
  * Created by spellmaker on 04.05.2016.
  */
 public class IndicatorClass implements OWLClass {
-    private OWLClassExpression clazz;
+    private final OWLClassExpression clazz;
 
+    /**
+     * Creates a new instance
+     * @param clazz The class expression for which this indicator class is generated as an identifier
+     */
     public IndicatorClass(OWLClassExpression clazz){
         this.clazz = clazz;
     }

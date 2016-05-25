@@ -6,9 +6,16 @@ import org.semanticweb.owlapi.model.OWLObject;
 import java.util.List;
 
 /**
+ * Represents a node which only triggers if all children trigger
+ *
  * Created by spellmaker on 18.03.2016.
  */
 public class AndNode extends Node{
+    /**
+     * Default constructor
+     * @param symbol The symbol of this node
+     * @param children The children of this node
+     */
     public AndNode(OWLObject symbol, List<Node> children){
         super(symbol, children);
     }

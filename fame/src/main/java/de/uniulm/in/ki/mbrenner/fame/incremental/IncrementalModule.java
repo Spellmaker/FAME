@@ -1,9 +1,5 @@
 package de.uniulm.in.ki.mbrenner.fame.incremental;
 
-/**
- * Created by spellmaker on 18.03.2016.
- */
-
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
@@ -12,11 +8,13 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
+ * Encapsulates all information about a module needed to incrementally extend it upon changes in the original ontology
+ *
  * Created by spellmaker on 17.03.2016.
  */
 public class IncrementalModule implements Iterable<Integer>{
-    List<Boolean> known;
-    public List<Integer> ruleCounter;
+    private List<Boolean> known;
+    private List<Integer> ruleCounter;
     IncrementalExtractor extractor;
     private Set<Integer> module;
     private Integer baseEntity;
@@ -25,14 +23,28 @@ public class IncrementalModule implements Iterable<Integer>{
 
     }
 
+    /**
+     * Provides access to the internal module in integer representation
+     * @return The module represented by this instance
+     */
     public Set<Integer> getModule(){
         return module;
     }
 
-    public boolean addAxiom(Integer axiom){
-        return module.add(axiom);
+    /**
+     * Adds an axiom to the module
+     * @param axiom An axiom
+     */
+    public void addAxiom(Integer axiom){
+        module.add(axiom);
     }
 
+    /**
+     * Creates a new instance and initializes it to be a copy of this module
+     * The base entity is replaced with the provided value
+     * @param baseEntity A base entity for the copy
+     * @return A copy of this instance with a replaced base entity
+     */
     public IncrementalModule getCopy(Integer baseEntity){
         IncrementalModule copy = new IncrementalModule();
         copy.known = new ArrayList<>(known);
@@ -43,29 +55,43 @@ public class IncrementalModule implements Iterable<Integer>{
         return copy;
     }
 
-    public void replaceWith(IncrementalModule other){
-        this.known = other.known;
-        this.ruleCounter = other.ruleCounter;
-        this.module = other.module;
-        this.extractor = other.extractor;
-    }
-
-    //convenience methods
+    /**
+     * Determines if the object is unknown
+     * Also extends the internal data structures if necessary
+     * @param i The index of the object
+     * @return True, if the value is set to unknown
+     */
     public boolean known(Integer i){
         checkKnown(i);
         return known.get(i);
     }
 
+    /**
+     * Sets the unknown status of the provided object
+     * Also extends the internal data structures if necessary
+     * @param i The index of the element which is to be set unknown
+     */
     public void setKnown(Integer i){
         checkKnown(i);
         known.set(i, true);
     }
 
+    /**
+     * Provides access to the rule counter of a rule
+     * Also extends the internal data structures if necessary
+     * @param i The index of the rule
+     * @return The number of elements in the rules body which are still interpreted with bottom
+     */
     public int ruleCounter(Integer i){
         checkRuleCounter(i);
         return ruleCounter.get(i);
     }
 
+    /**
+     * Decreases the counter of the provided rule by 1
+     * @param i The index of the rule
+     * @return The new value of the rule or 0, if the value was already 0
+     */
     public int decCounter(Integer i){
         checkRuleCounter(i);
         int val = ruleCounter.get(i);
@@ -92,6 +118,11 @@ public class IncrementalModule implements Iterable<Integer>{
         }
     }
 
+    /**
+     * Default constructor
+     * @param extractor An extractor which provides the necessary dictionary and rule sets
+     * @param baseEntity The base entity for this module, which is the entity for which the module has been extracted
+     */
     public IncrementalModule(IncrementalExtractor extractor, Integer baseEntity){
         this.extractor = extractor;
         known = new ArrayList<>(extractor.dictionarySize());
@@ -103,6 +134,10 @@ public class IncrementalModule implements Iterable<Integer>{
         this.baseEntity = baseEntity;
     }
 
+    /**
+     * Provides the base entity of the module
+     * @return The base entity of the module
+     */
     public Integer getBaseEntity(){
         return baseEntity;
     }
@@ -117,14 +152,29 @@ public class IncrementalModule implements Iterable<Integer>{
         module.forEach(action);
     }
 
+    /**
+     * Provides the module size
+     * @return The size of the module
+     */
     public int size(){
         return module.size();
     }
 
+    /**
+     * Transforms the internal integer representation of the module into the corresponding OWL objects
+     * @return The module represented by this instance
+     */
     public Set<OWLAxiom> getOWLModule(){
         return module.stream().map(x -> (OWLAxiom) extractor.getObject(x)).collect(Collectors.toSet());
     }
 
+    /**
+     * Applies a single rule to this module
+     * This modifies the data structures for the known status and rule counters correspondingly
+     * @param r A rule which is to be applied
+     * @param rpos The index of the rule w.r.t. to the extractor
+     * @return True, if the rule triggered
+     */
     public boolean applySingleRule(Rule r, int rpos){
         if(r.size() <= 0){
             setKnown(r.getHeadOrAxiom());

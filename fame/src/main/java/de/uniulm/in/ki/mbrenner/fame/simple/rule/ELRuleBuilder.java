@@ -16,6 +16,9 @@ import javax.annotation.Nonnull;
 public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor, OWLPropertyExpressionVisitor{
 	private RuleSet rs;
 	private List<OWLObject> unknownObjects;
+	/**
+	 * If set to true the builder will output the unknown elements via standard io
+	 */
 	public boolean printUnknown = false;
 	private boolean isTopEq = false;
 	private boolean simulate = false;
@@ -23,14 +26,27 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 
 	private int cause;
 
+	/**
+	 * Default constructor
+	 */
 	public ELRuleBuilder(){
 		finalizeWithDef = false;
 	}
 
+	/**
+	 * Creates a new instance
+	 * Allows to configure which extractor should be used for the finalization of the rule set
+	 * @param finalizeWithDef If set to true, definitions will be used for the finalization
+     */
 	public ELRuleBuilder(boolean finalizeWithDef){
 		this.finalizeWithDef = finalizeWithDef;
 	}
 
+	/**
+	 * Compiles the provided ontology into a rule set
+	 * @param ontology An OWL Ontology in the EL profile
+	 * @return A set of rules for the ontology
+     */
 	public RuleSet buildRules(OWLOntology ontology){
 
 		rs = new RuleSet();
@@ -47,44 +63,42 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 			//System.out.println("warning: could not generate rules for at least " + unknownObjects.size() + " constructors");
 			if(printUnknown){
 				Set<Class<?>> classes = new HashSet<>();
-				for(Object o : unknownObjects){
-					if(!classes.contains(o.getClass())){
-						classes.add(o.getClass());
-						System.out.println("unknown constructor: " + o.getClass());
-					}
-				}
+				unknownObjects.stream().filter(o -> !classes.contains(o.getClass())).forEach(o -> {
+					classes.add(o.getClass());
+					System.out.println("unknown constructor: " + o.getClass());
+				});
 			}
 		}
 		return rs;
 	}
 
 	@Override
-	public void visit(OWLAnnotationAssertionAxiom axiom) {
+	public void visit(@Nonnull OWLAnnotationAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLSubAnnotationPropertyOfAxiom axiom) {
+	public void visit(@Nonnull OWLSubAnnotationPropertyOfAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 		
 	}
 
 	@Override
-	public void visit(OWLAnnotationPropertyDomainAxiom axiom) {
+	public void visit(@Nonnull OWLAnnotationPropertyDomainAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLAnnotationPropertyRangeAxiom axiom) {
+	public void visit(@Nonnull OWLAnnotationPropertyRangeAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLClass ce) {
+	public void visit(@Nonnull OWLClass ce) {
 		if(!ce.isTopEntity()){
 			if(!simulate) rs.addRule(cause, new Rule(null, rs.getId(new OWLDeclarationAxiomImpl(ce, Collections.emptyList())), null, rs.getId(ce)));
 		}
@@ -94,14 +108,14 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLObjectIntersectionOf ce) {
+	public void visit(@Nonnull OWLObjectIntersectionOf ce) {
 		Set<OWLClassExpression> ops = ce.getOperands();
 		Integer[] arr = new Integer[ops.size()];
 
 
 		int pos = 0;
-		for(Iterator<OWLClassExpression> iter = ops.iterator(); iter.hasNext();){
-			arr[pos++] = rs.getId(iter.next()); 
+		for (OWLClassExpression op : ops) {
+			arr[pos++] = rs.getId(op);
 		}
 
 		boolean top = true;
@@ -114,7 +128,7 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLObjectUnionOf ce) {
+	public void visit(@Nonnull OWLObjectUnionOf ce) {
 		unknownObjects().add(ce);
 		/*boolean top = false;
 		for(OWLClassExpression oce : ce.getOperands()){
@@ -125,13 +139,13 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLObjectComplementOf ce) {
+	public void visit(@Nonnull OWLObjectComplementOf ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLObjectSomeValuesFrom ce) {
+	public void visit(@Nonnull OWLObjectSomeValuesFrom ce) {
 		if(!simulate) rs.addRule(cause, new Rule(null,
 				rs.getId(new OWLDeclarationAxiomImpl((OWLEntity) ce.getProperty(), Collections.emptyList())), null,
 				rs.getId(ce.getProperty())));
@@ -141,91 +155,91 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLObjectAllValuesFrom ce) {
+	public void visit(@Nonnull OWLObjectAllValuesFrom ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLObjectHasValue ce) {
+	public void visit(@Nonnull OWLObjectHasValue ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLObjectMinCardinality ce) {
+	public void visit(@Nonnull OWLObjectMinCardinality ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLObjectExactCardinality ce) {
+	public void visit(@Nonnull OWLObjectExactCardinality ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLObjectMaxCardinality ce) {
+	public void visit(@Nonnull OWLObjectMaxCardinality ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLObjectHasSelf ce) {
+	public void visit(@Nonnull OWLObjectHasSelf ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLObjectOneOf ce) {
+	public void visit(@Nonnull OWLObjectOneOf ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLDataSomeValuesFrom ce) {
+	public void visit(@Nonnull OWLDataSomeValuesFrom ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLDataAllValuesFrom ce) {
+	public void visit(@Nonnull OWLDataAllValuesFrom ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLDataHasValue ce) {
+	public void visit(@Nonnull OWLDataHasValue ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLDataMinCardinality ce) {
+	public void visit(@Nonnull OWLDataMinCardinality ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLDataExactCardinality ce) {
+	public void visit(@Nonnull OWLDataExactCardinality ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLDataMaxCardinality ce) {
+	public void visit(@Nonnull OWLDataMaxCardinality ce) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(ce);
 	}
 
 	@Override
-	public void visit(OWLDeclarationAxiom axiom) {
+	public void visit(@Nonnull OWLDeclarationAxiom axiom) {
 		// TODO Auto-generated method stub
 		if(!simulate) rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(axiom.getEntity())));
 	}
 
 	@Override
-	public void visit(OWLSubClassOfAxiom axiom) {
+	public void visit(@Nonnull OWLSubClassOfAxiom axiom) {
 		OWLClassExpression expr = axiom.getSubClass();
 		//TODO: This is quite nasty, as it adds a lot of unecessary rules
 		simulate = true;
@@ -242,43 +256,43 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLNegativeObjectPropertyAssertionAxiom axiom) {
+	public void visit(@Nonnull OWLNegativeObjectPropertyAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLAsymmetricObjectPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLAsymmetricObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLReflexiveObjectPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLReflexiveObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLDisjointClassesAxiom axiom) {
+	public void visit(@Nonnull OWLDisjointClassesAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLDataPropertyDomainAxiom axiom) {
+	public void visit(@Nonnull OWLDataPropertyDomainAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLObjectPropertyDomainAxiom axiom) {
+	public void visit(@Nonnull OWLObjectPropertyDomainAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLEquivalentObjectPropertiesAxiom axiom) {
+	public void visit(@Nonnull OWLEquivalentObjectPropertiesAxiom axiom) {
 		for(OWLObjectPropertyExpression e : axiom.getProperties()){
 			rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(e)));
 			e.accept(this);
@@ -286,49 +300,49 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLNegativeDataPropertyAssertionAxiom axiom) {
+	public void visit(@Nonnull OWLNegativeDataPropertyAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLDifferentIndividualsAxiom axiom) {
+	public void visit(@Nonnull OWLDifferentIndividualsAxiom axiom) {
 		rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
-	public void visit(OWLDisjointDataPropertiesAxiom axiom) {
+	public void visit(@Nonnull OWLDisjointDataPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLDisjointObjectPropertiesAxiom axiom) {
+	public void visit(@Nonnull OWLDisjointObjectPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLObjectPropertyRangeAxiom axiom) {
+	public void visit(@Nonnull OWLObjectPropertyRangeAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLObjectPropertyAssertionAxiom axiom) {
+	public void visit(@Nonnull OWLObjectPropertyAssertionAxiom axiom) {
 		//TODO: Reintroduce after testing is finished, this is actually correct
 		//if(!axiom.getProperty().isTopEntity())
 			rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
-	public void visit(OWLFunctionalObjectPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLFunctionalObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLSubObjectPropertyOfAxiom axiom) {
+	public void visit(@Nonnull OWLSubObjectPropertyOfAxiom axiom) {
 		OWLObjectPropertyExpression expr = axiom.getSubProperty();
 		rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(expr)));
 		expr.accept(this);
@@ -336,43 +350,43 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLDisjointUnionAxiom axiom) {
+	public void visit(@Nonnull OWLDisjointUnionAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLSymmetricObjectPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLSymmetricObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLDataPropertyRangeAxiom axiom) {
+	public void visit(@Nonnull OWLDataPropertyRangeAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLFunctionalDataPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLFunctionalDataPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLEquivalentDataPropertiesAxiom axiom) {
+	public void visit(@Nonnull OWLEquivalentDataPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLClassAssertionAxiom axiom) {
+	public void visit(@Nonnull OWLClassAssertionAxiom axiom) {
 		if(!axiom.getClassExpression().isTopEntity())
 			rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
-	public void visit(OWLEquivalentClassesAxiom axiom) {
+	public void visit(@Nonnull OWLEquivalentClassesAxiom axiom) {
 		OWLClassExpression left = axiom.getClassExpressionsAsList().get(0);
 		OWLClassExpression right = axiom.getClassExpressionsAsList().get(1);
 		
@@ -383,41 +397,41 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLDataPropertyAssertionAxiom axiom) {
+	public void visit(@Nonnull OWLDataPropertyAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLTransitiveObjectPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLTransitiveObjectPropertyAxiom axiom) {
 		rs.addRule(cause, new Rule(null, rs.getId(axiom), null, rs.getId(axiom.getProperty())));
 	}
 
 	@Override
-	public void visit(OWLIrreflexiveObjectPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLIrreflexiveObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLSubDataPropertyOfAxiom axiom) {
+	public void visit(@Nonnull OWLSubDataPropertyOfAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLInverseFunctionalObjectPropertyAxiom axiom) {
+	public void visit(@Nonnull OWLInverseFunctionalObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLSameIndividualAxiom axiom) {
+	public void visit(@Nonnull OWLSameIndividualAxiom axiom) {
 		rs.addRule(cause, new Rule(null, rs.getId(axiom), null));
 	}
 
 	@Override
-	public void visit(OWLSubPropertyChainOfAxiom axiom) {
+	public void visit(@Nonnull OWLSubPropertyChainOfAxiom axiom) {
 		Integer[] props = new Integer[axiom.getPropertyChain().size()];
 		for(int i = 0; i < axiom.getPropertyChain().size(); i++){
 			props[i] = rs.getId(axiom.getPropertyChain().get(i));
@@ -426,47 +440,52 @@ public class ELRuleBuilder implements OWLAxiomVisitor, OWLClassExpressionVisitor
 	}
 
 	@Override
-	public void visit(OWLInverseObjectPropertiesAxiom axiom) {
+	public void visit(@Nonnull OWLInverseObjectPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLHasKeyAxiom axiom) {
+	public void visit(@Nonnull OWLHasKeyAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(OWLDatatypeDefinitionAxiom axiom) {
+	public void visit(@Nonnull OWLDatatypeDefinitionAxiom axiom) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(axiom);
 	}
 
 	@Override
-	public void visit(SWRLRule rule) {
+	public void visit(@Nonnull SWRLRule rule) {
 		// TODO Auto-generated method stub
 		unknownObjects.add(rule);
 	}
 
+	/**
+	 * Lists objects which could not be processed in the last rule generation
+	 * Check this method to find out if the rules generated are sound and complete
+	 * @return A collection of unprocessable objects of the last rule generation
+     */
 	public Collection<OWLObject> unknownObjects() {
 		return unknownObjects;
 	}
 
 	@Override
-	public void visit(OWLObjectProperty property) {
+	public void visit(@Nonnull OWLObjectProperty property) {
 		if(!property.isTopEntity())
 			if(!simulate) rs.addRule(cause, new Rule(null, rs.getId(new OWLDeclarationAxiomImpl(property, Collections.emptyList())), null, rs.getId(property)));
 	}
 
 	@Override
-	public void visit(OWLObjectInverseOf property) {
+	public void visit(@Nonnull OWLObjectInverseOf property) {
 		if(!simulate) rs.addRule(cause, new Rule(rs.getId(property), null, null, rs.getId(property.getInverse())));
 		property.getInverse().accept(this);
 	}
 
 	@Override
-	public void visit(OWLDataProperty property) {
+	public void visit(@Nonnull OWLDataProperty property) {
 		unknownObjects().add(property);
 	}
 

@@ -1,6 +1,5 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule;
 
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.DRBDefinition;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 

@@ -37,8 +37,8 @@ public class SimpleDefinitionLocalityExtractor{
     public static boolean verify = false;
 
     //data structures to track definitions
-    private Map<OWLAxiom, Set<OWLObject>> axiomToDefinitions = new HashMap<>(); //maps axioms to definitions for later deletion
-    private Map<OWLEntity, Set<OWLAxiom>> entityToAxioms = new HashMap<>();    //maps entities to dependent axioms
+    private final Map<OWLAxiom, Set<OWLObject>> axiomToDefinitions = new HashMap<>(); //maps axioms to definitions for later deletion
+    private final Map<OWLEntity, Set<OWLAxiom>> entityToAxioms = new HashMap<>();    //maps entities to dependent axioms
     /**
      * The final definitions used to keep axioms out of the module
      */

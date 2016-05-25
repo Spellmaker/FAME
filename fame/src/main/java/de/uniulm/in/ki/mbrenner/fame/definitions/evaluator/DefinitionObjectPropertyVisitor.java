@@ -9,10 +9,10 @@ import javax.annotation.Nonnull;
  *
  * Created by spellmaker on 27.04.2016.
  */
-public class DefinitionObjectPropertyVisitor implements OWLPropertyExpressionVisitor{
+class DefinitionObjectPropertyVisitor implements OWLPropertyExpressionVisitor{
     OWLPropertyExpression currentProperty;
 
-    private DefinitionEvaluator parent;
+    private final DefinitionEvaluator parent;
 
     public DefinitionObjectPropertyVisitor(DefinitionEvaluator parent) {
         this.parent = parent;

@@ -1,6 +1,5 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.builder;
 
-import org.openrdf.model.vocabulary.OWL;
 import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nonnull;
@@ -11,8 +10,8 @@ import java.util.Map;
  *
  * Created by spellmaker on 28.04.2016.
  */
-public class DBAxiomVisitor implements OWLAxiomVisitor{
-    private DefinitionBuilder parent;
+class DBAxiomVisitor implements OWLAxiomVisitor{
+    private final DefinitionBuilder parent;
 
     public DBAxiomVisitor(DefinitionBuilder parent){
         this.parent = parent;

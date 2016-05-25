@@ -10,11 +10,11 @@ import javax.annotation.Nonnull;
  *
  * Created by spellmaker on 27.04.2016.
  */
-public class DefinitionAxiomVisitor implements OWLAxiomVisitor{
+class DefinitionAxiomVisitor implements OWLAxiomVisitor{
     OWLAxiom currentAxiom;
     boolean locality;
 
-    private DefinitionEvaluator parent;
+    private final DefinitionEvaluator parent;
 
     public DefinitionAxiomVisitor(DefinitionEvaluator parent) {
         this.parent = parent;
@@ -25,7 +25,6 @@ public class DefinitionAxiomVisitor implements OWLAxiomVisitor{
     public void visit(@Nonnull OWLDeclarationAxiom owlDeclarationAxiom) {
         //add later
         locality = true;
-        return;
     }
 
     @Override
@@ -45,7 +44,6 @@ public class DefinitionAxiomVisitor implements OWLAxiomVisitor{
             return;
         }
         locality = false;
-        return;
     }
 
     @Override
@@ -70,7 +68,6 @@ public class DefinitionAxiomVisitor implements OWLAxiomVisitor{
         }
 
         locality = false;
-        return;
     }
 
     @Override
@@ -87,7 +84,7 @@ public class DefinitionAxiomVisitor implements OWLAxiomVisitor{
 
     @Override
     public void visit(@Nonnull OWLTransitiveObjectPropertyAxiom owlTransitiveObjectPropertyAxiom) {
-        if(parent.signature.contains(owlTransitiveObjectPropertyAxiom.getProperty())){
+        if(owlTransitiveObjectPropertyAxiom.getProperty() instanceof OWLEntity && parent.signature.contains(owlTransitiveObjectPropertyAxiom.getProperty())){
             locality = false;
             return;
         }

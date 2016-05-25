@@ -12,15 +12,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * Creates Rules from a tree node structure while filtering out incremental modules affected by the new rules
+ *
  * Created by spellmaker on 18.03.2016.
  */
 public class IncrementalRuleFolder extends NodeFolder {
-    private Set<Rule> rules;
-    private OWLDictionary dictionary;
-    private RuleStorage storage;
-    private List<IncrementalModule> modules;
+    private final Set<Rule> rules;
+    private final OWLDictionary dictionary;
+    private final RuleStorage storage;
+    private final List<IncrementalModule> modules;
     private Set<Integer> moduleBuffer;
-    public Map<IncrementalModule, List<Integer>> applyAxiomToModules; //Module -> List<OWLAxiom>
+    /**
+     * Stores for each module the list of axioms which need to be added to it, if there is at least one such axiom
+     */
+    public final Map<IncrementalModule, List<Integer>> applyAxiomToModules; //Module -> List<OWLAxiom>
 
     private Integer currentReason;
 
@@ -29,7 +34,7 @@ public class IncrementalRuleFolder extends NodeFolder {
     }
 
     private void addToAxiomList(Integer ax, Integer mod){
-        List<Integer> l = applyAxiomToModules.get(mod);
+        List<Integer> l = applyAxiomToModules.get(modules.get(mod));
         if(l == null){
             l = new LinkedList<>();
             applyAxiomToModules.put(modules.get(mod), l);
@@ -37,6 +42,12 @@ public class IncrementalRuleFolder extends NodeFolder {
         l.add(ax);
     }
 
+    /**
+     * Creates a new instance
+     * @param dictionary A dictionary to manage conversion between indices and objects
+     * @param storage A storage for the generated rules
+     * @param modules A list of modules which shall be examined in the rule generation
+     */
     public IncrementalRuleFolder(OWLDictionary dictionary, RuleStorage storage, List<IncrementalModule> modules){
         this.dictionary = dictionary;
         this.storage = storage;
@@ -45,6 +56,10 @@ public class IncrementalRuleFolder extends NodeFolder {
         rules = new HashSet<>();
     }
 
+    /**
+     * Builds the new rules for the provided nodes
+     * @param roots A collection of nodes for which rules need to be generated
+     */
     public void buildRules(List<Node> roots){
         for(Node n : roots){
             rules.clear();
@@ -132,19 +147,14 @@ public class IncrementalRuleFolder extends NodeFolder {
      */
     private Set<Integer> makeAndApply(Set<Integer> m, OWLObject head, List<OWLObject> body){
         int index = makeRule(head, body);
-        Set<Integer> res = new HashSet<>();
-        for(Integer i : m){
-            if(modules.get(i).applySingleRule(lastRule, index))
-                res.add(i);
-        }
-        return res;
+        return m.stream().filter(i -> modules.get(i).applySingleRule(lastRule, index)).collect(Collectors.toSet());
     }
 
     private int makeRule(OWLObject head, List<OWLObject> body){
         if(body == null)
             return makeRuleInt(head, null);
         else
-            return makeRuleInt(head, body.stream().map(x -> dictionary.getId(x)).collect(Collectors.toList()));
+            return makeRuleInt(head, body.stream().map(dictionary::getId).collect(Collectors.toList()));
     }
 
     private int makeRuleInt(OWLObject head, List<Integer> body){

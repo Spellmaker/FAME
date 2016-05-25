@@ -1,7 +1,8 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder;
 
+import de.uniulm.in.ki.mbrenner.fame.definitions.CombinedObjectProperty;
 import de.uniulm.in.ki.mbrenner.fame.definitions.IndicatorClass;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.definition.*;
+import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBDefinition;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
@@ -15,9 +16,9 @@ import java.util.Stack;
  *
  * Created by Spellmaker on 13.05.2016.
  */
-public class DefFinder extends OWLClassExpressionVisitorAdapter {
-    private Set<DRBDefinition> definitions;
-    private Stack<IndicatorClass> currentObject;
+class DefFinder extends OWLClassExpressionVisitorAdapter {
+    private final Set<DRBDefinition> definitions;
+    private final Stack<IndicatorClass> currentObject;
     private OWLObject otherSide;
 
     private DefFinder(){
@@ -50,16 +51,16 @@ public class DefFinder extends OWLClassExpressionVisitorAdapter {
      * @return A set of definitions which define expression as defineAs
      */
     public static Set<DRBDefinition> getDefinitions(OWLObjectPropertyExpression defineAs, OWLObjectPropertyExpression expression){
-        return Collections.singleton(new DRBDefinition(expression, defineAs, new PropertyDefinition()));
+        return Collections.singleton(new DRBDefinition(expression, defineAs));
     }
 
     @Override
     public void visit(OWLObjectSomeValuesFrom expression){
         IndicatorClass id = new IndicatorClass(expression.getFiller());
         if(currentObject.peek() == null)
-            definitions.add(new DRBDefinition(expression.getProperty(), otherSide, new CombinedPropertyDefinition(id)));
+            definitions.add(new DRBDefinition(expression.getProperty(), new CombinedObjectProperty((OWLClassExpression) otherSide, id)));
         else
-            definitions.add(new DRBDefinition(expression.getProperty(), currentObject.peek(), new CombinedPropertyDefinition(id)));
+            definitions.add(new DRBDefinition(expression.getProperty(), new CombinedObjectProperty(currentObject.peek(), id)));
         currentObject.push(id);
         expression.getFiller().accept(this);
         currentObject.pop();
@@ -75,8 +76,8 @@ public class DefFinder extends OWLClassExpressionVisitorAdapter {
     @Override
     public void visit(OWLClass expression){
         if(currentObject.peek() == null)
-            definitions.add(new DRBDefinition(expression, otherSide, new ClassDefinition()));
+            definitions.add(new DRBDefinition(expression, otherSide));
         else
-            definitions.add(new DRBDefinition(expression, currentObject.peek(), new IdClassDefinition(currentObject.peek())));
+            definitions.add(new DRBDefinition(expression, currentObject.peek()));
     }
 }

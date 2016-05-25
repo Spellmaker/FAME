@@ -16,18 +16,37 @@ public class Rule implements Iterable<Integer>{
 	private final Integer head;
 	private final Integer axiom;
 	private final Integer define;
-	private int size;
+	private final int size;
 	private int id = -1;
+	/**
+	 * Counts the number of times the rule occurs in some rule set
+	 */
 	public int occurences;
 
+	/**
+	 * Sets the id of the rule in some rule set
+	 * @param id The id of the rule
+     */
 	public void setId(int id){
 		this.id = id;
 	}
 
+	/**
+	 * Provides the index of the rule in some rule set
+	 * @return The index of the rule
+     */
 	public int getId(){
 		return id;
 	}
 
+	/**
+	 * Constructs a new rule.
+	 * Note that a rule has exactly one of head or axiom, neither can both be set to null, nor should both be different from null
+	 * @param head The head of the rule, if it is an intermediate rule
+	 * @param axiom The axiom of the rule, if it is an axiom rule
+	 * @param define The definition which can be used to avoid adding the axiom
+     * @param body The body of the rule
+     */
 	public Rule(Integer head, Integer axiom, Integer define, Integer ...body){
 		this.axiom = axiom;
 		this.define = define;
@@ -47,6 +66,14 @@ public class Rule implements Iterable<Integer>{
 		this.size = (this.body == null) ? 0 : this.body.length;
 	}
 
+	/**
+	 * Constructs a new rule.
+	 * Note that a rule has exactly one of head or axiom, neither can both be set to null, nor should both be different from null
+	 * @param head The head of the rule, if it is an intermediate rule
+	 * @param axiom The axiom of the rule, if it is an axiom rule
+	 * @param define The definition which can be used to avoid adding the axiom
+	 * @param body The body of the rule
+	 */
 	public Rule(Integer head, Integer axiom, Integer define, List<Integer> body){
 		this.axiom = axiom;
 		this.head = head;
@@ -59,11 +86,19 @@ public class Rule implements Iterable<Integer>{
 		}
 		this.size = (this.body == null) ? 0 : this.body.length;
 	}
-	
+
+	/**
+	 * Provides access to the axiom of this rule
+	 * @return The axiom of this rule
+     */
 	public Integer getAxiom(){
 		return axiom;
 	}
-	
+
+	/**
+	 * Provides access to the definition of this rule
+	 * @return The definition of this rule
+     */
 	public Integer getDefinition(){
 		return define;
 	}
@@ -76,10 +111,19 @@ public class Rule implements Iterable<Integer>{
 		return head;
 	}
 
+	/**
+	 * Provides access to the non-null element head of this rule, which is either head or axiom
+	 * @return head or axiom, depending on which element is null
+     */
 	public Integer getHeadOrAxiom(){
 		return (head == null) ? axiom : head;
 	}
-	
+
+	/**
+	 * Provides access to body elements
+	 * @param i The index of the element
+	 * @return The ith element in the body
+     */
 	public Integer get(int i){
 		return body[i];
 	}
@@ -106,6 +150,11 @@ public class Rule implements Iterable<Integer>{
 		return res;
 	}
 
+	/**
+	 * Prints the rule using a rule set to resolve indices to actual readable OWL objects
+	 * @param rs The rule set used for index transformation
+	 * @return A string representation of this rule with readable OWL objects
+     */
 	public String toDebugString(RuleSet rs){
 		String res = "";
 		if(body != null)
@@ -139,7 +188,11 @@ public class Rule implements Iterable<Integer>{
 			}
 		return res;
 	}
-	
+
+	/**
+	 * Provides the number of elements in the rule body
+	 * @return The number of elements in the rule body
+     */
 	public int size(){
 		return size;
 	}
@@ -154,11 +207,10 @@ public class Rule implements Iterable<Integer>{
 			res = res && (other.axiom == null && axiom == null) ||
 					(other.axiom != null && axiom != null && other.axiom.toString().equals(axiom.toString()));
 
-			if(res && ((body == null && other.body == null) || other.body.length == body.length)){
+			if(res && ((body == null && other.body == null) || (other.body != null && body != null && other.body.length == body.length))){
 				Iterator<Integer> otherIter = other.iterator();
-				Iterator<Integer> myIter = iterator();
-				while(myIter.hasNext()){
-					if(!otherIter.next().toString().equals(myIter.next().toString())) return false;
+				for (Integer integer : this) {
+					if (!otherIter.next().toString().equals(integer.toString())) return false;
 				}
 				return true;
 			}

@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
  *
  * Created by spellmaker on 27.04.2016.
  */
-public class DefinitionClassVisitor implements OWLClassExpressionVisitor{
+class DefinitionClassVisitor implements OWLClassExpressionVisitor{
     OWLClassExpression currentClass;
-    private DefinitionEvaluator parent;
+    private final DefinitionEvaluator parent;
 
     public DefinitionClassVisitor(DefinitionEvaluator parent) {
         this.parent = parent;

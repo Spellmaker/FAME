@@ -9,9 +9,9 @@ import javax.annotation.Nonnull;
  *
  * Created by spellmaker on 28.04.2016.
  */
-public class DBPropertyVisitor implements OWLPropertyExpressionVisitor {
+class DBPropertyVisitor implements OWLPropertyExpressionVisitor {
     //OWLPropertyExpression currentProperty;
-    DefinitionBuilder parent;
+    private final DefinitionBuilder parent;
 
     public DBPropertyVisitor(DefinitionBuilder parent){
         this.parent = parent;

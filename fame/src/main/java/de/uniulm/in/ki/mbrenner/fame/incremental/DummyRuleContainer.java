@@ -9,12 +9,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Dummy class for simulating rule sets without any overhead
+ *
  * Created by spellmaker on 11.04.2016.
  */
 public class DummyRuleContainer implements OWLDictionary, RuleStorage {
-    private Map<OWLObject, Integer> objects;
-    private List<OWLObject> reverseObjects;
+    private final Map<OWLObject, Integer> objects;
+    private final List<OWLObject> reverseObjects;
 
+    /**
+     * Default constructor
+     */
     public DummyRuleContainer(){
         objects = new HashMap<>();
         reverseObjects = new ArrayList<>();

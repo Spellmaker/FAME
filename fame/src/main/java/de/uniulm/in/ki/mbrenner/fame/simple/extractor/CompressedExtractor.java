@@ -12,8 +12,17 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRule;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.CompressedRuleSet;
 
+/**
+ * Uses compressed rules to extract modules from an ontology
+ */
 public class CompressedExtractor {
 
+	/**
+	 * Extracts a module using the rule set and the signature
+	 * @param rules A set of compressed rules
+	 * @param signature A signature
+     * @return A module for the given signature
+     */
 	public Set<OWLAxiom> extractModule(CompressedRuleSet rules, Set<OWLEntity> signature){
 		boolean[] known = new boolean[rules.dictionarySize()];
 		

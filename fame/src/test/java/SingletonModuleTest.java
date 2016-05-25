@@ -1,6 +1,3 @@
-/**
- * Created by spellmaker on 08.03.2016.
- */
 
 import de.uniulm.in.ki.mbrenner.fame.ModuleSetup;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.CompressedExtractor;
@@ -27,34 +24,42 @@ import java.util.*;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+/**
+ * Tests the correctness of different extractors for modules generated for singleton signatures
+ */
 @RunWith(Parameterized.class)
 public class SingletonModuleTest {
-    private File file;
+    private final File file;
 
+    /**
+     * Creates a new test
+     * @param f The test ontology
+     */
     public SingletonModuleTest(File f){
         this.file = f;
     }
 
     private File modulePath(OWLEntity e){
         Path tdir = Paths.get(ModuleSetup.moduleDirectory).resolve(file.getName());
-        File f = tdir.resolve(ModuleSetup.sanitizeFilename(e.toString())).toFile();
-        return f;
+        return tdir.resolve(ModuleSetup.sanitizeFilename(e.toString())).toFile();
     }
 
     private File modulePathEq(OWLEntity e){
         Path tdir = Paths.get(ModuleSetup.moduleDirectory).resolve(file.getName());
-        File f = tdir.resolve(ModuleSetup.sanitizeFilename(e.toString()) + "_eq").toFile();
-        return f;
+        return tdir.resolve(ModuleSetup.sanitizeFilename(e.toString()) + "_eq").toFile();
     }
 
     private OWLOntology getOntology() throws OWLOntologyCreationException{
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
         loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new FileDocumentSource(file), loaderConfig);
-        return o;
+        return m.loadOntologyFromOntologyDocument(new FileDocumentSource(file), loaderConfig);
     }
 
+    /**
+     * Tests the normal rule builder with the normal extractor for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testModuleBMRBNormal() throws OWLOntologyCreationException{
         OWLOntology o = getOntology();
@@ -70,6 +75,10 @@ public class SingletonModuleTest {
         }
     }
 
+    /**
+     * Tests the normal rule builder together with the nodef extractor for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testModuleBMRBNoDef() throws OWLOntologyCreationException{
         OWLOntology o = getOntology();
@@ -85,6 +94,10 @@ public class SingletonModuleTest {
         }
     }
 
+    /**
+     * Tests the incremental module extractor for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testModuleIncremental() throws OWLOntologyCreationException{
         OWLOntology o = getOntology();
@@ -93,13 +106,17 @@ public class SingletonModuleTest {
             if(!(e instanceof OWLClass) && !(e instanceof OWLObjectProperty)) continue;
             if(!modulePath(e).exists()) continue;
 
-            Set<OWLEntity> signature = new HashSet<>();
-            signature.add(e);
+            //Set<OWLEntity> signature = new HashSet<>();
+            //signature.add(e);
             ModuleDiff diff = ModuleDiff.diff(modulePath(e), ie.extractModule(e).getOWLModule());
             assertTrue(makeMessage("Incremental", diff, e), diff.modulesTempEqual());
         }
     }
 
+    /**
+     * Tests the compressed module extraction chain for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testModuleCR() throws OWLOntologyCreationException{
         OWLOntology o = getOntology();
@@ -115,6 +132,10 @@ public class SingletonModuleTest {
         }
     }
 
+    /**
+     * Tests the el rule builder together with the normal extractor for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testModuleELNormal() throws OWLOntologyCreationException{
         ELRuleBuilder el = new ELRuleBuilder();
@@ -133,6 +154,10 @@ public class SingletonModuleTest {
         }
     }
 
+    /**
+     * Tests the el rule builder together with the noDef extractor for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testModuleELNoDef() throws OWLOntologyCreationException{
         ELRuleBuilder el = new ELRuleBuilder();
@@ -151,6 +176,10 @@ public class SingletonModuleTest {
         }
     }
 
+    /**
+     * Tests the correctness of el rulebuilder  eq locality modules for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testEqModuleEL() throws OWLOntologyCreationException{
         ELRuleBuilder el = new ELRuleBuilder();
@@ -170,6 +199,10 @@ public class SingletonModuleTest {
         }
     }
 
+    /**
+     * Tests the correctness of normal rule builder eq locality modules for correctness
+     * @throws OWLOntologyCreationException If the ontology could not be loaded
+     */
     @Test
     public void testEqModuleBMRB() throws OWLOntologyCreationException{
         RuleBuilder bmrb = new RuleBuilder();
@@ -205,32 +238,31 @@ public class SingletonModuleTest {
         ModuleSetup.prepare();
     }*/
 
+    /**
+     * Collects test ontologies
+     * @return The ontologies for the test cases
+     */
     @Parameterized.Parameters
     public static Collection<Object[]> data(){
         Collection<Object[]> result = new LinkedList<>();
         Path modulePath = Paths.get(ModuleSetup.moduleDirectory);
         try(DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(ModuleSetup.ontologyDirectory))) {
             for (Path path : directoryStream) {
-                Path tdir = modulePath.resolve(path.getFileName());
-                OWLOntology o = null;
-                OWLOntologyManager m = null;
+                //Path tdir = modulePath.resolve(path.getFileName());
+                OWLOntology o;
+                OWLOntologyManager m;
                 try {
                     m = OWLManager.createOWLOntologyManager();
                     OWLOntologyLoaderConfiguration loaderConfig = new OWLOntologyLoaderConfiguration();
                     loaderConfig = loaderConfig.setLoadAnnotationAxioms(false);
                     o = m.loadOntologyFromOntologyDocument(new FileDocumentSource(path.toFile()), loaderConfig);
-
-                } catch (OWLOntologyCreationException exc) {
-                    System.out.println("Could not load ontology '" + path + "': " + exc.getMessage());
-                    continue;
-                } catch (UnloadableImportException exc) {
-                    System.out.println("Could not load ontology '" + path + "': " + exc.getMessage());
-                    continue;
-                }
-                if(o != null){
+                    if(o.isEmpty()) throw new OWLOntologyCreationException("ontology is empty");
                     Object[] tmp = new Object[1];
                     tmp[0] = path.toFile();
                     result.add(tmp);
+
+                } catch (OWLOntologyCreationException | UnloadableImportException exc) {
+                    System.out.println("Could not load ontology '" + path + "': " + exc.getMessage());
                 }
             }
         }

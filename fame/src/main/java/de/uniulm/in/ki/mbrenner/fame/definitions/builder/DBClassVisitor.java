@@ -11,9 +11,9 @@ import javax.annotation.Nonnull;
  *
  * Created by spellmaker on 28.04.2016.
  */
-public class DBClassVisitor implements OWLClassExpressionVisitor {
-    OWLClassExpression currentClass;
-    DefinitionBuilder parent;
+class DBClassVisitor implements OWLClassExpressionVisitor {
+    private OWLClassExpression currentClass;
+    private final DefinitionBuilder parent;
 
     public DBClassVisitor(DefinitionBuilder parent){
         this.parent = parent;
@@ -52,7 +52,7 @@ public class DBClassVisitor implements OWLClassExpressionVisitor {
 
     @Override
     public void visit(@Nonnull OWLObjectIntersectionOf owlObjectIntersectionOf) {
-        //TODO: Again, when the target expression is an object intersection aswell it might be an idea to try and bind single parts to it
+        //TODO: Again, when the target expression is an object intersection as well it might be an idea to try and bind single parts to it
         OWLObject def = parent.definitions.get(owlObjectIntersectionOf);
         if(def != null){
             if(def.equals(parent.currentTarget)){
@@ -91,16 +91,16 @@ public class DBClassVisitor implements OWLClassExpressionVisitor {
         //if there is no definition try to define the property as top and the class expression
         //as the desired target
         //TODO: what if the desired target is also an existential restriction? there is another possibility
-        OWLObject ctarget = parent.currentTarget;
+        OWLObject cTarget = parent.currentTarget;
 
         //filler needs to be interpreted as the indicator class
         IndicatorClass ind = new IndicatorClass(owlObjectSomeValuesFrom.getFiller());
         parent.currentTarget = ind;
         owlObjectSomeValuesFrom.getFiller().accept(this);
-        parent.definitions.put(owlObjectSomeValuesFrom, ctarget);
-        parent.currentTarget = new CombinedObjectProperty((OWLClassExpression) ctarget, ind);
+        parent.definitions.put(owlObjectSomeValuesFrom, cTarget);
+        parent.currentTarget = new CombinedObjectProperty((OWLClassExpression) cTarget, ind);
         owlObjectSomeValuesFrom.getProperty().accept(parent.propertyVisitor);
-        parent.currentTarget = ctarget;
+        parent.currentTarget = cTarget;
     }
 
     //below is not allowed

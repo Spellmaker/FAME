@@ -10,14 +10,21 @@ import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
+ * Axiom Visitor for the TreeBuilder *
+ *
  * Created by spellmaker on 18.03.2016.
  */
-public class TreeAxiomVisitor extends OWLAxiomVisitorAdapter {
-    private TreeBuilder master;
-    private TreeEntityVisitor entityVisitor;
+class TreeAxiomVisitor extends OWLAxiomVisitorAdapter {
+    private final TreeBuilder master;
+    private final TreeEntityVisitor entityVisitor;
 
+    /**
+     * Creates a new instance
+     * @param master The owner of this Visitor
+     */
     public TreeAxiomVisitor(TreeBuilder master){
         this.master = master;
         entityVisitor = new TreeEntityVisitor(master);
@@ -153,10 +160,7 @@ public class TreeAxiomVisitor extends OWLAxiomVisitorAdapter {
 
     @Override
     public void visit(OWLDifferentIndividualsAxiom axiom) {
-        List<Node> nodes = new LinkedList<>();
-        for(OWLIndividual ind : axiom.getIndividualsAsList()){
-            nodes.add(new LeafNode(ind));
-        }
+        List<Node> nodes = axiom.getIndividualsAsList().stream().map(LeafNode::new).collect(Collectors.toCollection(LinkedList::new));
         master.makeOrNode(axiom, nodes);
     }
 
@@ -206,10 +210,7 @@ public class TreeAxiomVisitor extends OWLAxiomVisitorAdapter {
     }
     @Override
     public void visit(OWLSameIndividualAxiom axiom) {
-        List<Node> nodes = new LinkedList<>();
-        for(OWLIndividual ind : axiom.getIndividualsAsList()){
-            nodes.add(new LeafNode(ind));
-        }
+        List<Node> nodes = axiom.getIndividualsAsList().stream().map(LeafNode::new).collect(Collectors.toCollection(LinkedList::new));
         master.makeOrNode(axiom, nodes);
     }
 
@@ -261,12 +262,12 @@ public class TreeAxiomVisitor extends OWLAxiomVisitorAdapter {
     @Override
     public void visit(OWLDisjointObjectPropertiesAxiom axiom) {
         List<Node> props = new LinkedList<>();
-        List<OWLObjectPropertyExpression> expr = new LinkedList<>();
+        //List<OWLObjectPropertyExpression> expr = new LinkedList<>();
 
         for(OWLObjectPropertyExpression oce : axiom.getProperties()){
             oce.accept(master.treeObjectPropertyVisitor);
             props.add(master.currentNode);
-            expr.add(oce);
+            //expr.add(oce);
         }
 
         List<Node> rnodes = new LinkedList<>();

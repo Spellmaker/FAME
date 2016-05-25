@@ -6,9 +6,16 @@ import org.semanticweb.owlapi.model.OWLObject;
 import java.util.List;
 
 /**
+ * Represents a node which triggers if one of the children is triggering
+ *
  * Created by spellmaker on 18.03.2016.
  */
 public class OrNode extends Node{
+    /**
+     * Constructs a new instance
+     * @param symbol The symbol of this node
+     * @param children The children of this node
+     */
     public OrNode(OWLObject symbol, List<Node> children){
         super(symbol, children);
     }

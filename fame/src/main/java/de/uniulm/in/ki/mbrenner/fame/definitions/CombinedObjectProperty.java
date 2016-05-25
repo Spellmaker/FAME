@@ -18,12 +18,25 @@ public class CombinedObjectProperty implements OWLObjectProperty{
         this.mapping = new HashMap<>();
     }
 
+    /**
+     * Builds a new combined object property
+     * @param from The value the indicator class is mapped to
+     * @param to The indicator class
+     */
     public CombinedObjectProperty(OWLClassExpression from, IndicatorClass to){
         this.mapping = new HashMap<>();
         this.mapping.put(to, from);
         this.mapping = Collections.unmodifiableMap(this.mapping);
     }
 
+    /**
+     * Creates a new combined object property as the result of merging another with this instance
+     * The result may be invalid, as there are no sanity checks made. In particular, mappings from
+     * the other property may override mappings of this property.
+     * If the operations succeeds, the property satisfies all mappings from both properties
+     * @param other A combined object property
+     * @return A merged combined object property
+     */
     public CombinedObjectProperty merge(CombinedObjectProperty other){
         CombinedObjectProperty res = new CombinedObjectProperty();
         res.mapping.putAll(this.mapping);
@@ -32,15 +45,34 @@ public class CombinedObjectProperty implements OWLObjectProperty{
         return res;
     }
 
+    /**
+     * Determines if this property is compatible to another property
+     * A property is compatible, if there are no conflicting mappings
+     * @param sop A property which shall be tested for compatibility
+     * @return True, if the two properties are compatible
+     */
     public boolean isCompatible(CombinedObjectProperty sop){
         return sop.mapping.keySet().stream().filter(x -> mapping.get(x) != null).count() == 0;
     }
 
+    /**
+     * Tries to find a mapping for the provided class expression
+     * @param oce A class expression, which needs to be an indicator class to obtain any value different from null
+     * @return The mapping for oce or null, if there is no mapping
+     */
     public OWLClassExpression getMapping(OWLClassExpression oce){
         if(!(oce instanceof IndicatorClass)) return null;
         return mapping.get(oce);
     }
 
+    /**
+     * Tests if the provided property expression is a sub property of this property.
+     * This can only be guaranteed, if the other property is also a combined object property,
+     * in which case the sub-properties can be determined by testing, if all mappings of the
+     * other property are contained in this property
+     * @param s A property expression
+     * @return True, if this property contains the other property
+     */
     public boolean containsProperty(OWLObjectPropertyExpression s){
         if(s instanceof CombinedObjectProperty){
             CombinedObjectProperty other = (CombinedObjectProperty) s;
@@ -181,6 +213,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
         throw new OWLRuntimeException();
     }
 
+    @Deprecated
     @Nonnull
     @Override
     public OWLObjectPropertyExpression getSimplified() {

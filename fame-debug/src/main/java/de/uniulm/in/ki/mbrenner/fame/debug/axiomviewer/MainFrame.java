@@ -52,7 +52,7 @@ public class MainFrame extends JFrame{
         Set<OWLEntity> signature = new HashSet<>();
         //somehow obtain an entity
         for(OWLEntity ent : o.getSignature()){
-            if(ent.toString().equals("<http://www.co-ode.org/ontologies/galen#PositiveFamilyHistory>")) signature.add(ent);
+            if(ent.toString().equals("<http://www.co-ode.org/ontologies/galen#ClinicalElectricalDischarging>")) signature.add(ent);
         }
         RuleSet rs = new RuleBuilder().buildRules(o);
         DRBRuleSet drs = new DRBRuleBuilder().buildRules(o);

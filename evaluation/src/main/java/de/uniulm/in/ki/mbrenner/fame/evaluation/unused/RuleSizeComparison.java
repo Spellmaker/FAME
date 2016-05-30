@@ -12,6 +12,15 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.RuleSizeWorker;
 
 public class RuleSizeComparison implements EvaluationCase {
+	@Override
+	public String getParameter() {
+		return "rule-size";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
 	public static void makeOutput(Long[] res){
 		EvaluationMain.out.println("Ontology size: " + res[0] + " axioms, " + res[1] + " bytes");
 		EvaluationMain.out.println("el: " + res[2] + " rules, " + res[3] + " bytes");

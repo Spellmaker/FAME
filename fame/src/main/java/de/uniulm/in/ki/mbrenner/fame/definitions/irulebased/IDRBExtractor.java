@@ -1,9 +1,8 @@
-package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased;
+package de.uniulm.in.ki.mbrenner.fame.definitions.irulebased;
 
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBDefinition;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBDefinition;
+import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBRule;
+import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBRuleSet;
 import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -21,25 +20,30 @@ import java.util.*;
  *
  * Created by spellmaker on 20.05.2016.
  */
-public class DRBExtractor{
-    private Queue<OWLObject> procQueue;
-    private Set<OWLObject> notBot;
-    private Set<OWLObject> inSignature;
+public class IDRBExtractor {
+    private Queue<Integer> procQueue;
+    private boolean[] isBot;
+    private boolean[] inSignature;
 
-    private Map<OWLObject, OWLObject> isDefinedAs;
+    private Integer[] isDefinedAs;
+    private Set<Integer>[] isReasonFor;
+    private Set<Integer>[] invariants;
+    private Set<Integer>[] invariantAxioms;
+    private Set<Integer>[] objectsToAxioms;
+    /*private Map<OWLObject, OWLObject> isDefinedAs;
     private Map<OWLObject, Set<OWLObject>> isReasonFor;
     private Map<OWLObject, Set<OWLObject>> invariants;
     private Map<OWLObject, Set<OWLAxiom>> invariantAxioms;
-    private Map<OWLEntity, Set<OWLAxiom>> objectsToAxioms;
-
-    private Set<OWLAxiom> module;
+    private Map<OWLEntity, Set<OWLAxiom>> objectsToAxioms;*/
+    
+    private Set<Integer> module;
 
     private static boolean debug = false;
 
     /**
      * Default constructor
      */
-    public DRBExtractor(){
+    public IDRBExtractor(){
         debug = false;
     }
 
@@ -48,25 +52,30 @@ public class DRBExtractor{
      * Allows to choose the debugging mode
      * @param d If debug mode is to be enabled
      */
-    public DRBExtractor(boolean d){
+    public IDRBExtractor(boolean d){
         debug = d;
     }
 
-    private void addQueue(OWLObject o){
-        if(notBot.add(o)) procQueue.add(o);
-    }
-
-    private void addSignature(OWLEntity e){
-        if(inSignature.add(e)){
-            module.add(new OWLDeclarationAxiomImpl(e, Collections.emptySet()));
+    private void addQueue(Integer o){
+        if(!isBot[o]){
+            isBot[o] = true;
+            procQueue.add(o);
         }
     }
 
-    private void addResponsible(OWLObject symbol, OWLObject cause){
-        Set<OWLObject> set = isReasonFor.get(cause);
+    private void addSignature(Integer e){
+        if(!inSignature[e]){
+            inSignature[e] = true;
+            //TODO: Implement
+            // /module.add(new OWLDeclarationAxiomImpl(, Collections.emptySet()));
+        }
+    }
+
+    private void addResponsible(Integer symbol, Integer cause){
+        Set<Integer> set = isReasonFor[cause];
         if(set == null){
             set = new HashSet<>();
-            isReasonFor.put(cause, set);
+            isReasonFor[cause] = set;
         }
         set.add(symbol);
     }
@@ -76,16 +85,12 @@ public class DRBExtractor{
      * @return The definitions used by the last extraction process
      */
     public Map<OWLObject, OWLObject> getDefinitions(){
-        Map<OWLObject, OWLObject> defs = new HashMap<>();
-        isDefinedAs.entrySet().stream().filter(e -> !inSignature.contains(e.getKey())).forEach(e -> defs.put(e.getKey(), e.getValue()));
-        return Collections.unmodifiableMap(defs);
+        //Map<Integer, Integer> defs = new HashMap<>();
+        //isDefinedAs.entrySet().stream().filter(e -> !inSignature.contains(e.getKey())).forEach(e -> defs.put(e.getKey(), e.getValue()));
+        //return Collections.unmodifiableMap(defs);
+        //TODO: Implement
+        return null;
     }
-
-    static OWLEntity modConcept = null;
-    static OWLEntity domCat = null;
-    static OWLEntity phen = null;
-    static OWLEntity topCat = null;
-
 
     /**
      * Extracts a definition local module for the provided signature
@@ -93,33 +98,34 @@ public class DRBExtractor{
      * @param signature The signature for the module
      * @return A definition local module for the provided signature
      */
-    public Set<OWLAxiom> extractModule(@Nonnull DRBRuleSet rules, @Nonnull Set<OWLEntity> signature){
+    public Set<Integer> extractModule(@Nonnull IDRBRuleSet rules, @Nonnull Set<OWLEntity> signature){
         procQueue = new LinkedList<>();
         int[] ruleCounter = new int[rules.size()];
-        notBot = new HashSet<>();
-        inSignature = new HashSet<>();
-        isDefinedAs = new HashMap<>();
-        isReasonFor = new HashMap<>();
-        objectsToAxioms = new HashMap<>();
-        Set<OWLAxiom> extModule = new HashSet<>();
-        invariants = new HashMap<>();
-        invariantAxioms = new HashMap<>();
+        isBot = new boolean[rules.dictionarySize()];
+        inSignature = new boolean[rules.dictionarySize()];
+        isDefinedAs = new Integer[rules.dictionarySize()];
+        isReasonFor = new Set[rules.dictionarySize()];
+        objectsToAxioms = new Set[rules.dictionarySize()];
+        Set<Integer> extModule = new HashSet<>();
+        invariants = new Set[rules.dictionarySize()];
+        invariantAxioms = new Set[rules.dictionarySize()];
 
         module = new HashSet<>();
 
         for(OWLEntity e : signature){
-            procQueue.add(e);
-            notBot.add(e);
-            addSignature(e);
+            Integer id = rules.getId(e);
+            procQueue.add(id);
+            isBot[id] = true;
+            addSignature(id);
         }
 
         if(debug) System.out.println("starting extraction for sig " + OWLPrinter.getString(signature));
 
         while(!procQueue.isEmpty()){
-            OWLObject head = procQueue.poll();
-            if(debug) System.out.println("head: " + OWLPrinter.getString(head));
-            for(Iterator<DRBRule> ruleIterator = rules.rulesForObjects(head); ruleIterator.hasNext(); ){
-                DRBRule cRule = ruleIterator.next();
+            Integer head = procQueue.poll();
+            if(debug) System.out.println("head: " + head);
+            for(Iterator<IDRBRule> ruleIterator = rules.rulesForObjects(head); ruleIterator.hasNext(); ){
+                IDRBRule cRule = ruleIterator.next();
                 //if(debug) System.out.println("\tActive rule: " + cRule + "(" + (ruleCounter[cRule.id] + 1) + "/" + cRule.size() + ")");
                 if(++ruleCounter[cRule.id] >= cRule.size() && (cRule.axiom == null || !extModule.contains(cRule.axiom))){
                     if(debug) System.out.println("\tActive rule: " + cRule + "(" + (ruleCounter[cRule.id] + 1) + "/" + cRule.size() + ")");
@@ -129,38 +135,22 @@ public class DRBExtractor{
                     }
                     else{
                         //actually handle definitions in here
-                        Set<OWLEntity> dependentOn = tryDefine(cRule);
+                        Set<Integer> dependentOn = tryDefine(cRule);
                         extModule.add(cRule.axiom);
-
-                        if(OWLPrinter.getString(cRule.axiom).equals("ModifierConcept⊑DomainCategory") ||
-                                OWLPrinter.getString(cRule.axiom).equals("Phenomenon⊑DomainCategory") ||
-                                OWLPrinter.getString(cRule.axiom).equals("DomainCategory⊑TopCategory")){
-                            System.out.println("found special axiom " + OWLPrinter.getString(cRule.axiom));
-
-                            for(OWLEntity e : DRBRuleBuilder.onto.getSignature()){
-                                String s = OWLPrinter.getString(e);
-                                if(s.equals("ModifierConcept")) modConcept = e;
-                                else if(s.equals("DomainCategory")) domCat = e;
-                                else if(s.equals("Phenomenon")) phen = e;
-                                else if(s.equals("TopCategory")) topCat = e;
-                            }
-                            System.out.println("found all");
-                        }
-
                         if(dependentOn == null){
                             if(debug) System.out.println("cannot establish definition, rolling back");
                             //roll back and re-establish a stable state
-                            rollback(cRule.axiom);
+                            rollback(rules, cRule.axiom);
                         }
                         else{
                             if(debug) System.out.println("definition established");
                             //store definitions by adding a mapping of the defined symbol
                             //to this axiom
-                            for(OWLEntity o : dependentOn){
-                                Set<OWLAxiom> s = objectsToAxioms.get(o);
+                            for(Integer o : dependentOn){
+                                Set<Integer> s = objectsToAxioms[o];
                                 if(s == null){
                                     s = new HashSet<>();
-                                    objectsToAxioms.put(o, s);
+                                    objectsToAxioms[o] = s;
                                 }
                                 addQueue(o);
                                 s.add(cRule.axiom);
@@ -175,27 +165,27 @@ public class DRBExtractor{
         return module;
     }
 
-    private Set<OWLEntity> tryDefine(DRBRule cRule){
+    private Set<Integer> tryDefine(IDRBRule cRule){
         //attempt to use the definition implied by the provided rule
-        Set<OWLEntity> dependentOn = new HashSet<>();
+        Set<Integer> dependentOn = new HashSet<>();
         //only if there even is a definition
         if(!cRule.definitions.isEmpty()){
             //can only be done if all symbols can be defined
-            for(DRBDefinition def : cRule.definitions){
-                OWLEntity symbol = (OWLEntity) def.definedSymbol;
+            for(IDRBDefinition def : cRule.definitions){
+                Integer symbol = def.definedSymbol;
                 //axiom relies on the definition of the symbol
                 dependentOn.add(symbol);
                 //find out what the symbol needs to be defined as
-                OWLObject defAs = def.definingSymbol;//def.definition.action(def.definingSymbol);
+                Integer defAs = def.definingSymbol;//def.definition.action(def.definingSymbol);
                 //resolve the definition to the definition set it belongs to
-                OWLObject defAsResolved = inSignature.contains(defAs) ? defAs : isDefinedAs.get(defAs);
+                Integer defAsResolved = inSignature[defAs] ? defAs : isDefinedAs[defAs];
                 if(defAsResolved == null) defAsResolved = defAs;
                 //find out if there is already a definition for the symbol or if it is in the signature
-                OWLObject existingDef = inSignature.contains(symbol) || symbol.isTopEntity() ? symbol : isDefinedAs.get(symbol);
+                Integer existingDef = inSignature[symbol] || symbol == 0 ? symbol : isDefinedAs[symbol];
 
                 if(existingDef == null){
                     //if there is no definition, make one as needed
-                    isDefinedAs.put(symbol, defAsResolved);
+                    isDefinedAs[symbol] = defAsResolved;
                     addResponsible(symbol, defAs);
                 }
                 else{
@@ -224,81 +214,79 @@ public class DRBExtractor{
         return null;
     }
 
-    private void addInvariant(OWLObject o1, OWLObject o2, OWLAxiom axiom){
-        Set<OWLObject> s = invariants.get(o1);
+    private void addInvariant(Integer o1, Integer o2, Integer axiom){
+        Set<Integer> s = invariants[o1];
         if(s == null){
             s = new HashSet<>();
-            invariants.put(o1, s);
+            invariants[o1] = s;
         }
         s.add(o2);
-        s = invariants.get(o2);
+        s = invariants[o2];
         if(s == null){
             s = new HashSet<>();
-            invariants.put(o2, s);
+            invariants[o2] = s;
         }
         s.add(o1);
 
-        Set<OWLAxiom> sa = invariantAxioms.get(o1);
+        Set<Integer> sa = invariantAxioms[o1];
         if(sa == null){
             sa = new HashSet<>();
-            invariantAxioms.put(o1, sa);
+            invariantAxioms[o1] = sa;
         }
         sa.add(axiom);
-        sa = invariantAxioms.get(o2);
+        sa = invariantAxioms[o2];
         if(sa == null){
             sa = new HashSet<>();
-            invariantAxioms.put(o2, sa);
+            invariantAxioms[o2] = sa;
         }
         sa.add(axiom);
     }
 
-    private boolean invariantHolds(OWLObject o1){
+    private boolean invariantHolds(Integer o1){
         //checks if the invariants for this objects hold
-        Set<OWLObject> s = invariants.get(o1);
+        Set<Integer> s = invariants[o1];
         if(s == null) return true;
 
-        boolean o1InSig = inSignature.contains(o1);
-        for(OWLObject o2 : s){
-            boolean o2InSig = inSignature.contains(o2);
+        boolean o1InSig = inSignature[o1];
+        for(Integer o2 : s){
+            boolean o2InSig = inSignature[o2];
             if(o1InSig && o2InSig) return false;
 
-            OWLObject o1Val = o1InSig ? o1 : isDefinedAs.get(o1); o1Val = o1Val == null ? o1 : o1Val;
-            OWLObject o2Val = o2InSig ? o2 : isDefinedAs.get(o2); o2Val = o2Val == null ? o2 : o2Val;
+            Integer o1Val = o1InSig ? o1 : isDefinedAs[o1]; o1Val = o1Val == null ? o1 : o1Val;
+            Integer o2Val = o2InSig ? o2 : isDefinedAs[o2]; o2Val = o2Val == null ? o2 : o2Val;
 
             if(!o1Val.equals(o2Val)) return false;
         }
         return true;
     }
 
-    private void removeInvariant(OWLObject o1){
-        Set<OWLObject> s = invariants.get(o1);
-        invariants.remove(o1);
-        invariantAxioms.remove(o1);
+    private void removeInvariant(Integer o1){
+        Set<Integer> s = invariants[o1];
+        invariants[o1] = null;
+        invariantAxioms[o1] = null;
         if(s != null){
             s.forEach(this::removeInvariant);
         }
     }
 
-    private Set<OWLObject> updateResponsible(OWLObject o, OWLObject def){
+    private Set<Integer> updateResponsible(Integer o, Integer def){
         //updates the definitions by following subsumption chains
         //and updating the pointers to the definitions
         //also returns a list of symbols, for whom the final definition
         //changed so that the invariants can get checked later
-        Set<OWLObject> changed = new HashSet<>();
-        Set<OWLObject> s = isReasonFor.get(o);
+        Set<Integer> changed = new HashSet<>();
+        Set<Integer> s = isReasonFor[o];
         if(s != null){
-            for(OWLObject other : s){
-                if(!inSignature.contains(other)) {
-                    changed.add(other);
-                    isDefinedAs.put(other, def);
-                    changed.addAll(updateResponsible(other, def));
-                }
+            for(Integer other : s){
+                s.add(other);
+                isDefinedAs[other] = def;
+                s.addAll(updateResponsible(other, def));
             }
         }
         return changed;
     }
 
-    private void rollback(OWLAxiom axiom){
+    private void rollback(IDRBRuleSet ruleSet, Integer axiom){
         //We assume that the provided axiom cannot be made local or stopped being local
         //due to other rollbacks.
         //Rollback removes all definitions for the symbols in the axiom and makes them part
@@ -306,27 +294,27 @@ public class DRBExtractor{
         //on a symbol of this axiom
         if(module.contains(axiom)) return;
 
-        Set<OWLObject> changed = new HashSet<>();
+        Set<Integer> changed = new HashSet<>();
         module.add(axiom);
-        if(debug) System.out.println("adding axiom " + OWLPrinter.getString(axiom));
-        for(OWLEntity e : axiom.getSignature()){
+        if(debug) System.out.println("adding axiom " + axiom);
+        for(Integer e : ruleSet.getSignature(axiom)){
             //update status in the correct table
             addSignature(e);
             addQueue(e);
-            isDefinedAs.remove(e);
+            isDefinedAs[e] = null;
             changed.addAll(updateResponsible(e, e));
-            Set<OWLAxiom> affectedAxioms = objectsToAxioms.get(e);
-            objectsToAxioms.remove(e);
+            Set<Integer> affectedAxioms = objectsToAxioms[e];
+            objectsToAxioms[e] = null;
             if(affectedAxioms != null){
-                affectedAxioms.forEach(this::rollback);
+                affectedAxioms.forEach(x -> rollback(ruleSet, x));
             }
         }
         //verify all affected
         changed.stream().filter(o -> !invariantHolds(o)).forEach(o -> {
-            Set<OWLAxiom> s = invariantAxioms.get(o);
+            Set<Integer> s = invariantAxioms[o];
             removeInvariant(o);
             if (s != null) {
-                s.forEach(this::rollback);
+                s.forEach(x -> rollback(ruleSet, x));
             }
         });
     }

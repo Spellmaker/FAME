@@ -7,7 +7,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
- * Helper class which eases the creation of DRBRule instances without adding too many constructors to the class
+ * Helper class which eases the creation of IDRBRule instances without adding too many constructors to the class
  *
  * Created by Spellmaker on 13.05.2016.
  */

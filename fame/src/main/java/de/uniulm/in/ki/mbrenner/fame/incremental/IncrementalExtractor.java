@@ -107,7 +107,7 @@ public class IncrementalExtractor implements RuleStorage, OWLDictionary {
 
         //ruleHeads = new ArrayList<>(); isAxiomRule = new ArrayList<>();
         ruleList = new LinkedList<>();
-        dictionary = new LinkedList<>(); //rules = new ArrayList<>(size); //ruleOccurences = new ArrayList<>();
+        dictionary = new ArrayList<>(); //rules = new ArrayList<>(size); //ruleOccurences = new ArrayList<>();
 
         modules = new LinkedList<>();
 

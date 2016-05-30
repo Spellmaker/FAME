@@ -12,6 +12,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TestModuleExtraction implements EvaluationCase{
+	@Override
+	public String getParameter() {
+		return "extraction";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
 	public static int sig_size;
 	public static int element_count;
 	public static boolean skip_jcel = false;

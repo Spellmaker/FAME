@@ -15,6 +15,15 @@ import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.ModuleSizeWorker;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.results.ModuleSizeResult;
 
 public class TestModuleSizes implements EvaluationCase{
+	@Override
+	public String getParameter() {
+		return "module-size";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
 	public static boolean skipNonEq = true;
 
 	public static List<Integer> readGenerating(String file) throws Exception{

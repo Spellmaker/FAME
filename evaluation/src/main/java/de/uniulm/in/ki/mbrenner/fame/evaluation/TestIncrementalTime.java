@@ -14,6 +14,15 @@ import java.util.concurrent.Future;
 
 public class TestIncrementalTime implements EvaluationCase{
 	@Override
+	public String getParameter() {
+		return "incrtime";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
+	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		//setup threads
 		ExecutorService mainPool = Executors.newFixedThreadPool(1);

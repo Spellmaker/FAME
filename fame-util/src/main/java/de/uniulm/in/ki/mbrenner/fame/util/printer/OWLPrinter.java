@@ -3,6 +3,7 @@ package de.uniulm.in.ki.mbrenner.fame.util.printer;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -69,6 +70,36 @@ public class OWLPrinter {
         }
     }
 
+    public static void print(Set<OWLEntity> set){
+        System.out.print(getString(set));
+    }
+
+    public static void println(Set<OWLEntity> set){
+        System.out.println(getString(set));
+    }
+
+    public static String getString(Map<OWLObject, OWLObject> map){
+        Iterator<Map.Entry<OWLObject, OWLObject>> iterator = map.entrySet().iterator();
+        if(!iterator.hasNext()) return "";
+        Map.Entry<OWLObject, OWLObject> e = iterator.next();
+        String s = getString(e.getKey()) + " -> " + getString(e.getValue());
+
+        while(iterator.hasNext()){
+            e = iterator.next();
+            s += "\n" + getString(e.getKey()) + " -> " + getString(e.getValue());
+        }
+
+        return s;
+    }
+
+    public static void print(Map<OWLObject, OWLObject> map){
+        System.out.print(getString(map));
+    }
+
+    public static void println(Map<OWLObject, OWLObject> map){
+        System.out.println(getString(map));
+    }
+
     public static void print(OWLObject o){
         System.out.print(getString(o));
     }
@@ -76,4 +107,7 @@ public class OWLPrinter {
     public static void println(OWLObject o){
         System.out.println(getString(o));
     }
+
+
+
 }

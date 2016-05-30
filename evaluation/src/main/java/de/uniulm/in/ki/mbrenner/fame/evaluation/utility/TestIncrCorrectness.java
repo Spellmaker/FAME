@@ -14,6 +14,15 @@ import java.util.concurrent.Future;
 
 public class TestIncrCorrectness implements EvaluationCase {
 	@Override
+	public String getParameter() {
+		return "incrcorrectness";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
+	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		EvaluationMain.out.println("warning: correctness currently excludes declaration axioms");
 		int change = 1;

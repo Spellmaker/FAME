@@ -19,6 +19,15 @@ import java.util.*;
  * Created by Spellmaker on 02.04.2016.
  */
 public class HySModuleExtractionTest implements EvaluationCase{
+    @Override
+    public String getParameter() {
+        return "extraction-hys";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
     public static int sig_size;
     public static int element_count;
     private Random rand;

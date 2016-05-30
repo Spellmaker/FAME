@@ -1,7 +1,7 @@
-package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder;
+package de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rulebuilder;
 
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleFactory;
+import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBRule;
+import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBRuleFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
@@ -17,24 +17,24 @@ import java.util.Set;
  *
  * Created by Spellmaker on 13.05.2016.
  */
-class DRBClass extends OWLClassExpressionVisitorAdapter{
-    private final DRBRuleBuilder parent;
+class IDRBClass extends OWLClassExpressionVisitorAdapter{
+    private final IDRBRuleBuilder parent;
 
-    public DRBClass(DRBRuleBuilder drbRuleBuilder) {
+    public IDRBClass(IDRBRuleBuilder drbRuleBuilder) {
         this.parent = drbRuleBuilder;
     }
 
     @Override
     public void visit(OWLObjectSomeValuesFrom expression){
         expression.getFiller().accept(this);
-        Set<DRBRule> rules = new HashSet<>();
+        Set<IDRBRule> rules = new HashSet<>();
         if(parent.botMode){
             rules.addAll(parent.ruleBuffer.pop());
-            rules.add(DRBRuleFactory.getInternalRule(expression, expression.getProperty(), expression.getFiller()));
+            rules.add(IDRBRuleFactory.getInternalRule(parent.ruleSet, expression, expression.getProperty(), expression.getFiller()));
         }
         else{
             parent.ruleBuffer.pop();
-            rules.add(DRBRuleFactory.getInternalRule(expression, expression.getProperty()));
+            rules.add(IDRBRuleFactory.getInternalRule(parent.ruleSet, expression, expression.getProperty()));
         }
         parent.ruleBuffer.push(rules);
     }
@@ -62,9 +62,9 @@ class DRBClass extends OWLClassExpressionVisitorAdapter{
                 array[pos++] = e;
             }
 
-            Set<DRBRule> r = new HashSet<>();
+            Set<IDRBRule> r = new HashSet<>();
             for(int i = 0; i < classes.size(); i++) r.addAll(parent.ruleBuffer.pop());
-            r.add(DRBRuleFactory.getInternalRule(expression, array));
+            r.add(IDRBRuleFactory.getInternalRule(parent.ruleSet, expression, array));
 
             parent.ruleBuffer.push(r);
         }

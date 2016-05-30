@@ -12,6 +12,15 @@ import java.util.List;
  * Created by spellmaker on 11.04.2016.
  */
 public class MergeResults implements EvaluationCase{
+    @Override
+    public String getParameter() {
+        return "merge";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
 
     @Override
     public void evaluate(List<File> ontologies, List<String> options) throws Exception {

@@ -1,5 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
+import de.uniulm.in.ki.mbrenner.fame.evaluation.framework.SingleLevelEvaluationCase;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.unused.RuleSizeComparison;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.CurrentEvaluation;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.ModulePreparation;
@@ -62,58 +63,34 @@ public class EvaluationMain {
 		}
 		//needs to be done, as some third party algorithms use system.exit
 		forbidSystemExitCall();
-		List<EvaluationCase> ec = new LinkedList<>();
+		List<EvaluationCase> availableCases = new LinkedList<>();
+		availableCases.add(new RuleSizeComparison());
+		availableCases.add(new TestModuleSizes());
+		availableCases.add(new TestRandTimes());
+		availableCases.add(new TestRuleGeneration());
+		availableCases.add(new CurrentEvaluation());
+		availableCases.add(new TestCorrectness());
+		availableCases.add(new ModulePreparation());
+		availableCases.add(new TestIncrCorrectness());
+		availableCases.add(new TestIncrementalTime());
+		availableCases.add(new MemoryTest());
+		availableCases.add(new TestModuleExtraction());
+		availableCases.add(new HySModuleExtractionTest());
+		availableCases.add(new SingleIncrModuleExtractionTest());
+		availableCases.add(new HySRuleGenerationTest());
+		availableCases.add(new MergeResults());
+		availableCases.add(new OntoStat());
+		availableCases.add(new DefinitionEvaluation());
+		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionTimeComparison(), "def-time", null));
+		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionSizeComparison(), "def-size", null));
+		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionCorrectness(), "def-correctness", null));
 
-		if(hasArg(args, "rule-size")){
-			ec.add(new RuleSizeComparison());
-		}
-		else if(hasArg(args, "module-size")){
-			ec.add(new TestModuleSizes());
-		}
-		else if(hasArg(args, "rand-time")){
-			ec.add(new TestRandTimes());
-		}
-		else if(hasArg(args, "rule-gen")){
-			ec.add(new TestRuleGeneration());
-		}
-		else if(hasArg(args, "current")){
-			ec.add(new CurrentEvaluation());
-		}
-		else if(hasArg(args, "correctness")){
-			ec.add(new TestCorrectness());
-		}
-		else if(hasArg(args, "prepare")){
-			ec.add(new ModulePreparation());
-		}
-		else if(hasArg(args, "incrcorrectness")){
-			ec.add(new TestIncrCorrectness());
-		}
-		else if(hasArg(args, "incrtime")){
-			ec.add(new TestIncrementalTime());
-		}
-		else if(hasArg(args, "memory")){
-			ec.add(new MemoryTest());
-		}
-		else if(hasArg(args, "extraction")){
-			ec.add(new TestModuleExtraction());
-		}
-		else if(hasArg(args, "extraction-hys")){
-			ec.add(new HySModuleExtractionTest());
-		}
-		else if(hasArg(args, "extraction-incr")){
-			ec.add(new SingleIncrModuleExtractionTest());
-		}
-		else if(hasArg(args, "rule-gen-hys")){
-			ec.add(new HySRuleGenerationTest());
-		}
-		else if(hasArg(args, "merge")){
-			ec.add(new MergeResults());
-		}
-		else if(hasArg(args, "stats")){
-			ec.add(new OntoStat());
-		}
-		else if(hasArg(args, "definition")){
-			ec.add(new DefinitionEvaluation());
+
+		List<EvaluationCase> ec = new LinkedList<>();
+		for(EvaluationCase c : availableCases){
+			if(hasArg(args, c.getParameter())){
+				ec.add(c);
+			}
 		}
 
 		List<File> ontologies = new LinkedList<>();

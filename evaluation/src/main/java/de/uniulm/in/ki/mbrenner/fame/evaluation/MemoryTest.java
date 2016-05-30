@@ -33,6 +33,15 @@ import java.util.Set;
  */
 public class MemoryTest implements EvaluationCase {
     @Override
+    public String getParameter() {
+        return "memory";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
+    @Override
     public void evaluate(List<File> ontologies, List<String> options) throws Exception {
         Path outPath = null;
         if(options.size() > 0) {

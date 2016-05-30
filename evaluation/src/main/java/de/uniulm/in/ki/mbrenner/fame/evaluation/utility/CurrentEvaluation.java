@@ -5,6 +5,7 @@ import java.util.*;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
+import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
@@ -17,6 +18,15 @@ import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
 public class CurrentEvaluation implements EvaluationCase {
+	@Override
+	public String getParameter() {
+		return "current";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
 	private static boolean checkSkip(Collection<OWLObject> unknown){
 		for(OWLObject o : unknown){
 			if(o instanceof OWLAnnotationObject) continue;
@@ -27,7 +37,22 @@ public class CurrentEvaluation implements EvaluationCase {
 
 	@Override
 	public void evaluate(List<File> ontologies, List<String> options) throws Exception {
-
+		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+		OWLOntology o = m.loadOntologyFromOntologyDocument(ontologies.get(0));
+		IncrementalExtractor ie = new IncrementalExtractor(o);
+		int i = 0;
+		long start, end;
+		start = System.currentTimeMillis();
+		for(OWLEntity e : o.getSignature()){
+			ie.extractModuleStatic(Collections.singleton(e));
+			i++;
+			EvaluationMain.out.println(e);
+			//EvaluationMain.out.println((i++) + "/" + o.getSignature().size());
+			if(i > 2000) break;
+		}
+		end = System.currentTimeMillis();
+		EvaluationMain.out.println("Time: " + (end - start));
+		EvaluationMain.out.println("done");
 	}
 
 	private void checkEqModules(List<File> ontologies) throws OWLOntologyCreationException{

@@ -12,6 +12,15 @@ import java.util.concurrent.Future;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.RuleGenerationWorker;
 
 public class TestRuleGeneration implements EvaluationCase{
+	@Override
+	public String getParameter() {
+		return "rule-gen";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
 	public static boolean skip_jcel = false;
 	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {

@@ -25,6 +25,11 @@ public class IndicatorClass implements OWLClass {
     }
 
     @Override
+    public int hashCode(){
+        return clazz.hashCode() + 1;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return o instanceof IndicatorClass && ((IndicatorClass) o).clazz.equals(clazz);
     }

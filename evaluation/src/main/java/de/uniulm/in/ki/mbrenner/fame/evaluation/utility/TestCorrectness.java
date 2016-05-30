@@ -13,6 +13,15 @@ import java.util.concurrent.Future;
 
 public class TestCorrectness implements EvaluationCase {
 	@Override
+	public String getParameter() {
+		return "correctness";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
+	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		EvaluationMain.out.println("warning: correctness currently excludes declaration axioms");
 		//setup threads

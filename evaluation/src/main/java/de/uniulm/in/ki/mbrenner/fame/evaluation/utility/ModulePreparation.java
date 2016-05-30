@@ -17,6 +17,15 @@ import java.util.concurrent.Executors;
  */
 public class ModulePreparation implements EvaluationCase {
     @Override
+    public String getParameter() {
+        return "prepare";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
+    @Override
     public void evaluate(List<File> ontologies, List<String> options) throws Exception {
         EvaluationMain.out.println("pre-calculating modules for " + ontologies.size() + " ontologies");
         Path outDir = Paths.get(options.get(0));

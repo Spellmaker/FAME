@@ -20,6 +20,15 @@ import java.util.*;
  * Created by Spellmaker on 02.04.2016.
  */
 public class SingleIncrModuleExtractionTest implements EvaluationCase{
+    @Override
+    public String getParameter() {
+        return "extraction-incr";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
     public static int sig_size;
     public static int element_count;
     private Random rand;

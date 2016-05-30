@@ -19,6 +19,15 @@ import java.util.List;
  */
 public class OntoStat implements EvaluationCase {
     @Override
+    public String getParameter() {
+        return "stats";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
+    @Override
     public void evaluate(List<File> ontologies, List<String> options) throws Exception {
         Path outDir = Paths.get(options.get(0));
         List<String> lines = new LinkedList<>();

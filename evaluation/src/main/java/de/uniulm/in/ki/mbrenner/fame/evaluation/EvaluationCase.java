@@ -4,5 +4,7 @@ import java.io.File;
 import java.util.List;
 
 public interface EvaluationCase {
-	public void evaluate(List<File> ontologies, List<String> options) throws Exception;
+	String getParameter();
+	String getHelpLine();
+	void evaluate(List<File> ontologies, List<String> options) throws Exception;
 }

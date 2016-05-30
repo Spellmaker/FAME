@@ -16,6 +16,16 @@ import java.util.List;
  */
 public class DefinitionEvaluation implements EvaluationCase{
     @Override
+    public String getParameter() {
+        return "definition";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
+
+    @Override
     public void evaluate(List<File> ontologies, List<String> options) throws Exception {
         for(File f : ontologies){
             EvaluationMain.out.println("processing " + f);

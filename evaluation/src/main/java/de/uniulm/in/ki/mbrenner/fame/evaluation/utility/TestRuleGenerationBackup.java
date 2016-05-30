@@ -12,6 +12,15 @@ import java.util.concurrent.Future;
 
 public class TestRuleGenerationBackup implements EvaluationCase {
 	@Override
+	public String getParameter() {
+		return null;
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
+	@Override
 	public void evaluate(List<File> files, List<String> options) throws Exception {
 		int iterations = Integer.parseInt(options.get(0));
 		int threadTimeout = Integer.parseInt(options.get(1));

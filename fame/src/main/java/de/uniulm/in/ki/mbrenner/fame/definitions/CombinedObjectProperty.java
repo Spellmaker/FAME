@@ -29,6 +29,12 @@ public class CombinedObjectProperty implements OWLObjectProperty{
         this.mapping = Collections.unmodifiableMap(this.mapping);
     }
 
+    @Override
+    public int hashCode(){
+        int val = mapping.hashCode();
+        return val + val;
+    }
+
     /**
      * Creates a new combined object property as the result of merging another with this instance
      * The result may be invalid, as there are no sanity checks made. In particular, mappings from
@@ -76,12 +82,13 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     public boolean containsProperty(OWLObjectPropertyExpression s){
         if(s instanceof CombinedObjectProperty){
             CombinedObjectProperty other = (CombinedObjectProperty) s;
-            for(Map.Entry<IndicatorClass, OWLClassExpression> entry : other.mapping.entrySet()){
+            return other.mapping.equals(mapping);
+            /*for(Map.Entry<IndicatorClass, OWLClassExpression> entry : other.mapping.entrySet()){
                 if(!entry.getValue().equals(mapping.get(entry.getKey()))){
                     return false;
                 }
             }
-            return true;
+            return true;*/
         }
         return false;
     }

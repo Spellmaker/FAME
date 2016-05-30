@@ -17,7 +17,16 @@ import de.uniulm.in.ki.mbrenner.fame.util.OutputFormatter;
  * options[0]: Number of different singleton signatures to check
  * options[1]: Number of extraction iterations
  */
-public class TestRandTimes implements EvaluationCase{	
+public class TestRandTimes implements EvaluationCase{
+	@Override
+	public String getParameter() {
+		return "rand-time";
+	}
+
+	@Override
+	public String getHelpLine() {
+		return null;
+	}
 	/*public static void makeOutput(Long[] res){
 		Long largest = 0L;
 		for(Long l : res){

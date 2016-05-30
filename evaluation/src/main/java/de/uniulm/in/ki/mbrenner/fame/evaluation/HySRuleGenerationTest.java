@@ -20,6 +20,15 @@ import java.util.*;
  * Created by Spellmaker on 02.04.2016.
  */
 public class HySRuleGenerationTest implements EvaluationCase{
+    @Override
+    public String getParameter() {
+        return "rule-gen-hys";
+    }
+
+    @Override
+    public String getHelpLine() {
+        return null;
+    }
     public static int iterations;
 
     @Override

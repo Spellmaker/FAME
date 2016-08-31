@@ -2,7 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.SimpleDefinitionLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
-import de.uniulm.in.ki.mbrenner.fame.util.ClassCounter;
+import de.uniulm.in.ki.mbrenner.owlapiaddons.misc.ClassCounter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.*;

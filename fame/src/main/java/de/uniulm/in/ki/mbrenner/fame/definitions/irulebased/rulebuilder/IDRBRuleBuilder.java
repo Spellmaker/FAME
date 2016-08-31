@@ -18,10 +18,8 @@ import java.util.Stack;
  */
 public class IDRBRuleBuilder {
     boolean botMode;
-    Stack<Set<IDRBRule>> ruleBuffer;
-
     final IDRBClass classVisitor;
-    private final IDRBAxiom axiomVisitor;
+    final IDRBAxiom axiomVisitor;
 
     IDRBRuleSet ruleSet;
 
@@ -40,19 +38,10 @@ public class IDRBRuleBuilder {
      */
     public IDRBRuleSet buildRules(OWLOntology ontology){
         ruleSet = new IDRBRuleSet();
-        ruleBuffer = new Stack<>();
-
+        ontology.getSignature().forEach(x -> ruleSet.getId(x));
         for(OWLAxiom axiom: ontology.getAxioms()){
-            axiom.accept(axiomVisitor);
+            axiom.accept(axiomVisitor).forEach(ruleSet::addRule);
         }
         return ruleSet;
-    }
-
-    void addRules(){
-        addRules(ruleBuffer.pop());
-    }
-
-    private void addRules(Set<IDRBRule> rules){
-        rules.forEach(x -> ruleSet.addRule(x));
     }
 }

@@ -1,16 +1,20 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.evaluator;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.CombinedObjectProperty;
+import de.uniulm.in.ki.mbrenner.owlapiaddons.visitor.AxiomVisitorAdapter;
 import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nonnull;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Axiom Visitor for the DefinitionEvaluator
  *
  * Created by spellmaker on 27.04.2016.
  */
-class DefinitionAxiomVisitor implements OWLAxiomVisitor{
+class DefinitionAxiomVisitor extends AxiomVisitorAdapter{
     OWLAxiom currentAxiom;
     boolean locality;
 
@@ -131,8 +135,46 @@ class DefinitionAxiomVisitor implements OWLAxiomVisitor{
     }
 
     @Override
-    public void visit(@Nonnull OWLEquivalentObjectPropertiesAxiom owlEquivalentObjectPropertiesAxiom) {
+    public void visit(@Nonnull OWLReflexiveObjectPropertyAxiom owlReflexiveObjectPropertyAxiom) {
+        if(owlReflexiveObjectPropertyAxiom.getProperty() instanceof OWLEntity && parent.signature.contains(owlReflexiveObjectPropertyAxiom.getProperty())){
+            locality = false;
+            return;
+        }
+        //TODO: combined object properties should also be transitive? There are cases, but not a lot
+        /*OWLObjectProperty def = (OWLObjectProperty) parent.definitions.get(owlTransitiveObjectPropertyAxiom.getProperty());
+        if(def != null && !def.equals(parent.data.getOWLTopObjectProperty()) && !def.equals(parent.data.getOWLBottomObjectProperty())){
+            locality = false;
+            return;
+        }*/
 
+        owlReflexiveObjectPropertyAxiom.getProperty().accept(parent.propertyVisitor);
+
+        locality = parent.propertyVisitor.currentProperty.equals(parent.data.getOWLBottomObjectProperty()) ||
+                parent.propertyVisitor.currentProperty.equals(parent.data.getOWLTopObjectProperty());
+    }
+
+    @Override
+    public void visit(@Nonnull OWLObjectPropertyRangeAxiom owlObjectPropertyRangeAxiom) {
+        owlObjectPropertyRangeAxiom.getProperty().accept(parent.propertyVisitor);
+        owlObjectPropertyRangeAxiom.getRange().accept(parent.classVisitor);
+
+        locality = parent.classVisitor.currentClass.equals(parent.data.getOWLThing()) ||
+                parent.propertyVisitor.currentProperty.equals(parent.data.getOWLBottomObjectProperty());
+    }
+
+    @Override
+    public void visit(@Nonnull OWLDisjointClassesAxiom owlDisjointClassesAxiom) {
+        List<OWLClassExpression> classes = new LinkedList<>();
+        owlDisjointClassesAxiom.getClassExpressions().forEach(x -> {x.accept(parent.classVisitor); classes.add(parent.classVisitor.currentClass);});
+        locality = classes.stream().filter(x -> !x.isBottomEntity()).count() <= 1;
+    }
+
+    @Override
+    public void visit(@Nonnull OWLObjectPropertyDomainAxiom owlObjectPropertyDomainAxiom) {
+        owlObjectPropertyDomainAxiom.getProperty().accept(parent.propertyVisitor);
+        owlObjectPropertyDomainAxiom.getDomain().accept(parent.classVisitor);
+
+        locality = parent.classVisitor.currentClass.isTopEntity() || parent.propertyVisitor.currentProperty.isBottomEntity();
     }
 
 
@@ -141,6 +183,11 @@ class DefinitionAxiomVisitor implements OWLAxiomVisitor{
 
     @Override
     public void visit(@Nonnull OWLDatatypeDefinitionAxiom owlDatatypeDefinitionAxiom) {
+
+    }
+
+    @Override
+    public void visit(@Nonnull OWLEquivalentObjectPropertiesAxiom owlEquivalentObjectPropertiesAxiom) {
 
     }
 
@@ -175,22 +222,7 @@ class DefinitionAxiomVisitor implements OWLAxiomVisitor{
     }
 
     @Override
-    public void visit(@Nonnull OWLReflexiveObjectPropertyAxiom owlReflexiveObjectPropertyAxiom) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDisjointClassesAxiom owlDisjointClassesAxiom) {
-
-    }
-
-    @Override
     public void visit(@Nonnull OWLDataPropertyDomainAxiom owlDataPropertyDomainAxiom) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectPropertyDomainAxiom owlObjectPropertyDomainAxiom) {
 
     }
 
@@ -211,11 +243,6 @@ class DefinitionAxiomVisitor implements OWLAxiomVisitor{
 
     @Override
     public void visit(@Nonnull OWLDisjointObjectPropertiesAxiom owlDisjointObjectPropertiesAxiom) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectPropertyRangeAxiom owlObjectPropertyRangeAxiom) {
 
     }
 

@@ -26,7 +26,8 @@ public class TestCorrectness {
     public static @Nonnull
     Collection<OWLAxiom> isDefinitionLocalModule(@Nonnull OWLOntology ontology, @Nonnull Set<OWLAxiom> module,
                                                  @Nonnull Map<OWLObject, OWLObject> definitions, @Nonnull Set<OWLEntity> signature){
-        Set<OWLEntity> extSignature = module.stream().map(x -> x.getSignature()).flatMap(Collection::stream).collect(Collectors.toSet());
+        Set<OWLEntity> extSignature = module.stream().map(OWLAxiom::getSignature).flatMap(Collection::stream).collect(Collectors.toSet());
+        extSignature.addAll(signature);
 
         DefinitionEvaluator eval = new DefinitionEvaluator();
         return ontology.getAxioms().stream().
@@ -38,8 +39,9 @@ public class TestCorrectness {
 
     public static @Nonnull Collection<OWLAxiom> isProperSubset(@Nonnull OWLOntology ontology, @Nonnull Set<OWLAxiom> module,
                                                                @Nonnull Set<OWLEntity> signature){
-        Set<OWLAxiom> botModule = new RBMExtractorNoDef().extractModule(new RuleBuilder().buildRules(ontology), signature);
+        Set<OWLAxiom> botModule = new RBMExtractorNoDef().extractModule(new RuleBuilder().buildRules(ontology), signature).
+                stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());
 
-        return module.stream().filter(x -> !botModule.contains(x)).collect(Collectors.toSet());
+        return module.stream().filter(x -> x instanceof OWLLogicalAxiom).filter(x -> !botModule.contains(x)).collect(Collectors.toSet());
     }
 }

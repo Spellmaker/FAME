@@ -5,7 +5,7 @@ import de.uniulm.in.ki.mbrenner.fame.definitions.evaluator.DefinitionEvaluator;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.DirectLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.*;

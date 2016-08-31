@@ -17,7 +17,7 @@ import java.util.Stack;
  *
  * Created by Spellmaker on 13.05.2016.
  */
-class IDefFinder extends OWLClassExpressionVisitorAdapter {
+public class IDefFinder extends OWLClassExpressionVisitorAdapter {
     private final Set<IDRBDefinition> definitions;
     private final Stack<IndicatorClass> currentObject;
     private OWLObject otherSide;

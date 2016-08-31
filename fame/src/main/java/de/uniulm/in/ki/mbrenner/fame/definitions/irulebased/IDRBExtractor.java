@@ -3,7 +3,7 @@ package de.uniulm.in.ki.mbrenner.fame.definitions.irulebased;
 import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBDefinition;
 import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBRule;
 import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule.IDRBRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -22,7 +22,7 @@ import java.util.*;
  */
 public class IDRBExtractor {
     private Queue<Integer> procQueue;
-    private boolean[] isBot;
+    private boolean[] notBot;
     private boolean[] inSignature;
 
     private Integer[] isDefinedAs;
@@ -35,6 +35,8 @@ public class IDRBExtractor {
     private Map<OWLObject, Set<OWLObject>> invariants;
     private Map<OWLObject, Set<OWLAxiom>> invariantAxioms;
     private Map<OWLEntity, Set<OWLAxiom>> objectsToAxioms;*/
+
+    private IDRBRuleSet rules;
     
     private Set<Integer> module;
 
@@ -57,8 +59,8 @@ public class IDRBExtractor {
     }
 
     private void addQueue(Integer o){
-        if(!isBot[o]){
-            isBot[o] = true;
+        if(!notBot[o]){
+            notBot[o] = true;
             procQueue.add(o);
         }
     }
@@ -85,11 +87,13 @@ public class IDRBExtractor {
      * @return The definitions used by the last extraction process
      */
     public Map<OWLObject, OWLObject> getDefinitions(){
-        //Map<Integer, Integer> defs = new HashMap<>();
-        //isDefinedAs.entrySet().stream().filter(e -> !inSignature.contains(e.getKey())).forEach(e -> defs.put(e.getKey(), e.getValue()));
-        //return Collections.unmodifiableMap(defs);
-        //TODO: Implement
-        return null;
+        Map<OWLObject, OWLObject> defs = new HashMap<>();
+        for(int i = 0; i < isDefinedAs.length; i++){
+            if(isDefinedAs[i] != null && !inSignature[i]){
+                defs.put(rules.getObject(i), rules.getObject(isDefinedAs[i]));
+            }
+        }
+        return Collections.unmodifiableMap(defs);
     }
 
     /**
@@ -99,9 +103,11 @@ public class IDRBExtractor {
      * @return A definition local module for the provided signature
      */
     public Set<Integer> extractModule(@Nonnull IDRBRuleSet rules, @Nonnull Set<OWLEntity> signature){
+        this.rules = rules;
+        IDebug.debugDictionary = rules;
         procQueue = new LinkedList<>();
         int[] ruleCounter = new int[rules.size()];
-        isBot = new boolean[rules.dictionarySize()];
+        notBot = new boolean[rules.dictionarySize()];
         inSignature = new boolean[rules.dictionarySize()];
         isDefinedAs = new Integer[rules.dictionarySize()];
         isReasonFor = new Set[rules.dictionarySize()];
@@ -115,15 +121,24 @@ public class IDRBExtractor {
         for(OWLEntity e : signature){
             Integer id = rules.getId(e);
             procQueue.add(id);
-            isBot[id] = true;
+            notBot[id] = true;
             addSignature(id);
+        }
+
+        //base module
+        for(Integer ax : rules.getBaseAxioms()){
+            rollback(ax);
+        }
+
+        for(Integer e : rules.getBaseEntities()){
+            addQueue(e);
         }
 
         if(debug) System.out.println("starting extraction for sig " + OWLPrinter.getString(signature));
 
         while(!procQueue.isEmpty()){
             Integer head = procQueue.poll();
-            if(debug) System.out.println("head: " + head);
+            if(debug) System.out.println("head: " + OWLPrinter.getString(rules.getObject(head)));
             for(Iterator<IDRBRule> ruleIterator = rules.rulesForObjects(head); ruleIterator.hasNext(); ){
                 IDRBRule cRule = ruleIterator.next();
                 //if(debug) System.out.println("\tActive rule: " + cRule + "(" + (ruleCounter[cRule.id] + 1) + "/" + cRule.size() + ")");
@@ -134,15 +149,35 @@ public class IDRBExtractor {
                         addQueue(cRule.head);
                     }
                     else{
+                        //OWLAxiom tmp = (OWLAxiom) rules.getObject(cRule.axiom);
+                        //if(tmp.toString().equals("SubClassOf(<http://www.co-ode.org/ontologies/galen#ModifierConcept> <http://www.co-ode.org/ontologies/galen#DomainCategory>)")){
+                        //    System.out.println("encountering axiom");
+                        //    for(OWLEntity e : tmp.getSignature()){
+                        //        int id = rules.getId(e);
+                        //        System.out.println(OWLPrinter.getString(e) + " notBot: " + notBot[id] + " inSig: " + inSignature[id] + " def: " + rules.getObject(isDefinedAs[id]));
+                        //    }
+                        //}
+
+                        //if(OWLPrinter.getString(tmp).equals("Trans(InverseLocativeAttribute)")){
+                        //    System.out.println("encountered axiom Trans(InverseLocativeAttribute)");
+                        //}
+
+
                         //actually handle definitions in here
                         Set<Integer> dependentOn = tryDefine(cRule);
                         extModule.add(cRule.axiom);
                         if(dependentOn == null){
+                            //if(tmp.toString().equals("SubClassOf(<http://www.co-ode.org/ontologies/galen#ModifierConcept> <http://www.co-ode.org/ontologies/galen#DomainCategory>)")){
+                            //    System.out.println("rollback");
+                            //}
                             if(debug) System.out.println("cannot establish definition, rolling back");
                             //roll back and re-establish a stable state
-                            rollback(rules, cRule.axiom);
+                            rollback(cRule.axiom);
                         }
                         else{
+                            //if(tmp.toString().equals("SubClassOf(<http://www.co-ode.org/ontologies/galen#ModifierConcept> <http://www.co-ode.org/ontologies/galen#DomainCategory>)")){
+                            //    System.out.println("def success");
+                            //}
                             if(debug) System.out.println("definition established");
                             //store definitions by adding a mapping of the defined symbol
                             //to this axiom
@@ -181,7 +216,7 @@ public class IDRBExtractor {
                 Integer defAsResolved = inSignature[defAs] ? defAs : isDefinedAs[defAs];
                 if(defAsResolved == null) defAsResolved = defAs;
                 //find out if there is already a definition for the symbol or if it is in the signature
-                Integer existingDef = inSignature[symbol] || symbol == 0 ? symbol : isDefinedAs[symbol];
+                Integer existingDef = inSignature[symbol] || symbol == 0 || symbol == 1 ? symbol : isDefinedAs[symbol];
 
                 if(existingDef == null){
                     //if there is no definition, make one as needed
@@ -215,6 +250,7 @@ public class IDRBExtractor {
     }
 
     private void addInvariant(Integer o1, Integer o2, Integer axiom){
+        //System.out.println("adding invariant " + rules.getObject(o1) + "==" + rules.getObject(o2));
         Set<Integer> s = invariants[o1];
         if(s == null){
             s = new HashSet<>();
@@ -249,6 +285,7 @@ public class IDRBExtractor {
 
         boolean o1InSig = inSignature[o1];
         for(Integer o2 : s){
+            //System.out.println("checking invariant " + rules.getObject(o1) + "==" + rules.getObject(o2));
             boolean o2InSig = inSignature[o2];
             if(o1InSig && o2InSig) return false;
 
@@ -278,15 +315,22 @@ public class IDRBExtractor {
         Set<Integer> s = isReasonFor[o];
         if(s != null){
             for(Integer other : s){
-                s.add(other);
-                isDefinedAs[other] = def;
-                s.addAll(updateResponsible(other, def));
+                if(!inSignature[other]) {
+                    changed.add(other);
+                    isDefinedAs[other] = def;
+                    changed.addAll(updateResponsible(other, def));
+                }
             }
         }
         return changed;
     }
 
-    private void rollback(IDRBRuleSet ruleSet, Integer axiom){
+    //public static int hurtInvariants = 0;
+
+    private void rollback(Integer axiom){
+        //boolean found = OWLPrinter.getString(rules.getObject(axiom)).equals("Trans(InverseLocativeAttribute)");
+
+
         //We assume that the provided axiom cannot be made local or stopped being local
         //due to other rollbacks.
         //Rollback removes all definitions for the symbols in the axiom and makes them part
@@ -296,26 +340,34 @@ public class IDRBExtractor {
 
         Set<Integer> changed = new HashSet<>();
         module.add(axiom);
-        if(debug) System.out.println("adding axiom " + axiom);
-        for(Integer e : ruleSet.getSignature(axiom)){
+        if(debug) System.out.println("adding axiom " + OWLPrinter.getString(rules.getObject(axiom)));
+        for(Integer e : rules.getSignature(axiom)){
+            //if(found) System.out.println("rolling back for " + rules.getObject(e));
             //update status in the correct table
             addSignature(e);
             addQueue(e);
             isDefinedAs[e] = null;
+            changed.add(e);
             changed.addAll(updateResponsible(e, e));
             Set<Integer> affectedAxioms = objectsToAxioms[e];
             objectsToAxioms[e] = null;
             if(affectedAxioms != null){
-                affectedAxioms.forEach(x -> rollback(ruleSet, x));
+                affectedAxioms.forEach(x -> rollback(x));
             }
         }
         //verify all affected
+        //if(found){
+        //    changed.forEach(x -> System.out.println(rules.getObject(x) + ": " + invariantHolds(x)));
+        //}
         changed.stream().filter(o -> !invariantHolds(o)).forEach(o -> {
+            hurtInvariants++;
             Set<Integer> s = invariantAxioms[o];
             removeInvariant(o);
             if (s != null) {
-                s.forEach(x -> rollback(ruleSet, x));
+                s.forEach(x -> rollback(x));
             }
         });
     }
+
+    public int hurtInvariants = 0;
 }

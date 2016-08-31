@@ -3,21 +3,22 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.DRBExtractor;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBRuleBuilder;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.framework.OntologyWorker;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.framework.PrintField;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.framework.SingleLevelWorkerFactory;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.framework.WorkerResult;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalModule;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.*;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 /**
  * Created by spellmaker on 25.05.2016.
@@ -42,49 +43,91 @@ public class DefinitionSizeComparison implements SingleLevelWorkerFactory<Defini
     }
 
     @Override
-    public String newResult(DefinitionSizeResult result, int finishedTasks, int maxTasks) {
-        EvaluationMain.out.println("Finished task " + finishedTasks + " of " + maxTasks);
-        EvaluationMain.out.println("bot locality: " + result.botLocSize + " def locality: " + result.defLocSize);
-        String s = result.botLocSize + ";" + result.defLocSize;
-        lines.add(s);
-        return s;
-    }
+    public void newResult(DefinitionSizeResult result){
+        List<String> lines = new LinkedList<>();
+        Iterator<Map.Entry<Long, Long>> iter1 = result.countsBot.entrySet().iterator();
+        Iterator<Map.Entry<Long, Long>> iter2 = result.countsDef.entrySet().iterator();
 
-    @Override
-    public void printFinalResult() {
-        EvaluationMain.out.println("bot locality;def locality");
-        lines.forEach(EvaluationMain.out::println);
+        while(iter1.hasNext() || iter2.hasNext()){
+            String s = "";
+            if(iter1.hasNext()){
+                Map.Entry<Long, Long> e = iter1.next();
+                s += e.getKey() + ";" + e.getValue() + ";";
+            }
+            else{
+                s += ";;";
+            }
+
+            if(iter2.hasNext()){
+                Map.Entry<Long, Long> e = iter2.next();
+                s += e.getKey() + ";" + e.getValue() + ";";
+            }
+            else{
+                s += ";;";
+            }
+            lines.add(s);
+        }
+        try {
+            Files.write(Paths.get("sizes_histogram.csv"), lines);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
-class DefinitionSizeResult{
+class DefinitionSizeResult extends WorkerResult{
+    @PrintField
     public long botLocSize;
+    @PrintField
     public long defLocSize;
+
+    public Map<Long, Long> countsBot;
+    public Map<Long, Long> countsDef;
+
+    @PrintField
+    public long botAvgPerEntity(){
+        if(entities == 0) return 0;
+        return botLocSize / entities;
+    }
+
+    @PrintField
+    public long defAvgPerEntity(){
+        if(entities == 0) return 0;
+        return defLocSize / entities;
+    }
+
+    public DefinitionSizeResult(OntologyWorker<?> worker) {
+        super(worker);
+    }
 }
 
 
-class DefinitionSizeComparisonWorker implements Callable<DefinitionSizeResult>{
-    private File file;
-
+class DefinitionSizeComparisonWorker extends OntologyWorker<DefinitionSizeResult>{
     public DefinitionSizeComparisonWorker(File f){
-        this.file = f;
+        super(f);
     }
 
-    @Override
-    public DefinitionSizeResult call() throws Exception {
-        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-        OWLOntology o = m.loadOntologyFromOntologyDocument(file);
+    private Map<Long, Long> countsBot;
+    private Map<Long, Long> countsDef;
 
+    @Override
+    public DefinitionSizeResult process(OWLOntology o) throws Exception {
         IncrementalExtractor iExtractor = new IncrementalExtractor(o);
         DRBRuleSet drb = new DRBRuleBuilder().buildRules(o);
 
-        DefinitionSizeResult result = new DefinitionSizeResult();
+        DefinitionSizeResult result = new DefinitionSizeResult(this);
+
+
+        countsBot = new HashMap<>();
+        countsDef = new HashMap<>();
 
         int i = 0;
         for(OWLEntity e : o.getSignature()){
             IncrementalModule module = iExtractor.extractModuleStatic(Collections.singleton(e));
-            result.botLocSize += module.size();
-            if(i++ > 2000) break;
+            long val = module.getOWLModule().stream().filter(x -> x instanceof OWLLogicalAxiom).count();
+            result.botLocSize += val;
+            add(countsBot, val);
+            //if(i++ > 2000) break;
         }
 
         EvaluationMain.out.println("completed bot-locality");
@@ -92,10 +135,22 @@ class DefinitionSizeComparisonWorker implements Callable<DefinitionSizeResult>{
         i = 0;
         for(OWLEntity e : o.getSignature()){
             Set<OWLAxiom> module = new DRBExtractor().extractModule(drb, Collections.singleton(e));
-            result.defLocSize += module.size();
-            if(i++ > 2000) break;
+            long val = module.stream().filter(x -> x instanceof OWLLogicalAxiom).count();
+            result.defLocSize += val;
+            //if(i++ > 2000) break;
+            add(countsDef, val);
         }
         EvaluationMain.out.println("completed def-locality");
+        result.countsBot = countsBot;
+        result.countsDef = countsDef;
         return result;
+    }
+
+    private void add(Map<Long, Long> map, long modsize){
+        Long c = map.get(modsize);
+        if(c == null){
+            c = 0L;
+        }
+        map.put(modsize, c + 1);
     }
 }

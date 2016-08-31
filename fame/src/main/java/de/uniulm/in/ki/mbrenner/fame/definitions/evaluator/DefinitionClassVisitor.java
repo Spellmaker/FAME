@@ -1,7 +1,10 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.evaluator;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.CombinedObjectProperty;
+import de.uniulm.in.ki.mbrenner.owlapiaddons.visitor.ClassVisitorAdapter;
 import org.semanticweb.owlapi.model.*;
+import uk.ac.manchester.cs.owl.owlapi.OWLObjectHasValueImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLObjectSomeValuesFromImpl;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;
@@ -13,7 +16,7 @@ import java.util.stream.Collectors;
  *
  * Created by spellmaker on 27.04.2016.
  */
-class DefinitionClassVisitor implements OWLClassExpressionVisitor{
+class DefinitionClassVisitor extends ClassVisitorAdapter{
     OWLClassExpression currentClass;
     private final DefinitionEvaluator parent;
 
@@ -27,8 +30,6 @@ class DefinitionClassVisitor implements OWLClassExpressionVisitor{
             currentClass = owlClass;
             return;
         }
-
-
         OWLClassExpression def = (OWLClassExpression) parent.definitions.get(owlClass);
 
         if(def == null){
@@ -98,8 +99,8 @@ class DefinitionClassVisitor implements OWLClassExpressionVisitor{
         }
         //evaluate operands
         owlObjectSomeValuesFrom.getProperty().accept(parent.propertyVisitor);
-        owlObjectSomeValuesFrom.getFiller().accept(this);
         OWLPropertyExpression property = parent.propertyVisitor.currentProperty;
+        owlObjectSomeValuesFrom.getFiller().accept(this);
 
         //if either of the two evaluates to bottom, return bottom
         if(currentClass.isBottomEntity() || property.isBottomEntity()){
@@ -119,10 +120,13 @@ class DefinitionClassVisitor implements OWLClassExpressionVisitor{
             CombinedObjectProperty cop = (CombinedObjectProperty) property;
             OWLClassExpression target = cop.getMapping(currentClass);
             if(target == null){
-                currentClass = parent.data.getOWLNothing();
+                currentClass = new OWLObjectSomeValuesFromImpl((OWLObjectPropertyExpression) property, currentClass);// parent.data.getOWLNothing();
             }
             else{
                 currentClass = target;
+                if(!parent.isFinalSymbol(target)){
+                    target.accept(this);
+                }
             }
             return;
         }
@@ -132,80 +136,17 @@ class DefinitionClassVisitor implements OWLClassExpressionVisitor{
         currentClass = parent.data.getOWLObjectSomeValuesFrom((OWLObjectPropertyExpression) property, currentClass);
     }
 
-
-    //non-EL+ stuff
     @Override
-    public void visit(@Nonnull OWLObjectUnionOf owlObjectUnionOf) {
-
+    public void visit(OWLObjectHasValue ce){
+        ce.getProperty().accept(parent.propertyVisitor);
+        if(parent.propertyVisitor.currentProperty.isBottomEntity()) currentClass = parent.data.getOWLNothing();
+        else if(parent.propertyVisitor.currentProperty.isTopEntity()) currentClass = parent.data.getOWLThing();
+        else currentClass = new OWLObjectHasValueImpl((OWLObjectPropertyExpression) parent.propertyVisitor.currentProperty, ce.getFiller());
     }
 
     @Override
-    public void visit(@Nonnull OWLObjectComplementOf owlObjectComplementOf) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectAllValuesFrom owlObjectAllValuesFrom) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectHasValue owlObjectHasValue) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectMinCardinality owlObjectMinCardinality) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectExactCardinality owlObjectExactCardinality) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectMaxCardinality owlObjectMaxCardinality) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectHasSelf owlObjectHasSelf) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectOneOf owlObjectOneOf) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDataSomeValuesFrom owlDataSomeValuesFrom) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDataAllValuesFrom owlDataAllValuesFrom) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDataHasValue owlDataHasValue) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDataMinCardinality owlDataMinCardinality) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDataExactCardinality owlDataExactCardinality) {
-
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDataMaxCardinality owlDataMaxCardinality) {
-
+    public void visit(OWLObjectOneOf ce){
+        if(ce.getIndividuals().isEmpty()) currentClass = parent.data.getOWLNothing();
+        else currentClass = ce;
     }
 }

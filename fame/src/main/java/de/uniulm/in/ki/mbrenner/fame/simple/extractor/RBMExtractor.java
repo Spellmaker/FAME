@@ -2,7 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.simple.extractor;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;

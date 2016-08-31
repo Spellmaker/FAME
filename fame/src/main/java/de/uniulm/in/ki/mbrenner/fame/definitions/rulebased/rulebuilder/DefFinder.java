@@ -16,7 +16,7 @@ import java.util.Stack;
  *
  * Created by Spellmaker on 13.05.2016.
  */
-class DefFinder extends OWLClassExpressionVisitorAdapter {
+public class DefFinder extends OWLClassExpressionVisitorAdapter {
     private final Set<DRBDefinition> definitions;
     private final Stack<IndicatorClass> currentObject;
     private OWLObject otherSide;
@@ -33,13 +33,14 @@ class DefFinder extends OWLClassExpressionVisitorAdapter {
      * @return A set of definitions which define expression as defineAs
      */
     public static Set<DRBDefinition> getDefinitions(OWLClassExpression defineAs, OWLClassExpression expression){
+        //Note: For a simplified version, we first only allow definitions, if the
+        //left hand side is a simple class
+        //if(!(defineAs instanceof OWLClass)) return Collections.emptySet();
+
         DefFinder finder = new DefFinder();
         finder.currentObject.push(null);
         finder.otherSide = defineAs;
         expression.accept(finder);
-        //Note: For a simplified version, we first only allow definitions, if the
-        //left hand side is a simple class
-        if(!(defineAs instanceof OWLClass)) return Collections.emptySet();
         return finder.definitions;
     }
     /**

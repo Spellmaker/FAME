@@ -1,9 +1,14 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule;
 
 
+import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.IDebug;
+import de.uniulm.in.ki.mbrenner.fame.incremental.OWLDictionary;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
+
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Represents a derivation rule for the module extraction, which also supports definitions
@@ -88,22 +93,25 @@ public class IDRBRule implements Iterable<Integer>{
 
     @Override
     public String toString(){
+
         String res = "";
         for(Integer o : body){
-            res += o + ", ";
+            res += IDebug.get(o) + ", ";
         }
 
         if(body.size() > 0){
             res = res.substring(0, res.length() - 2);
         }
 
-        res += " -> " + getHeadOrAxiom();
-        if(!definitions.isEmpty()){
-            res += " def: ";
+        res += " -> " + IDebug.get(getHeadOrAxiom());
+        res += " def: " + definitions.stream().map(IDRBDefinition::toString).sorted().collect(Collectors.joining());
+        /*if(!definitions.isEmpty()){
+
+
             for(IDRBDefinition def : definitions){
                 res += def.toString();
             }
-        }
+        }*/
 
         return res;
     }

@@ -1,6 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.rule;
 
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.fame.definitions.irulebased.IDebug;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.metrics.IntegerValuedMetric;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -34,7 +35,7 @@ public class IDRBDefinition {
 
     @Override
     public String toString(){
-        return "[" + definedSymbol + " -> " + definingSymbol + "]";
+        return "[" + IDebug.get(definedSymbol) + " -> " + IDebug.get(definingSymbol) + "]";
     }
 
     @Override

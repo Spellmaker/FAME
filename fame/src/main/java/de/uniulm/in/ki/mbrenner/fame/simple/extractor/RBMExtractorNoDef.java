@@ -2,6 +2,7 @@ package de.uniulm.in.ki.mbrenner.fame.simple.extractor;
 
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.Rule;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -130,7 +131,7 @@ public class RBMExtractorNoDef {
 						rules.getAxiomSignature(currentAxiom).forEach(this::addQueue);
 						module.add(currentAxiom);
 						knownNotBottom[currentAxiom] = true;
-						if(debug) System.out.println("added axiom " + rules.getObject(currentAxiom));//ClassPrinter.printAxiom((OWLAxiom) rules.lookup(currentAxiom)));
+						if(debug) System.out.println("added axiom " + OWLPrinter.getString(rules.getObject(currentAxiom)));//ClassPrinter.printAxiom((OWLAxiom) rules.lookup(currentAxiom)));
 					}
 					else{
 						/*if(head instanceof OWLAxiom){

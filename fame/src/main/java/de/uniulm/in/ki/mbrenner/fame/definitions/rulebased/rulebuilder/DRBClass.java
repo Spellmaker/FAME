@@ -2,10 +2,9 @@ package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder;
 
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleFactory;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import de.uniulm.in.ki.mbrenner.owlapiaddons.visitor.ClassVisitorAdapter;
+import de.uniulm.in.ki.mbrenner.owlapiaddons.visitor.ClassVisitorAdapterEx;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import java.util.Collections;
@@ -17,7 +16,7 @@ import java.util.Set;
  *
  * Created by Spellmaker on 13.05.2016.
  */
-class DRBClass extends OWLClassExpressionVisitorAdapter{
+class DRBClass extends ClassVisitorAdapterEx<Set<DRBRule>> {
     private final DRBRuleBuilder parent;
 
     public DRBClass(DRBRuleBuilder drbRuleBuilder) {
@@ -25,35 +24,33 @@ class DRBClass extends OWLClassExpressionVisitorAdapter{
     }
 
     @Override
-    public void visit(OWLObjectSomeValuesFrom expression){
-        expression.getFiller().accept(this);
-        Set<DRBRule> rules = new HashSet<>();
+    public Set<DRBRule> visit(OWLObjectSomeValuesFrom expression){
+        Set<DRBRule> result = new HashSet<>(expression.getFiller().accept(this));
         if(parent.botMode){
-            rules.addAll(parent.ruleBuffer.pop());
-            rules.add(DRBRuleFactory.getInternalRule(expression, expression.getProperty(), expression.getFiller()));
+            result.add(DRBRuleFactory.getInternalRule(expression, expression.getProperty(), expression.getFiller()));
         }
         else{
-            parent.ruleBuffer.pop();
-            rules.add(DRBRuleFactory.getInternalRule(expression, expression.getProperty()));
+            parent.botMode = true;
+            result.clear();
+            result.add(DRBRuleFactory.getInternalRule(expression, expression.getProperty()));
         }
-        parent.ruleBuffer.push(rules);
+        return result;
     }
 
     @Override
-    public void visit(OWLObjectIntersectionOf expression){
+    public Set<DRBRule> visit(OWLObjectIntersectionOf expression){
+        Set<DRBRule> result = new HashSet<>();
         Set<OWLClassExpression> classes = new HashSet<>();
         for(OWLClassExpression expr : expression.getOperands()){
-            expr.accept(this);
+            Set<DRBRule> tmp = expr.accept(this);
             if(parent.botMode){
                 classes.add(expr);
-            }
-            else{
-                parent.ruleBuffer.pop();
+                result.addAll(tmp);
             }
         }
 
         if(classes.isEmpty()){
-            parent.ruleBuffer.push(Collections.emptySet());
+            return result;
         }
         else{
             OWLClassExpression[] array = new OWLClassExpression[classes.size()];
@@ -61,18 +58,27 @@ class DRBClass extends OWLClassExpressionVisitorAdapter{
             for(OWLClassExpression e : classes){
                 array[pos++] = e;
             }
+            result.add(DRBRuleFactory.getInternalRule(expression, array));
 
-            Set<DRBRule> r = new HashSet<>();
-            for(int i = 0; i < classes.size(); i++) r.addAll(parent.ruleBuffer.pop());
-            r.add(DRBRuleFactory.getInternalRule(expression, array));
-
-            parent.ruleBuffer.push(r);
+            return result;
         }
     }
 
     @Override
-    public void visit(OWLClass expression){
-        parent.ruleBuffer.push(Collections.emptySet());
+    public Set<DRBRule> visit(OWLClass expression){
         parent.botMode = !expression.isTopEntity();
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Set<DRBRule> visit(OWLObjectHasValue expression){
+        parent.botMode = !expression.getProperty().isTopEntity();
+        return Collections.singleton(DRBRuleFactory.getInternalRule(expression, expression.getProperty()));
+    }
+
+    @Override
+    public Set<DRBRule> visit(OWLObjectOneOf expression){
+        parent.botMode = true;
+        return Collections.singleton(DRBRuleFactory.getInternalRule(expression));
     }
 }

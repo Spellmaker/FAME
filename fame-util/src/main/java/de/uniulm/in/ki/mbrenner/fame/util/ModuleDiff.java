@@ -89,4 +89,13 @@ public class ModuleDiff {
     private String replTempNodes(String s){
         return s.replaceAll("_:(.*)" + Pattern.quote(")"), "_:tmp)");
     }
+
+    @Override
+    public String toString(){
+        String s = "additional in set1:\n";
+        s += module1add.stream().reduce("", (x, y) -> x + y + "\n");
+        s += "additional in set2:\n";
+        s += module2add.stream().reduce("", (x, y) -> x + y + "\n");
+        return s;
+    }
 }

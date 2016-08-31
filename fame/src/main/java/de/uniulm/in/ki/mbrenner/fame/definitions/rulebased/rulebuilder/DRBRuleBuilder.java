@@ -3,7 +3,9 @@ package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleFactory;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
+import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
 import java.util.Set;
@@ -19,10 +21,9 @@ import java.util.Stack;
  */
 public class DRBRuleBuilder{
     boolean botMode;
-    Stack<Set<DRBRule>> ruleBuffer;
 
     final DRBClass classVisitor;
-    private final DRBAxiom axiomVisitor;
+    final DRBAxiom axiomVisitor;
 
     DRBRuleSet ruleSet;
 
@@ -44,19 +45,12 @@ public class DRBRuleBuilder{
     public DRBRuleSet buildRules(OWLOntology ontology){
         onto = ontology;
         ruleSet = new DRBRuleSet();
-        ruleBuffer = new Stack<>();
+        //ruleBuffer = new Stack<>();
 
         for(OWLAxiom axiom: ontology.getAxioms()){
-            axiom.accept(axiomVisitor);
+            axiom.accept(axiomVisitor).forEach(ruleSet::addRule);
         }
+
         return ruleSet;
-    }
-
-    void addRules(){
-        addRules(ruleBuffer.pop());
-    }
-
-    private void addRules(Set<DRBRule> rules){
-        rules.forEach(x -> ruleSet.addRule(x));
     }
 }

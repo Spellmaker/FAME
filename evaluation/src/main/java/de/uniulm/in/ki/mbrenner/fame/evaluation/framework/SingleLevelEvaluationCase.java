@@ -2,12 +2,14 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation.framework;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationCase;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.EvaluationMain;
+import de.uniulm.in.ki.mbrenner.fame.util.Misc;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -15,15 +17,15 @@ import java.util.concurrent.Future;
 /**
  * Created by spellmaker on 25.05.2016.
  */
-public class SingleLevelEvaluationCase<T> implements EvaluationCase {
+public class SingleLevelEvaluationCase<T extends WorkerResult> implements EvaluationCase {
     private SingleLevelWorkerFactory<T> workerFactory;
     private String parameter;
-    private String help;
+    private boolean writeComplete;
 
-    public SingleLevelEvaluationCase(SingleLevelWorkerFactory<T> workerFactory, String parameter, String help){
+    public SingleLevelEvaluationCase(SingleLevelWorkerFactory<T> workerFactory, String parameter, boolean writeComplete){
         this.workerFactory = workerFactory;
         this.parameter = parameter;
-        this.help = help;
+        this.writeComplete = writeComplete;
     }
 
     @Override
@@ -33,14 +35,16 @@ public class SingleLevelEvaluationCase<T> implements EvaluationCase {
 
     @Override
     public String getHelpLine() {
-        return help;
+        return workerFactory.getHelp();
     }
 
     public void evaluate(List<File> ontologies, List<String> options) throws Exception{
-        Path outDir = null;
-        if(!options.isEmpty()) Paths.get(options.get(0));
-        List<String> subOptions = options.size() > 1 ? options.subList(1, options.size()) : Collections.emptyList();
-
+        //locate out path
+        Path outDir = EvaluationMain.outPath.resolve(this.getParameter());
+        Files.createDirectories(outDir);
+        for(File f : outDir.toFile().listFiles()){
+            Misc.deleteFolder(f);
+        }
         EvaluationMain.out.println(workerFactory.getGreeting());
         ExecutorService pool = Executors.newFixedThreadPool(5);
 
@@ -49,7 +53,7 @@ public class SingleLevelEvaluationCase<T> implements EvaluationCase {
         for(int i = 0; i < ontologies.size(); i++){
             File cFile = ontologies.get(i);
             try {
-                Future<T> f = pool.submit(workerFactory.getWorker(cFile, subOptions));
+                Future<T> f = pool.submit(workerFactory.getWorker(cFile, options));
                 futures.add(f);
                 fileMap.put(f, cFile);
             }
@@ -58,6 +62,9 @@ public class SingleLevelEvaluationCase<T> implements EvaluationCase {
             }
         }
 
+        List<String> exceptions = new LinkedList<>();
+        List<String> lines = new LinkedList<>();
+
         while(!futures.isEmpty()){
             for(int i = 0; i < futures.size(); i++){
                 Future<T> cFuture = futures.get(i);
@@ -65,17 +72,46 @@ public class SingleLevelEvaluationCase<T> implements EvaluationCase {
                     futures.remove(i--);
                     try {
                         T res = cFuture.get();
-                        String csv = workerFactory.newResult(res, ontologies.size() - futures.size(), ontologies.size());
+                        workerFactory.newResult(res);
+                        String csv = res.toString();
+                        EvaluationMain.out.println("Finished Task " + (ontologies.size() - futures.size()) + " of " + ontologies.size());
+                        String h = res.getHeader();
+                        if(h != null) EvaluationMain.out.println(h);
+                        EvaluationMain.out.println(csv);
+                        if(lines.isEmpty()) lines.add(res.getHeader());
+                        lines.add(csv);
                         if(outDir != null) Files.write(outDir.resolve(fileMap.get(cFuture).getName()), Collections.singleton(csv));
                     }
+                    catch(ExecutionException e) {
+                        if(e.getCause() instanceof OntologySizeException){
+                            EvaluationMain.out.println(e.getCause().getMessage());
+                        }
+                        else{
+                            EvaluationMain.out.println("Task for file " + fileMap.get(cFuture) + " had errors: " + e);
+                            e.printStackTrace();
+                            exceptions.add(fileMap.get(cFuture) + ": " + e);
+                        }
+                    }
                     catch(Exception e){
-                        EvaluationMain.out.println("Task for file " + fileMap.get(cFuture) + " had errors: " + e);
+                        EvaluationMain.out.println("Task for file " + fileMap.get(cFuture) + " failed unexpectedly: " + e);
+                        e.printStackTrace();
+                        exceptions.add(fileMap.get(cFuture) + ": " + e);
                     }
                 }
             }
         }
         if(!pool.isShutdown()) pool.shutdown();
 
-        workerFactory.printFinalResult();
+
+        lines.forEach(EvaluationMain.out::println);
+        EvaluationMain.out.println("General Exceptions:");
+        exceptions.forEach(EvaluationMain.out::println);
+        if(exceptions.isEmpty()) EvaluationMain.out.println("None");
+        workerFactory.finish();
+
+        if(writeComplete && outDir != null){
+            Path p = outDir.resolve(getParameter() + "-completed.csv");
+            Files.write(p, lines);
+        }
     }
 }

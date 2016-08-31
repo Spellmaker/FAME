@@ -1,12 +1,13 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule;
 
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Represents a derivation rule for the module extraction, which also supports definitions
@@ -101,12 +102,13 @@ public class DRBRule implements Iterable<OWLObject>{
         }
 
         res += " -> " + OWLPrinter.getString(getHeadOrAxiom());
-        if(!definitions.isEmpty()){
+        res += " def: " + definitions.stream().map(DRBDefinition::toString).sorted().collect(Collectors.joining());
+        /*if(!definitions.isEmpty()){
             res += " def: ";
             for(DRBDefinition def : definitions){
                 res += def.toString();
             }
-        }
+        }*/
 
         return res;
     }

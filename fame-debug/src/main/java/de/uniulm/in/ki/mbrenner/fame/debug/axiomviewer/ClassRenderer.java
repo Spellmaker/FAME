@@ -1,6 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.debug.axiomviewer;
 
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLChars;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLChars;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;

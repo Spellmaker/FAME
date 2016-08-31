@@ -1,6 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule;
 
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.OWLObject;
 
 /**

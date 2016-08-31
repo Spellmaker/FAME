@@ -1,6 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions;
 
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectComplementOfImpl;
 
@@ -22,6 +22,10 @@ public class IndicatorClass implements OWLClass {
      */
     public IndicatorClass(OWLClassExpression clazz){
         this.clazz = clazz;
+    }
+
+    public OWLClassExpression getSourceClass(){
+        return clazz;
     }
 
     @Override
@@ -208,7 +212,7 @@ public class IndicatorClass implements OWLClass {
     @Nonnull
     @Override
     public IRI getIRI() {
-        return IRI.create("I_" + OWLPrinter.getString(clazz));
+        return IRI.create("I_{" + OWLPrinter.getString(clazz) + "}");
     }
 
     @Override

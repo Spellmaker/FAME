@@ -9,8 +9,8 @@ import de.uniulm.in.ki.mbrenner.fame.incremental.IncrementalExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleBuilder;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
-import de.uniulm.in.ki.mbrenner.fame.util.ClassCounter;
 import de.uniulm.in.ki.mbrenner.fame.util.locality.EqCorrectnessChecker;
+import de.uniulm.in.ki.mbrenner.owlapiaddons.misc.ClassCounter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 

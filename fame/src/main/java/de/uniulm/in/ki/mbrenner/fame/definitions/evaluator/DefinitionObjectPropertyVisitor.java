@@ -1,5 +1,6 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.evaluator;
 
+import de.uniulm.in.ki.mbrenner.owlapiaddons.visitor.PropertyVisitorAdapter;
 import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nonnull;
@@ -9,7 +10,7 @@ import javax.annotation.Nonnull;
  *
  * Created by spellmaker on 27.04.2016.
  */
-class DefinitionObjectPropertyVisitor implements OWLPropertyExpressionVisitor{
+class DefinitionObjectPropertyVisitor extends PropertyVisitorAdapter{
     OWLPropertyExpression currentProperty;
 
     private final DefinitionEvaluator parent;
@@ -32,20 +33,5 @@ class DefinitionObjectPropertyVisitor implements OWLPropertyExpressionVisitor{
             //currentProperty = def;
             //parent.usedDefinitions.add(owlObjectProperty);
         }
-    }
-
-    @Override
-    public void visit(@Nonnull OWLObjectInverseOf owlObjectInverseOf) {
-        //does not exist in EL
-    }
-
-    @Override
-    public void visit(@Nonnull OWLDataProperty owlDataProperty) {
-        //does not exist in EL
-    }
-
-    @Override
-    public void visit(@Nonnull OWLAnnotationProperty owlAnnotationProperty) {
-        //does not exist in EL
     }
 }

@@ -1,7 +1,10 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions;
 
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -69,6 +72,21 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     public OWLClassExpression getMapping(OWLClassExpression oce){
         if(!(oce instanceof IndicatorClass)) return null;
         return mapping.get(oce);
+    }
+
+    public boolean hasMappingReasoner(OWLReasoner reasoner, OWLClassExpression oce){
+        for(Map.Entry<IndicatorClass, OWLClassExpression> e : mapping.entrySet()){
+            if(reasoner.isEntailed(new OWLSubClassOfAxiomImpl(e.getKey().getSourceClass(), oce, Collections.emptySet()))){
+                return true;
+            }
+            Set<OWLClassExpression> eq = new HashSet<>();
+            eq.add(e.getKey().getSourceClass());
+            eq.add(oce);
+            if(reasoner.isEntailed(new OWLEquivalentClassesAxiomImpl(eq, Collections.emptySet()))){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -191,7 +209,7 @@ public class CombinedObjectProperty implements OWLObjectProperty{
     public IRI getIRI() {
         String iri = "";
         for(Map.Entry<IndicatorClass, OWLClassExpression> entry : mapping.entrySet()){
-            iri += OWLPrinter.getString(entry.getKey().getIRI()) + "_" + OWLPrinter.getString(entry.getValue());
+            iri += "COP{" + OWLPrinter.getString(entry.getKey().getIRI()) + "}_{" + OWLPrinter.getString(entry.getValue()) + "}";
         }
 
         return IRI.create(iri);

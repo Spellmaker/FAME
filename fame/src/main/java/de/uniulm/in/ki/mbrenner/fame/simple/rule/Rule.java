@@ -1,7 +1,7 @@
 package de.uniulm.in.ki.mbrenner.fame.simple.rule;
 
 import de.uniulm.in.ki.mbrenner.fame.util.ArrayIterator;
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 
 import java.util.Iterator;
 import java.util.List;
@@ -165,7 +165,7 @@ public class Rule implements Iterable<Integer>{
 		res += " -> ";
 		if(head != null) res += OWLPrinter.getString(rs.debugLookup(head));
 		else{
-			res += rs.debugLookup(axiom);
+			res += OWLPrinter.getString(rs.debugLookup(axiom));
 			if(define != null){
 				res += " def " + OWLPrinter.getString(rs.debugLookup(define));
 			}

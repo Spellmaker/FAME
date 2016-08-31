@@ -24,13 +24,23 @@ public class RuleBuilder implements OWLClassExpressionVisitor, OWLPropertyExpres
 	 */
 	public boolean printUnknown = false;
 
+	private boolean botModule = true;
+
+	public RuleBuilder(){
+		//Here for legacy reasons
+	}
+
+	public RuleBuilder(boolean botModule){
+		this.botModule = botModule;
+	}
+
 	@Override
 	public void visit(@Nonnull OWLClass ce) {
 		//ignore mode here
 		//Declaration axiom rule is added elsewhere
 		//if(!ce.isTopEntity()) ruleBuffer.add(new Rule(null, dictionary.getId(new OWLDeclarationAxiomImpl(ce, Collections.emptyList())), null, dictionary.getId(ce)));
 		//mode is now bottom, as we interpret classes with bottom
-		botMode = !ce.isTopEntity();
+		botMode = ce.isBottomEntity() || (botModule && !ce.isTopEntity());
 	}
 
 	@Override
@@ -658,11 +668,12 @@ public class RuleBuilder implements OWLClassExpressionVisitor, OWLPropertyExpres
 	@Override
 	public void visit(@Nonnull OWLSubObjectPropertyOfAxiom axiom) {
 		ruleBuffer.clear();
-		
-		axiom.getSubProperty().accept(this);
-		ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSubProperty())));
-		
-		ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
+		if(!axiom.getSuperProperty().isTopEntity()){
+			axiom.getSubProperty().accept(this);
+			ruleBuffer.add(new Rule(null, dictionary.getId(axiom), null, dictionary.getId(axiom.getSubProperty())));
+
+			ruleBuffer.forEach(x -> ruleSet.addRule(dictionary.getId(axiom), x));
+		}
 	}
 	@Override
 	public void visit(@Nonnull OWLDisjointUnionAxiom axiom) {

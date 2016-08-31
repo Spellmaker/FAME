@@ -10,7 +10,7 @@ import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBRuleBu
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.DirectLocalityExtractor;
 import de.uniulm.in.ki.mbrenner.fame.simple.extractor.RBMExtractorNoDef;
 import de.uniulm.in.ki.mbrenner.fame.simple.rule.RuleSet;
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
@@ -51,8 +51,8 @@ public class MainFrame extends JFrame{
 
         Set<OWLEntity> signature = new HashSet<>();
         //somehow obtain an entity
-        for(OWLEntity ent : o.getSignature()){
-            if(ent.toString().equals("<http://www.co-ode.org/ontologies/galen#ClinicalElectricalDischarging>")) signature.add(ent);
+        for(OWLEntity ent : o.getSignature()){//<http://www.co-ode.org/ontologies/galen#highLevel>
+            if(ent.toString().equals("<http://www.co-ode.org/ontologies/galen#highLevel>")) signature.add(ent);
         }
         RuleSet rs = new RuleBuilder().buildRules(o);
         DRBRuleSet drs = new DRBRuleBuilder().buildRules(o);
@@ -88,7 +88,8 @@ public class MainFrame extends JFrame{
         Set<OWLAxiom> defMod = def.extract(ontology.getAxioms(), signature);
 
         DirectLocalityExtractor direct = new DirectLocalityExtractor(false);
-        Set<OWLAxiom> culprits = direct.extractModule(rs, def.finalExtSignature).stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());
+        Set<OWLAxiom> culprits = new RBMExtractorNoDef().extractModule(rs, signature);
+                //direct.extractModule(rs, def.finalExtSignature).stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());
 
         culprits = culprits.stream().filter(x -> !defMod.contains(x)).collect(Collectors.toSet());
         System.out.println("loading signature " + signature + " resulted in " + culprits.size() + " axioms to examine");
@@ -103,7 +104,7 @@ public class MainFrame extends JFrame{
         Set<OWLAxiom> defMod = extractor.extractModule(drs, signature);
         Set<OWLEntity> finalSignature = defMod.stream().map(x -> x.getSignature()).flatMap(x -> x.stream()).collect(Collectors.toSet());
         Set<OWLEntity> finalExtSignature = new HashSet<>(finalSignature);
-        finalExtSignature.addAll(extractor.getDefinitions().entrySet().stream().map(x -> (OWLEntity) x.getKey()).collect(Collectors.toSet()));
+        finalExtSignature.addAll(extractor.getDefinitions().entrySet().stream().filter(x -> x.getKey() instanceof OWLEntity).map(x -> (OWLEntity) x.getKey()).collect(Collectors.toSet()));
 
         DirectLocalityExtractor direct = new DirectLocalityExtractor(false);
         Set<OWLAxiom> culprits = direct.extractModule(rs, finalExtSignature).stream().filter(x -> x instanceof OWLLogicalAxiom).collect(Collectors.toSet());

@@ -2,10 +2,8 @@ package de.uniulm.in.ki.mbrenner.fame.evaluation;
 
 import de.uniulm.in.ki.mbrenner.fame.evaluation.framework.SingleLevelEvaluationCase;
 import de.uniulm.in.ki.mbrenner.fame.evaluation.unused.RuleSizeComparison;
-import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.CurrentEvaluation;
-import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.ModulePreparation;
-import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.TestCorrectness;
-import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.TestIncrCorrectness;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.utility.*;
+import de.uniulm.in.ki.mbrenner.fame.evaluation.workers.SearchCombinedCase;
 import de.uniulm.in.ki.mbrenner.fame.util.DevNull;
 
 import java.io.File;
@@ -17,8 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Permission;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class EvaluationMain {
 	public static PrintStream out = System.out;
@@ -26,6 +26,8 @@ public class EvaluationMain {
 	public static int max_size = Integer.MAX_VALUE;
 
 	private static class ExitTrappedException extends SecurityException { }
+
+	public static final Path outPath = Paths.get("fameout");
 
 	private static void forbidSystemExitCall() {
 		final SecurityManager securityManager = new SecurityManager() {
@@ -54,15 +56,6 @@ public class EvaluationMain {
 	 * @param args command line arguments
 	 */
 	public static void main(String[] args) throws Throwable{
-		System.setOut(new DevNull());
-		if(args.length <= 0){
-			out.println("ERROR: No evaluation name provided");
-			out.println("Usage: <programname> <test> (-f <list of ontologies> | -d <directory>) -o <list of options>");
-			out.println("available tests: rule-size, module-size, rand-time, rule-gen");
-			System.exit(0);
-		}
-		//needs to be done, as some third party algorithms use system.exit
-		forbidSystemExitCall();
 		List<EvaluationCase> availableCases = new LinkedList<>();
 		availableCases.add(new RuleSizeComparison());
 		availableCases.add(new TestModuleSizes());
@@ -79,11 +72,43 @@ public class EvaluationMain {
 		availableCases.add(new SingleIncrModuleExtractionTest());
 		availableCases.add(new HySRuleGenerationTest());
 		availableCases.add(new MergeResults());
-		availableCases.add(new OntoStat());
+		availableCases.add(new SingleLevelEvaluationCase<>(new OntoStatFactory(), "stats", true));
 		availableCases.add(new DefinitionEvaluation());
-		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionTimeComparison(), "def-time", null));
-		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionSizeComparison(), "def-size", null));
-		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionCorrectness(), "def-correctness", null));
+		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionTimeComparison(), "def-time", true));
+		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionSizeComparison(), "def-size", true));
+		availableCases.add(new SingleLevelEvaluationCase<>(new DefinitionCorrectness(), "def-correctness", true));
+		availableCases.add(new SingleLevelEvaluationCase<>(new TestCompatibility(), "count", false));
+		availableCases.add(new SingleLevelEvaluationCase<>(new SearchCombinedCase(), "combinedsearch", true));
+		availableCases.add(new SingleLevelEvaluationCase<>(new InfoWorker(), "info", false));
+		availableCases.add(new GeneticEvaluation());
+
+		System.setOut(new DevNull());
+		if(args.length <= 0){
+			out.println("ERROR: No evaluation name provided");
+			out.println("Usage: <programname> <test> (-f <list of ontologies> | -d <directory>) -o <list of options>");
+			Iterator<EvaluationCase> iter = availableCases.iterator();
+			String available = "available: " + iter.next().getParameter();
+			while(iter.hasNext()) available += ", " + iter.next().getParameter();
+			out.println(available);
+			out.println("Use <programname> help <test> for more information about a specific test case");
+			System.exit(0);
+		}
+
+		if(args[0].equals("help")){
+			if(args.length < 2){
+				out.println("Usage: <programname> help <test>");
+				System.exit(0);
+			}
+			Optional<EvaluationCase> opt = availableCases.stream().filter(x -> x.getParameter().equals(args[1])).findFirst();
+			if(opt.isPresent()){
+				out.println(opt.get().getHelpLine());
+			}
+			else{
+				out.println(args[1] + ": No such evaluation case");
+			}
+			System.exit(0);
+		}
+
 
 
 		List<EvaluationCase> ec = new LinkedList<>();
@@ -176,6 +201,8 @@ public class EvaluationMain {
 		if(ec.size() == 0){
 			out.println("Could not recognize any known evaluation cases");
 		}
+		//needs to be done, as some third party algorithms use system.exit
+		forbidSystemExitCall();
 		for(EvaluationCase c : ec) {
 			try {
 				c.evaluate(ontologies, options);

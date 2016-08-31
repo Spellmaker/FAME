@@ -3,12 +3,10 @@ package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBDefinition;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRule;
 import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule.DRBRuleSet;
-import de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rulebuilder.DRBRuleBuilder;
-import de.uniulm.in.ki.mbrenner.fame.util.printer.OWLPrinter;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObject;
+import de.uniulm.in.ki.mbrenner.owlprinter.OWLPrinter;
+import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLObjectSomeValuesFromImpl;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -63,6 +61,11 @@ public class DRBExtractor{
     }
 
     private void addResponsible(OWLObject symbol, OWLObject cause){
+        if(!(cause instanceof OWLClassExpression) && symbol instanceof OWLClass){
+            System.out.println("warning: adding " + cause + " (" + cause.getClass() + ") as reason for " + symbol + "(" + symbol.getClass() + ")");
+        }
+
+
         Set<OWLObject> set = isReasonFor.get(cause);
         if(set == null){
             set = new HashSet<>();
@@ -77,7 +80,7 @@ public class DRBExtractor{
      */
     public Map<OWLObject, OWLObject> getDefinitions(){
         Map<OWLObject, OWLObject> defs = new HashMap<>();
-        isDefinedAs.entrySet().stream().filter(e -> !inSignature.contains(e.getKey())).forEach(e -> defs.put(e.getKey(), e.getValue()));
+        isDefinedAs.entrySet().stream().filter(x -> x.getKey() instanceof OWLEntity).filter(e -> !inSignature.contains(e.getKey())).forEach(e -> defs.put(e.getKey(), e.getValue()));
         return Collections.unmodifiableMap(defs);
     }
 
@@ -113,6 +116,15 @@ public class DRBExtractor{
             addSignature(e);
         }
 
+        //base module
+        for(OWLAxiom ax : rules.getBaseAxioms()){
+            rollback(ax);
+        }
+
+        for(OWLObject e : rules.getBaseEntities()){
+            addQueue(e);
+        }
+
         if(debug) System.out.println("starting extraction for sig " + OWLPrinter.getString(signature));
 
         while(!procQueue.isEmpty()){
@@ -128,11 +140,14 @@ public class DRBExtractor{
                         addQueue(cRule.head);
                     }
                     else{
+                        //if (cRule.axiom.toString().equals("SubClassOf(<http://www.co-ode.org/ontologies/galen#ModifierConcept> <http://www.co-ode.org/ontologies/galen#DomainCategory>)")) {
+                        //    System.out.println("encountered axiom");
+                        //}
                         //actually handle definitions in here
                         Set<OWLEntity> dependentOn = tryDefine(cRule);
                         extModule.add(cRule.axiom);
 
-                        if(OWLPrinter.getString(cRule.axiom).equals("ModifierConcept⊑DomainCategory") ||
+                        /*if(OWLPrinter.getString(cRule.axiom).equals("ModifierConcept⊑DomainCategory") ||
                                 OWLPrinter.getString(cRule.axiom).equals("Phenomenon⊑DomainCategory") ||
                                 OWLPrinter.getString(cRule.axiom).equals("DomainCategory⊑TopCategory")){
                             System.out.println("found special axiom " + OWLPrinter.getString(cRule.axiom));
@@ -145,14 +160,24 @@ public class DRBExtractor{
                                 else if(s.equals("TopCategory")) topCat = e;
                             }
                             System.out.println("found all");
-                        }
+                        }*/
 
                         if(dependentOn == null){
+                            //if (cRule.axiom.toString().equals("SubClassOf(<http://www.co-ode.org/ontologies/galen#ModifierConcept> <http://www.co-ode.org/ontologies/galen#DomainCategory>)")) {
+                            //    System.out.println("rollback");
+                            //}
                             if(debug) System.out.println("cannot establish definition, rolling back");
                             //roll back and re-establish a stable state
+                            //int prev = hurtInvariants;
                             rollback(cRule.axiom);
+                            //if(hurtInvariants > prev){
+                            //    System.out.println("invariant breaks at " + OWLPrinter.getString(cRule.axiom));
+                            //}
                         }
                         else{
+                            //if (cRule.axiom.toString().equals("SubClassOf(<http://www.co-ode.org/ontologies/galen#ModifierConcept> <http://www.co-ode.org/ontologies/galen#DomainCategory>)")) {
+                            //    System.out.println("def success");
+                            //}
                             if(debug) System.out.println("definition established");
                             //store definitions by adding a mapping of the defined symbol
                             //to this axiom
@@ -176,7 +201,7 @@ public class DRBExtractor{
     }
 
     private Set<OWLEntity> tryDefine(DRBRule cRule){
-        //attempt to use the definition implied by the provided rule
+        //attempt to use the definition provided by cRule
         Set<OWLEntity> dependentOn = new HashSet<>();
         //only if there even is a definition
         if(!cRule.definitions.isEmpty()){
@@ -188,13 +213,24 @@ public class DRBExtractor{
                 //find out what the symbol needs to be defined as
                 OWLObject defAs = def.definingSymbol;//def.definition.action(def.definingSymbol);
                 //resolve the definition to the definition set it belongs to
-                OWLObject defAsResolved = inSignature.contains(defAs) ? defAs : isDefinedAs.get(defAs);
+                OWLObject defAsResolved = inSignature.contains(defAs) ? defAs : DRBEval.resolve(defAs, notBot, inSignature, isDefinedAs);//isDefinedAs.get(defAs);
                 if(defAsResolved == null) defAsResolved = defAs;
                 //find out if there is already a definition for the symbol or if it is in the signature
                 OWLObject existingDef = inSignature.contains(symbol) || symbol.isTopEntity() ? symbol : isDefinedAs.get(symbol);
 
+                if(defAs instanceof OWLClassExpression && !(defAs instanceof OWLClass)) defAs.getSignature().stream().forEach(x -> addResponsible(defAs, x));
+
+                if(debug) System.out.println("\t\trequires definition of " + OWLPrinter.getString(symbol) + " as " + OWLPrinter.getString(defAsResolved));
+
+
                 if(existingDef == null){
                     //if there is no definition, make one as needed
+                    /*if(symbol instanceof OWLClassExpression && !(defAsResolved instanceof OWLClassExpression)){
+                        System.out.println("found the culprit!");
+                        System.out.println(symbol + " as " + defAsResolved);
+                    }*/
+
+                    //if(!(symbol instanceof OWLClassExpression) && defAs instanceof OWLClassExpression) System.out.println("happening: " + symbol + " " + symbol.getClass() + " " + defAs + " " + defAs.getClass());
                     isDefinedAs.put(symbol, defAsResolved);
                     addResponsible(symbol, defAs);
                 }
@@ -213,6 +249,7 @@ public class DRBExtractor{
                     }
                     else{
                         //otherwise this won't work
+                        if(debug) System.out.println("\t\tclashes with existing definitions");
                         return null;
                     }
                 }
@@ -225,6 +262,7 @@ public class DRBExtractor{
     }
 
     private void addInvariant(OWLObject o1, OWLObject o2, OWLAxiom axiom){
+        //System.out.println("adding invariant " + o1 + "==" + o2);
         Set<OWLObject> s = invariants.get(o1);
         if(s == null){
             s = new HashSet<>();
@@ -252,20 +290,34 @@ public class DRBExtractor{
         sa.add(axiom);
     }
 
+    public int hurtInvariants = 0;
+
     private boolean invariantHolds(OWLObject o1){
         //checks if the invariants for this objects hold
         Set<OWLObject> s = invariants.get(o1);
         if(s == null) return true;
 
-        boolean o1InSig = inSignature.contains(o1);
+        //boolean o1InSig = inSignature.contains(o1);
         for(OWLObject o2 : s){
-            boolean o2InSig = inSignature.contains(o2);
-            if(o1InSig && o2InSig) return false;
+            //boolean o2InSig = inSignature.contains(o2);
+            /*if(o1InSig && o2InSig){
+                //System.out.println("hurt invariant is " + o1 + " == " + o2);
+                return false;
+            }
 
-            OWLObject o1Val = o1InSig ? o1 : isDefinedAs.get(o1); o1Val = o1Val == null ? o1 : o1Val;
-            OWLObject o2Val = o2InSig ? o2 : isDefinedAs.get(o2); o2Val = o2Val == null ? o2 : o2Val;
+            OWLObject o1Val = o1InSig ? o1 : isDefinedAs.get(o1);
+            o1Val = (o1Val == null) ? o1 : o1Val;
 
-            if(!o1Val.equals(o2Val)) return false;
+            OWLObject o2Val = o2InSig ? o2 : isDefinedAs.get(o2);
+            o2Val = (o2Val == null) ? o2 : o2Val;
+
+            if(!o1Val.equals(o2Val)){
+                //System.out.println("hurt invariant is " + o1 + " == " + o2);
+                return false;
+            }*/
+            if(!DRBEval.resolve(o1, notBot, inSignature, isDefinedAs).
+                    equals(DRBEval.resolve(o2, notBot, inSignature, isDefinedAs)))
+                return false;
         }
         return true;
     }
@@ -279,7 +331,8 @@ public class DRBExtractor{
         }
     }
 
-    private Set<OWLObject> updateResponsible(OWLObject o, OWLObject def){
+    private Set<OWLObject> updateDefinitions(OWLObject o, OWLObject def){
+        if(debug) System.out.println("\tUpdating definitions for " + OWLPrinter.getString(o));
         //updates the definitions by following subsumption chains
         //and updating the pointers to the definitions
         //also returns a list of symbols, for whom the final definition
@@ -290,13 +343,32 @@ public class DRBExtractor{
             for(OWLObject other : s){
                 if(!inSignature.contains(other)) {
                     changed.add(other);
-                    isDefinedAs.put(other, def);
-                    changed.addAll(updateResponsible(other, def));
+
+                    if(other instanceof OWLClass || other instanceof OWLObjectProperty) {
+                        /*if(other instanceof OWLClassExpression && !(def instanceof OWLClassExpression)){
+                            System.out.println("found the culprit!");
+                            System.out.println(other + " " + other.getClass() + " as " + def + " " + def.getClass() + " " + o + " " + o.getClass());
+                        }*/
+                        //if(!(other instanceof OWLClassExpression) && def instanceof OWLClassExpression) System.out.println("culprit: " + other + " " + other.getClass() + " " + def + " " + def.getClass());
+                        isDefinedAs.put(other, def);
+                        if(debug) System.out.println("\t\tnew definition for " + OWLPrinter.getString(other) + " is " + OWLPrinter.getString(def));
+                        changed.addAll(updateDefinitions(other, def));
+                    }
+                    else {
+                        OWLObject val = DRBEval.resolve(other, notBot, inSignature, isDefinedAs);
+                        //if(!(other instanceof OWLClassExpression) && val instanceof OWLClassExpression) System.out.println("culprit: " + other + " " + other.getClass() + " " + val + " " + val.getClass());
+                        isDefinedAs.put(other, val);
+                        if(debug) System.out.println("\t\tnew definition for " + OWLPrinter.getString(other) + " is " + OWLPrinter.getString(val));
+                        changed.addAll(updateDefinitions(other, val));
+                    }
+
                 }
             }
         }
         return changed;
     }
+
+    //public static int hurtInvariants = 0;
 
     private void rollback(OWLAxiom axiom){
         //We assume that the provided axiom cannot be made local or stopped being local
@@ -314,15 +386,18 @@ public class DRBExtractor{
             addSignature(e);
             addQueue(e);
             isDefinedAs.remove(e);
-            changed.addAll(updateResponsible(e, e));
+            changed.add(e);
+            changed.addAll(updateDefinitions(e, e));
             Set<OWLAxiom> affectedAxioms = objectsToAxioms.get(e);
             objectsToAxioms.remove(e);
             if(affectedAxioms != null){
                 affectedAxioms.forEach(this::rollback);
             }
         }
+        if(debug) System.out.println("added axiom signature to signature");
         //verify all affected
         changed.stream().filter(o -> !invariantHolds(o)).forEach(o -> {
+            hurtInvariants++;
             Set<OWLAxiom> s = invariantAxioms.get(o);
             removeInvariant(o);
             if (s != null) {

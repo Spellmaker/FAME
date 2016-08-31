@@ -1,6 +1,14 @@
 package de.uniulm.in.ki.mbrenner.fame.definitions.rulebased.rule;
 
+import org.semanticweb.HermiT.Reasoner;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -19,6 +27,9 @@ public class DRBRuleSet implements Iterable<DRBRule>{
     private final Map<OWLObject, Set<DRBRule>> ruleMap;
     private final Set<DRBRule> baseRules;
 
+    private final Set<OWLAxiom> baseAxioms;
+    private final Set<OWLObject> baseEntities;
+
     /**
      * Default constructor
      */
@@ -26,6 +37,8 @@ public class DRBRuleSet implements Iterable<DRBRule>{
         this.rules = new HashSet<>();
         this.ruleMap = new HashMap<>();
         this.baseRules = new HashSet<>();
+        this.baseAxioms = new HashSet<>();
+        this.baseEntities = new HashSet<>();
     }
 
     /**
@@ -40,6 +53,10 @@ public class DRBRuleSet implements Iterable<DRBRule>{
         if(rule.body.isEmpty()){
             //base rule, always executed
             baseRules.add(rule);
+            if(rule.head != null)
+                baseEntities.add(rule.head);
+            else
+                baseAxioms.add(rule.axiom);
         }
         else if(rules.add(rule)){
             rule.id = rules.size() - 1;
@@ -49,6 +66,14 @@ public class DRBRuleSet implements Iterable<DRBRule>{
                 ruleMap.put(o, current);
             }
         }
+    }
+
+    public Set<OWLAxiom> getBaseAxioms(){
+        return Collections.unmodifiableSet(baseAxioms);
+    }
+
+    public Set<OWLObject> getBaseEntities(){
+        return Collections.unmodifiableSet(baseEntities);
     }
 
     /**

@@ -30,6 +30,9 @@ public class IDRBRuleSet implements Iterable<IDRBRule>, OWLDictionary{
 
     private Map<Integer, Set<Integer>> signatures;
 
+    private final Set<Integer> baseAxioms;
+    private final Set<Integer> baseEntities;
+
     /**
      * Default constructor
      */
@@ -40,9 +43,12 @@ public class IDRBRuleSet implements Iterable<IDRBRule>, OWLDictionary{
         this.dictionary = new ArrayList<>();
         this.invDictionary = new HashMap<>();
         this.signatures = new HashMap<>();
+        this.baseAxioms = new HashSet<>();
+        this.baseEntities = new HashSet<>();
 
         OWLDataFactory data = new OWLDataFactoryImpl();
         getId(data.getOWLThing());
+        getId(data.getOWLTopObjectProperty());
     }
 
     /**
@@ -57,6 +63,10 @@ public class IDRBRuleSet implements Iterable<IDRBRule>, OWLDictionary{
         if(rule.body.isEmpty()){
             //base rule, always executed
             baseRules.add(rule);
+            if(rule.head != null)
+                baseEntities.add(rule.head);
+            else
+                baseAxioms.add(rule.axiom);
         }
         else if(rules.add(rule)){
             rule.id = rules.size() - 1;
@@ -66,6 +76,14 @@ public class IDRBRuleSet implements Iterable<IDRBRule>, OWLDictionary{
                 ruleMap.put(o, current);
             }
         }
+    }
+
+    public Set<Integer> getBaseAxioms(){
+        return Collections.unmodifiableSet(baseAxioms);
+    }
+
+    public Set<Integer> getBaseEntities(){
+        return Collections.unmodifiableSet(baseEntities);
     }
 
     /**

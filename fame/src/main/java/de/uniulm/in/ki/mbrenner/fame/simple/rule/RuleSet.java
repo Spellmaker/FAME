@@ -35,10 +35,10 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 
 	private Map<Integer, List<Integer>> ruleMap;
 
-	private final Map<Integer, List<Integer>> axiomSignatures;
+	private Map<Integer, List<Integer>> axiomSignatures;
 	private List<OWLObject> dictionary;
-	private final List<Boolean> isDeclRule;
-	private final Map<OWLObject, Integer> invDictionary;
+	private List<Boolean> isDeclRule;
+	private Map<OWLObject, Integer> invDictionary;
 	private OWLObject[] arrDictionary;
 	private Boolean[] arrisDeclRule;
 	private int newCounter = 0;
@@ -54,6 +54,21 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 	 * Constructs a new rule set
 	 */
 	public RuleSet(){
+		init();
+		//the rule set always knows owl:thing
+		OWLDataFactory factory = new OWLDataFactoryImpl();
+		getId(factory.getOWLThing());
+	}
+
+	public RuleSet(boolean initDict){
+		init();
+		if(initDict){
+			OWLDataFactory factory = new OWLDataFactoryImpl();
+			getId(factory.getOWLThing());
+		}
+	}
+
+	private void init(){
 		this.ruleMap = new HashMap<>();
 		this.rules = new LinkedHashSet<>();
 		this.baseModule = new LinkedHashSet<>();
@@ -64,10 +79,6 @@ public class RuleSet implements Iterable<Rule>, OWLDictionary, RuleStorage {
 		invDictionary = new HashMap<>();
 		axiomSignatures = new HashMap<>();
 		arrDictionary = null;
-		
-		//the rule set always knows owl:thing
-		OWLDataFactory factory = new OWLDataFactoryImpl();
-		getId(factory.getOWLThing());
 	}
 
 	@Override
